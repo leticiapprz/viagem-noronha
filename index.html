@@ -372,19 +372,6 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   <div class="splash-wave"></div>
 </div>
 
-<div id="sheets-setup" style="display:none;background:var(--ocean);color:#fff;padding:12px 16px;font-size:13px;line-height:1.5;position:fixed;top:0;left:0;right:0;z-index:200;">
-  <div style="max-width:800px;margin:0 auto;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <strong><i class="ti ti-cloud"></i> Conectar ao Google Sheets</strong>
-      <button onclick="document.getElementById('sheets-setup').style.display='none'" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">✕</button>
-    </div>
-    <p style="opacity:.85;margin-bottom:8px;">Cole a URL do seu Google Apps Script para sincronizar os dados entre dispositivos:</p>
-    <div style="display:flex;gap:8px;">
-      <input id="sheets-url-input" type="text" placeholder="https://script.google.com/macros/s/..." style="flex:1;padding:8px 12px;border:none;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;">
-      <button onclick="saveSheetUrl()" style="background:var(--coral);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Conectar</button>
-    </div>
-  </div>
-</div>
 <div id="sync-indicator" style="position:fixed;top:8px;right:12px;z-index:150;font-size:11px;font-weight:600;"></div>
 
 <nav class="bottom-nav">
@@ -402,7 +389,6 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   <div class="hero">
     <h1>Nordeste agosto 2026</h1>
     <p>Leticia + Camila · 2 passageiros</p>
-    <button onclick="document.getElementById('sheets-setup').style.display='block'" style="margin-top:10px;background:rgba(255,255,255,.2);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;"><i class="ti ti-cloud"></i> Configurar sincronização</button>
   </div>
 
   <div class="card">
@@ -558,9 +544,8 @@ function enterPlanner(){
 }
 
 const LS = 'viagem-noronha-';
-const SHEETS_URL = localStorage.getItem(LS+'sheets-url') || 'https://script.google.com/macros/s/AKfycbyUkJpHPjBKy8EXy1EZ-Ik9RRV7N5_82eY0tPKOR2msOxmcXsArp9n_EfRaugQekJ-_tA/exec';
+const FB = 'https://viagem-noronha-default-rtdb.firebaseio.com';
 let syncTimer = null;
-let syncQueue = [];
 
 function lsGet(k,d){const v=localStorage.getItem(LS+k);return v!==null?v:d;}
 function lsSet(k,v){localStorage.setItem(LS+k,v);}
@@ -571,54 +556,51 @@ function showSync(state){
   if(!el)return;
   if(state==='syncing'){el.innerHTML='<i class="ti ti-cloud"></i> Salvando...';el.style.color='var(--coral)';}
   else if(state==='ok'){el.innerHTML='<i class="ti ti-cloud"></i> Sincronizado';el.style.color='var(--green)';}
-  else if(state==='error'){el.innerHTML='<i class="ti ti-alert-triangle"></i> Erro ao sincronizar';el.style.color='var(--coral)';}
+  else if(state==='error'){el.innerHTML='<i class="ti ti-alert-triangle"></i> Erro';el.style.color='var(--coral)';}
   else{el.textContent='';}
 }
 
-function sheetPost(payload){
-  if(!SHEETS_URL)return;
+function fbWrite(path,data){
   showSync('syncing');
-  var xhr=new XMLHttpRequest();
-  xhr.open('POST',SHEETS_URL);
-  xhr.setRequestHeader('Content-Type','text/plain;charset=utf-8');
-  xhr.onload=function(){showSync('ok');setTimeout(()=>showSync(''),3000);};
-  xhr.onerror=function(){showSync('error');};
-  xhr.send(JSON.stringify(payload));
+  fetch(FB+'/'+path+'.json',{method:'PUT',body:JSON.stringify(data)})
+    .then(()=>{showSync('ok');setTimeout(()=>showSync(''),2000);})
+    .catch(()=>showSync('error'));
+}
+
+function fbPatch(path,data){
+  showSync('syncing');
+  fetch(FB+'/'+path+'.json',{method:'PATCH',body:JSON.stringify(data)})
+    .then(()=>{showSync('ok');setTimeout(()=>showSync(''),2000);})
+    .catch(()=>showSync('error'));
 }
 
 function syncGasto(id,field,value){
   lsSet('gasto-'+field+'-'+id,value);
-  if(!SHEETS_URL)return;
   clearTimeout(syncTimer);
-  syncQueue.push({action:'update-gasto',id,field,value});
-  syncTimer=setTimeout(()=>{
-    syncQueue.forEach(q=>sheetPost(q));
-    syncQueue=[];
-  },1500);
+  syncTimer=setTimeout(function(){
+    var obj={};obj[field]=value;
+    fbPatch('gastos/'+id,obj);
+  },1000);
 }
 
 function syncDiaDia(dia,gasto){
   lsSet('day-gasto-'+dia,gasto);
-  if(!SHEETS_URL)return;
-  sheetPost({action:'update-diadia',dia:String(dia),gasto});
+  fbWrite('diadia/'+dia,{gasto:gasto});
 }
 
 function syncChecklist(item,marcado){
-  if(!SHEETS_URL)return;
-  sheetPost({action:'update-checklist',item,marcado});
+  var key=item.replace(/[^a-zA-Z0-9]/g,'_');
+  fbWrite('checklist/'+key,{item:item,marcado:marcado});
 }
 
-function pullFromSheets(){
-  if(!SHEETS_URL)return Promise.resolve();
-  return fetch(SHEETS_URL)
+function pullFromFirebase(){
+  return fetch(FB+'/.json')
     .then(r=>r.json())
     .then(data=>{
+      if(!data)return;
       if(data.gastos){
-        const allIds=[];
-        expenses.forEach(cat=>cat.items.forEach(it=>allIds.push(it.id)));
-        data.gastos.forEach((g,i)=>{
-          const id=g.id||allIds[i];
-          if(!id)return;
+        Object.keys(data.gastos).forEach(id=>{
+          var g=data.gastos[id];
           if(g.gastoReal) localStorage.setItem(LS+'gasto-real-'+id,g.gastoReal);
           if(g.quemPagou) localStorage.setItem(LS+'gasto-quem-'+id,g.quemPagou);
           if(g.deveAlguem) localStorage.setItem(LS+'gasto-deve-'+id,g.deveAlguem);
@@ -626,24 +608,23 @@ function pullFromSheets(){
         });
       }
       if(data.diadia){
-        data.diadia.forEach((d,i)=>{
-          if(d.gasto) localStorage.setItem(LS+'day-gasto-'+i,d.gasto);
+        Object.keys(data.diadia).forEach(i=>{
+          if(data.diadia[i].gasto) localStorage.setItem(LS+'day-gasto-'+i,data.diadia[i].gasto);
         });
       }
       if(data.checklist){
-        data.checklist.forEach((c,i)=>{
-          localStorage.setItem(LS+'check-'+i,String(c.marcado));
+        var checkKeys=Object.keys(data.checklist);
+        checkKeys.forEach((key,i)=>{
+          localStorage.setItem(LS+'check-'+i,String(data.checklist[key].marcado));
         });
       }
       if(data.compras){
-        const items=data.compras.map(l=>({text:l.item,checked:l.checked==='Sim'||l.checked===true}));
-        localStorage.setItem(LS+'lista-compras',JSON.stringify(items));
+        localStorage.setItem(LS+'lista-compras',JSON.stringify(data.compras));
       }
       if(data.resolver){
-        const items=data.resolver.map(l=>({text:l.item,checked:l.checked==='Sim'||l.checked===true}));
-        localStorage.setItem(LS+'lista-resolver',JSON.stringify(items));
+        localStorage.setItem(LS+'lista-resolver',JSON.stringify(data.resolver));
       }
-      showSync('ok');setTimeout(()=>showSync(''),3000);
+      showSync('ok');setTimeout(()=>showSync(''),2000);
     })
     .catch(()=>showSync('error'));
 }
@@ -950,7 +931,8 @@ function removeListaItem(cat,i){
 function syncLista(){
   var compras=JSON.parse(lsGet('lista-compras','[]'));
   var resolver=JSON.parse(lsGet('lista-resolver','[]'));
-  sheetPost({action:'update-lista',compras:compras,resolver:resolver});
+  fbWrite('compras',compras);
+  fbWrite('resolver',resolver);
 }
 
 buildLista();
@@ -1249,63 +1231,37 @@ function calcular(){
     </div>`;
 }
 
-// SHEETS SETUP
-function saveSheetUrl(){
-  const url=document.getElementById('sheets-url-input').value.trim();
-  if(!url){alert('Cole a URL do Apps Script');return;}
-  localStorage.setItem(LS+'sheets-url',url);
-  document.getElementById('sheets-setup').style.display='none';
-  alert('Conectado! Recarregue a página para sincronizar.');
-  location.reload();
-}
+// FIREBASE SYNC — pull on load, rebuild UI
 function pushDefaults(){
-  if(!SHEETS_URL)return;
-  const gastosData=[];
+  var gastosObj={};
   expenses.forEach(cat=>{
     cat.items.forEach(it=>{
-      gastosData.push({
-        id:it.id,
-        categoria:cat.cat,
-        item:it.name,
-        previsto:it.prev,
+      gastosObj[it.id]={
         gastoReal:lsGet('gasto-real-'+it.id,''),
         quemPagou:lsGet('gasto-quem-'+it.id,it.quem),
         deveAlguem:lsGet('gasto-deve-'+it.id,it.deve),
         pago:lsGet('gasto-pago-'+it.id,'Não')
-      });
+      };
     });
   });
-  const diadiaData=days.map((d,i)=>({
-    dia:String(i+1),
-    data:d.title,
-    gasto:lsGet('day-gasto-'+i,'')
-  }));
-  const checkData=checklistItems.map((c,i)=>({
-    item:c,
-    marcado:lsBool('check-'+i,false)
-  }));
-  sheetPost({
-    action:'init',
-    gastos:gastosData,
-    diadia:diadiaData,
-    checklist:checkData
-  });
-  localStorage.setItem(LS+'initial-push-v4','done');
+  fbWrite('gastos',gastosObj);
+  var compras=JSON.parse(lsGet('lista-compras','[]'));
+  var resolver=JSON.parse(lsGet('lista-resolver','[]'));
+  if(compras.length) fbWrite('compras',compras);
+  if(resolver.length) fbWrite('resolver',resolver);
+  localStorage.setItem(LS+'fb-push-v1','done');
 }
 
-if(SHEETS_URL){
-  document.getElementById('sheets-url-input').value=SHEETS_URL;
-  if(localStorage.getItem(LS+'initial-push-v4')!=='done'){
-    pushDefaults();
-  }
-  pullFromSheets().then(()=>{
-    document.getElementById('gastos').innerHTML='';
-    buildGastos();
-    document.getElementById('diadia').innerHTML='';
-    buildDiaDia();
-    buildLista();
-  });
+if(localStorage.getItem(LS+'fb-push-v1')!=='done'){
+  pushDefaults();
 }
+pullFromFirebase().then(()=>{
+  document.getElementById('gastos').innerHTML='';
+  buildGastos();
+  document.getElementById('diadia').innerHTML='';
+  buildDiaDia();
+  buildLista();
+});
 </script>
 </body>
 </html>
