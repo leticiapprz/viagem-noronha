@@ -826,43 +826,6 @@ var checkFilter='all';
 function buildDiaDia(){
   const c=document.getElementById('diadia');
   let h='<h2>Dia a dia · Noronha</h2>';
-  // checklist
-  const clOpen=lsBool('checklist-open',false);
-  var items=getChecklist();
-  var done=items.filter(function(x){return x.checked;}).length;
-  h+=`<button class="checklist-toggle" onclick="toggleChecklist()"><i class="ti ti-clipboard-list"></i> Checklist ${done}/${items.length} <span id="cl-chevron">${clOpen?'▲':'▼'}</span></button>`;
-  h+=`<div class="checklist-grid${clOpen?' open':''}" id="checklist-grid" style="display:${clOpen?'block':'none'};">`;
-  // tag filters
-  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">';
-  h+=`<button onclick="checkFilter='all';buildDiaDia();" style="padding:4px 10px;border-radius:16px;font-size:.75rem;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid ${checkFilter==='all'?'var(--ocean)':'var(--sand-dark)'};background:${checkFilter==='all'?'var(--ocean)':'var(--white)'};color:${checkFilter==='all'?'#fff':'var(--text)'};-webkit-tap-highlight-color:transparent;">Todos</button>`;
-  Object.keys(checkTags).forEach(function(k){
-    var t=checkTags[k];
-    var active=checkFilter===k;
-    h+=`<button onclick="checkFilter='${k}';buildDiaDia();" style="padding:4px 10px;border-radius:16px;font-size:.75rem;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid ${active?t.color:'var(--sand-dark)'};background:${active?t.color:'var(--white)'};color:${active?'#fff':'var(--text)'};-webkit-tap-highlight-color:transparent;">${t.label}</button>`;
-  });
-  h+='</div>';
-  // add new
-  h+='<div style="display:flex;gap:6px;margin-bottom:12px;">';
-  h+='<input type="text" id="check-new-input" onkeydown="if(event.key===\'Enter\')addCheckItem()" placeholder="Novo item..." style="flex:1;border:1px solid var(--sand-dark);border-radius:8px;padding:8px 10px;font-size:.85rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
-  h+='<select id="check-new-tag" style="border:1px solid var(--sand-dark);border-radius:8px;padding:4px 8px;font-size:.8rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
-  Object.keys(checkTags).forEach(function(k){h+=`<option value="${k}">${checkTags[k].label}</option>`;});
-  h+='</select>';
-  h+=`<button onclick="addCheckItem()" style="background:var(--ocean);color:#fff;border:none;border-radius:8px;padding:0 12px;font-size:1rem;cursor:pointer;min-width:40px;min-height:40px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-plus"></i></button>`;
-  h+='</div>';
-  // items
-  var filtered=items.map(function(it,i){return{it:it,idx:i};}).filter(function(x){return checkFilter==='all'||x.it.tag===checkFilter;});
-  filtered.forEach(function(x){
-    var it=x.it,i=x.idx,t=checkTags[it.tag]||checkTags.outro;
-    h+=`<div style="background:var(--white);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);${it.checked?'opacity:.5;':''}border-left:3px solid ${t.color};">`;
-    h+=`<input type="checkbox" ${it.checked?'checked':''} onchange="toggleCheck(${i})" style="width:20px;height:20px;accent-color:var(--green);flex-shrink:0;">`;
-    h+=`<div style="flex:1;min-width:0;">`;
-    h+=`<input type="text" value="${it.text.replace(/"/g,'&quot;')}" onchange="editCheckText(${i},this.value)" style="width:100%;border:none;background:transparent;font-size:.9rem;font-family:'DM Sans',sans-serif;color:var(--text);padding:0;${it.checked?'text-decoration:line-through;color:var(--text-light);':''}">`;
-    h+=`<span style="font-size:.65rem;color:${t.color};font-weight:600;text-transform:uppercase;letter-spacing:.03em;">${t.label}</span>`;
-    h+=`</div>`;
-    h+=`<button onclick="removeCheck(${i})" style="background:none;border:none;color:var(--coral);font-size:1rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;flex-shrink:0;"><i class="ti ti-trash"></i></button>`;
-    h+=`</div>`;
-  });
-  h+='</div>';
   // days
   days.forEach((day,i)=>{
     const isOpen=lsBool('day-open-'+i,i===0);
@@ -892,7 +855,7 @@ function toggleDay(i){
 }
 function toggleCheck(i){
   var items=getChecklist();items[i].checked=!items[i].checked;
-  saveChecklist(items);buildDiaDia();
+  saveChecklist(items);buildLista();
 }
 function editCheckText(i,val){
   var items=getChecklist();items[i].text=val;
@@ -900,7 +863,7 @@ function editCheckText(i,val){
 }
 function removeCheck(i){
   var items=getChecklist();items.splice(i,1);
-  saveChecklist(items);buildDiaDia();
+  saveChecklist(items);buildLista();
 }
 function addCheckItem(){
   var inp=document.getElementById('check-new-input');
@@ -908,15 +871,8 @@ function addCheckItem(){
   var text=inp.value.trim();if(!text)return;
   var items=getChecklist();
   items.push({text:text,tag:tag.value,checked:false});
-  saveChecklist(items);buildDiaDia();
+  saveChecklist(items);buildLista();
   lsSet('checklist-open',true);
-}
-function toggleChecklist(){
-  const g=document.getElementById('checklist-grid');
-  const isOpen=g.style.display==='none';
-  g.style.display=isOpen?'block':'none';
-  document.getElementById('cl-chevron').textContent=isOpen?'▲':'▼';
-  lsSet('checklist-open',isOpen);
 }
 
 // MARÉS
@@ -952,9 +908,50 @@ var listaCats=[
   {key:'resolver',label:'Resolver / organizar / nao esquecer',icon:'ti-clipboard-list',color:'var(--coral)'}
 ];
 
+function buildChecklist(){
+  var items=getChecklist();
+  var done=items.filter(function(x){return x.checked;}).length;
+  var h='<div style="margin-bottom:28px;">';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><i class="ti ti-clipboard-list" style="color:var(--ocean);font-size:18px;"></i><span style="font-weight:700;color:var(--ocean);font-size:1rem;">Checklist da viagem</span>';
+  h+='<span style="font-size:.75rem;color:var(--text-light);margin-left:auto;">'+done+'/'+items.length+'</span></div>';
+  // tag filters
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">';
+  h+='<button onclick="checkFilter=\'all\';buildLista();" style="padding:4px 10px;border-radius:16px;font-size:.75rem;font-family:\'DM Sans\',sans-serif;cursor:pointer;border:1px solid '+(checkFilter==='all'?'var(--ocean)':'var(--sand-dark)')+';background:'+(checkFilter==='all'?'var(--ocean)':'var(--white)')+';color:'+(checkFilter==='all'?'#fff':'var(--text)')+';-webkit-tap-highlight-color:transparent;">Todos</button>';
+  Object.keys(checkTags).forEach(function(k){
+    var t=checkTags[k],active=checkFilter===k;
+    h+='<button onclick="checkFilter=\''+k+'\';buildLista();" style="padding:4px 10px;border-radius:16px;font-size:.75rem;font-family:\'DM Sans\',sans-serif;cursor:pointer;border:1px solid '+(active?t.color:'var(--sand-dark)')+';background:'+(active?t.color:'var(--white)')+';color:'+(active?'#fff':'var(--text)')+';-webkit-tap-highlight-color:transparent;">'+t.label+'</button>';
+  });
+  h+='</div>';
+  // add new
+  h+='<div style="display:flex;gap:6px;margin-bottom:10px;">';
+  h+='<input type="text" id="check-new-input" onkeydown="if(event.key===\'Enter\')addCheckItem()" placeholder="Novo item..." style="flex:1;border:1px solid var(--sand-dark);border-radius:8px;padding:8px 10px;font-size:.85rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
+  h+='<select id="check-new-tag" style="border:1px solid var(--sand-dark);border-radius:8px;padding:4px 8px;font-size:.8rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
+  Object.keys(checkTags).forEach(function(k){h+='<option value="'+k+'">'+checkTags[k].label+'</option>';});
+  h+='</select>';
+  h+='<button onclick="addCheckItem()" style="background:var(--ocean);color:#fff;border:none;border-radius:8px;padding:0 12px;font-size:1rem;cursor:pointer;min-width:40px;min-height:40px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-plus"></i></button>';
+  h+='</div>';
+  // items
+  var filtered=items.map(function(it,i){return{it:it,idx:i};}).filter(function(x){return checkFilter==='all'||x.it.tag===checkFilter;});
+  filtered.forEach(function(x){
+    var it=x.it,i=x.idx,t=checkTags[it.tag]||checkTags.outro;
+    h+='<div style="background:var(--white);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);'+(it.checked?'opacity:.5;':'')+'border-left:3px solid '+t.color+';">';
+    h+='<input type="checkbox" '+(it.checked?'checked':'')+' onchange="toggleCheck('+i+')" style="width:20px;height:20px;accent-color:var(--green);flex-shrink:0;">';
+    h+='<div style="flex:1;min-width:0;">';
+    h+='<input type="text" value="'+it.text.replace(/"/g,'&quot;')+'" onchange="editCheckText('+i+',this.value)" style="width:100%;border:none;background:transparent;font-size:.9rem;font-family:\'DM Sans\',sans-serif;color:var(--text);padding:0;'+(it.checked?'text-decoration:line-through;color:var(--text-light);':'')+'">';
+    h+='<span style="font-size:.65rem;color:'+t.color+';font-weight:600;text-transform:uppercase;letter-spacing:.03em;">'+t.label+'</span>';
+    h+='</div>';
+    h+='<button onclick="removeCheck('+i+')" style="background:none;border:none;color:var(--coral);font-size:1rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;flex-shrink:0;"><i class="ti ti-trash"></i></button>';
+    h+='</div>';
+  });
+  h+='</div>';
+  return h;
+}
+
 function buildLista(){
   const c=document.getElementById('lista');
   let h='<h2>Listas</h2>';
+  h+=buildChecklist();
+  h+='<div style="height:1px;background:var(--sand-dark);margin:20px 0;"></div>';
   listaCats.forEach(function(cat){
     const items=JSON.parse(lsGet('lista-'+cat.key,'[]'));
     const done=items.filter(function(x){return x.checked;}).length;
