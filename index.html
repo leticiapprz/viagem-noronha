@@ -737,12 +737,10 @@ const expenses=[
 function togglePago(btn){
   const id=btn.dataset.pagoId;
   const isNowPago=!btn.classList.contains('active');
-  btn.classList.toggle('active',isNowPago);
-  btn.innerHTML=isNowPago?'<i class="ti ti-check"></i> Pago':'<i class="ti ti-square"></i> Pago?';
-  btn.closest('.expense-card').classList.toggle('pago',isNowPago);
   const val=isNowPago?'Sim':'Não';
   lsSet('gasto-pago-'+id,val);
   syncGasto(id,'pago',val);
+  buildGastos();
 }
 
 function calcSaldo(){
@@ -808,17 +806,31 @@ function buildGastos(){
       const deveVal=lsGet('gasto-deve-'+it.id,it.deve);
       const pagoVal=lsGet('gasto-pago-'+it.id,'Não');
       const isPago=pagoVal==='Sim';
-      h+=`<div class="expense-card${isPago?' pago':''}">
-        <div class="exp-top">
-          <div><div class="exp-name">${it.name}</div><div class="exp-prev">Previsto: ${it.prev}</div></div>
-          <button class="pago-btn${isPago?' active':''}" data-pago-id="${it.id}" onclick="togglePago(this)">${isPago?'<i class="ti ti-check"></i> Pago':'<i class="ti ti-square"></i> Pago?'}</button>
-        </div>
-        <div class="exp-fields">
-          <div class="exp-field"><label>Gasto real</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="gastoReal" data-ls="gasto-real-${it.id}" value="${realVal}" placeholder="R$..."></div>
-          <div class="exp-field"><label>Quem pagou</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="quemPagou" data-ls="gasto-quem-${it.id}" value="${quemVal}"></div>
-          <div class="exp-field"><label>Deve alguém?</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="deveAlguem" data-ls="gasto-deve-${it.id}" value="${deveVal}"></div>
-        </div>
-      </div>`;
+      if(isPago){
+        h+=`<div class="expense-card pago" style="padding:10px 14px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="pago-btn active" data-pago-id="${it.id}" onclick="togglePago(this)" style="padding:4px 10px;font-size:.75rem;"><i class="ti ti-check"></i> Pago</button>
+            <span class="exp-name" style="font-size:.85rem;margin:0;">${it.name}</span>
+            <span style="margin-left:auto;font-size:.8rem;color:var(--text-light);">${realVal||it.prev}</span>
+          </div>
+          <div style="font-size:.7rem;color:var(--text-light);margin-top:4px;display:flex;gap:12px;">
+            <span>${quemVal?'Pagou: '+quemVal:''}</span>
+            <span>${deveVal}</span>
+          </div>
+        </div>`;
+      } else {
+        h+=`<div class="expense-card">
+          <div class="exp-top">
+            <div><div class="exp-name">${it.name}</div><div class="exp-prev">Previsto: ${it.prev}</div></div>
+            <button class="pago-btn" data-pago-id="${it.id}" onclick="togglePago(this)"><i class="ti ti-square"></i> Pago?</button>
+          </div>
+          <div class="exp-fields">
+            <div class="exp-field"><label>Gasto real</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="gastoReal" data-ls="gasto-real-${it.id}" value="${realVal}" placeholder="R$..."></div>
+            <div class="exp-field"><label>Quem pagou</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="quemPagou" data-ls="gasto-quem-${it.id}" value="${quemVal}"></div>
+            <div class="exp-field"><label>Deve alguém?</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="deveAlguem" data-ls="gasto-deve-${it.id}" value="${deveVal}"></div>
+          </div>
+        </div>`;
+      }
     });
   });
   c.innerHTML=h;
