@@ -635,9 +635,13 @@ function pullFromSheets(){
           localStorage.setItem(LS+'check-'+i,String(c.marcado));
         });
       }
-      if(data.lista){
-        const items=data.lista.map(l=>({text:l.item,checked:l.checked==='Sim'||l.checked===true}));
-        localStorage.setItem(LS+'lista',JSON.stringify(items));
+      if(data.compras){
+        const items=data.compras.map(l=>({text:l.item,checked:l.checked==='Sim'||l.checked===true}));
+        localStorage.setItem(LS+'lista-compras',JSON.stringify(items));
+      }
+      if(data.resolver){
+        const items=data.resolver.map(l=>({text:l.item,checked:l.checked==='Sim'||l.checked===true}));
+        localStorage.setItem(LS+'lista-resolver',JSON.stringify(items));
       }
       showSync('ok');setTimeout(()=>showSync(''),3000);
     })
@@ -878,61 +882,75 @@ function buildMares(){
 buildMares();
 
 // LISTA DE COMPRAS
+var listaCats=[
+  {key:'compras',label:'Comprar',icon:'ti-shopping-cart',color:'var(--ocean)'},
+  {key:'resolver',label:'Resolver / organizar / nao esquecer',icon:'ti-clipboard-list',color:'var(--coral)'}
+];
+
 function buildLista(){
   const c=document.getElementById('lista');
-  const items=JSON.parse(lsGet('lista','[]'));
-  let h='<h2>Lista de compras</h2>';
-  h+='<div style="display:flex;gap:8px;margin-bottom:16px;">';
-  h+='<input type="text" id="lista-input" placeholder="Adicionar item..." style="flex:1;border:1px solid var(--sand-dark);border-radius:8px;padding:10px 12px;font-size:.9rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:44px;">';
-  h+='<button onclick="addListaItem()" style="background:var(--ocean);color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:1.2rem;cursor:pointer;min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent;"><i class=\"ti ti-plus\"></i></button>';
-  h+='</div>';
-  items.forEach((item,i)=>{
-    h+='<div class="lista-item'+(item.checked?' checked':'')+'" style="background:var(--white);border-radius:var(--radius);padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);'+(item.checked?'opacity:.5;':'')+'">';
-    h+='<input type="checkbox" '+(item.checked?'checked':'')+' onchange="toggleListaItem('+i+')" style="width:20px;height:20px;accent-color:var(--green);flex-shrink:0;">';
-    h+='<span style="flex:1;font-size:.95rem;'+(item.checked?'text-decoration:line-through;color:var(--text-light);':'')+'">'+item.text+'</span>';
-    h+='<button onclick="removeListaItem('+i+')" style="background:none;border:none;color:var(--coral);font-size:1.1rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;"><i class=\"ti ti-trash\"></i></button>';
+  let h='<h2>Listas</h2>';
+  listaCats.forEach(function(cat){
+    const items=JSON.parse(lsGet('lista-'+cat.key,'[]'));
+    const done=items.filter(function(x){return x.checked;}).length;
+    h+='<div style="margin-bottom:24px;">';
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><i class="ti '+cat.icon+'" style="color:'+cat.color+';font-size:18px;"></i><span style="font-weight:700;color:'+cat.color+';font-size:1rem;">'+cat.label+'</span>';
+    if(items.length>0) h+='<span style="font-size:.75rem;color:var(--text-light);margin-left:auto;">'+done+'/'+items.length+'</span>';
+    h+='</div>';
+    h+='<div style="display:flex;gap:8px;margin-bottom:10px;">';
+    h+='<input type="text" id="input-'+cat.key+'" placeholder="Adicionar..." style="flex:1;border:1px solid var(--sand-dark);border-radius:8px;padding:10px 12px;font-size:.9rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:44px;">';
+    h+='<button onclick="addListaItem(\''+cat.key+'\')" style="background:'+cat.color+';color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:1.2rem;cursor:pointer;min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;"><i class="ti ti-plus"></i></button>';
+    h+='</div>';
+    items.forEach(function(item,i){
+      h+='<div style="background:var(--white);border-radius:var(--radius);padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);'+(item.checked?'opacity:.5;':'')+'">';
+      h+='<input type="checkbox" '+(item.checked?'checked':'')+' onchange="toggleListaItem(\''+cat.key+'\','+i+')" style="width:20px;height:20px;accent-color:var(--green);flex-shrink:0;">';
+      h+='<span style="flex:1;font-size:.95rem;'+(item.checked?'text-decoration:line-through;color:var(--text-light);':'')+'">'+item.text+'</span>';
+      h+='<button onclick="removeListaItem(\''+cat.key+'\','+i+')" style="background:none;border:none;color:var(--coral);font-size:1.1rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-trash"></i></button>';
+      h+='</div>';
+    });
+    if(items.length===0) h+='<div style="text-align:center;padding:20px;color:var(--text-light);font-size:.85rem;">Nenhum item ainda</div>';
     h+='</div>';
   });
-  if(items.length===0){
-    h+='<div style="text-align:center;padding:32px;color:var(--text-light);font-size:.9rem;">Nenhum item ainda</div>';
-  }
   c.innerHTML=h;
-  setTimeout(()=>{
-    const inp=document.getElementById('lista-input');
-    if(inp) inp.addEventListener('keydown',e=>{if(e.key==='Enter')addListaItem();});
+  setTimeout(function(){
+    listaCats.forEach(function(cat){
+      var inp=document.getElementById('input-'+cat.key);
+      if(inp) inp.addEventListener('keydown',function(e){if(e.key==='Enter')addListaItem(cat.key);});
+    });
   },0);
 }
 
-function addListaItem(){
-  const inp=document.getElementById('lista-input');
-  const text=inp.value.trim();
+function addListaItem(cat){
+  var inp=document.getElementById('input-'+cat);
+  var text=inp.value.trim();
   if(!text)return;
-  const items=JSON.parse(lsGet('lista','[]'));
-  items.push({text,checked:false});
-  lsSet('lista',JSON.stringify(items));
+  var items=JSON.parse(lsGet('lista-'+cat,'[]'));
+  items.push({text:text,checked:false});
+  lsSet('lista-'+cat,JSON.stringify(items));
   buildLista();
   syncLista();
 }
 
-function toggleListaItem(i){
-  const items=JSON.parse(lsGet('lista','[]'));
+function toggleListaItem(cat,i){
+  var items=JSON.parse(lsGet('lista-'+cat,'[]'));
   items[i].checked=!items[i].checked;
-  lsSet('lista',JSON.stringify(items));
+  lsSet('lista-'+cat,JSON.stringify(items));
   buildLista();
   syncLista();
 }
 
-function removeListaItem(i){
-  const items=JSON.parse(lsGet('lista','[]'));
+function removeListaItem(cat,i){
+  var items=JSON.parse(lsGet('lista-'+cat,'[]'));
   items.splice(i,1);
-  lsSet('lista',JSON.stringify(items));
+  lsSet('lista-'+cat,JSON.stringify(items));
   buildLista();
   syncLista();
 }
 
 function syncLista(){
-  const items=JSON.parse(lsGet('lista','[]'));
-  sheetPost({action:'update-lista',items});
+  var compras=JSON.parse(lsGet('lista-compras','[]'));
+  var resolver=JSON.parse(lsGet('lista-resolver','[]'));
+  sheetPost({action:'update-lista',compras:compras,resolver:resolver});
 }
 
 buildLista();

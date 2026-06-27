@@ -20,9 +20,10 @@ function doGet() {
   var diadia = getOrCreateSheet('Dia a Dia', ['Dia', 'Data', 'Gasto do Dia']);
   var checklist = getOrCreateSheet('Checklist', ['Item', 'Marcado']);
 
-  var lista = getOrCreateSheet('Lista', ['Item', 'Comprado?']);
+  var compras = getOrCreateSheet('Compras', ['Item', 'Comprado?']);
+  var resolver = getOrCreateSheet('Resolver', ['Item', 'Feito?']);
 
-  var result = { gastos: [], diadia: [], checklist: [], lista: [] };
+  var result = { gastos: [], diadia: [], checklist: [], compras: [], resolver: [] };
 
   var gData = gastos.getDataRange().getValues();
   for (var i = 1; i < gData.length; i++) {
@@ -55,9 +56,14 @@ function doGet() {
     });
   }
 
-  var lData = lista.getDataRange().getValues();
-  for (var i = 1; i < lData.length; i++) {
-    result.lista.push({ item: lData[i][0], checked: lData[i][1] });
+  var cmpData = compras.getDataRange().getValues();
+  for (var i = 1; i < cmpData.length; i++) {
+    result.compras.push({ item: cmpData[i][0], checked: cmpData[i][1] });
+  }
+
+  var resData = resolver.getDataRange().getValues();
+  for (var i = 1; i < resData.length; i++) {
+    result.resolver.push({ item: resData[i][0], checked: resData[i][1] });
   }
 
   return ContentService.createTextOutput(JSON.stringify(result))
@@ -143,11 +149,17 @@ function doPost(e) {
   }
 
   if (action === 'update-lista') {
-    var lista = getOrCreateSheet('Lista', ['Item', 'Comprado?']);
-    if (lista.getLastRow() > 1) lista.getRange(2, 1, lista.getLastRow() - 1, 2).clearContent();
-    var items = payload.items;
-    for (var i = 0; i < items.length; i++) {
-      lista.appendRow([items[i].text, items[i].checked ? 'Sim' : 'Não']);
+    var compras = getOrCreateSheet('Compras', ['Item', 'Comprado?']);
+    var resolver = getOrCreateSheet('Resolver', ['Item', 'Feito?']);
+    if (compras.getLastRow() > 1) compras.getRange(2, 1, compras.getLastRow() - 1, 2).clearContent();
+    if (resolver.getLastRow() > 1) resolver.getRange(2, 1, resolver.getLastRow() - 1, 2).clearContent();
+    var cItems = payload.compras || [];
+    for (var i = 0; i < cItems.length; i++) {
+      compras.appendRow([cItems[i].text, cItems[i].checked ? 'Sim' : 'Não']);
+    }
+    var rItems = payload.resolver || [];
+    for (var i = 0; i < rItems.length; i++) {
+      resolver.appendRow([rItems[i].text, rItems[i].checked ? 'Sim' : 'Não']);
     }
     return ContentService.createTextOutput(JSON.stringify({ok: true})).setMimeType(ContentService.MimeType.JSON);
   }
