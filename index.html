@@ -1009,14 +1009,13 @@ function showDay(dayNum){
     coords.push([s.lat,s.lng]);
   });
 
-  if(dayNum>0&&coords.length>1){
-    var route=L.polyline(coords,{color:'var(--ocean)',weight:3,opacity:.5,dashArray:'6 4'}).addTo(tripMap);
-    mapRoutes.push(route);
-  }
-
   if(coords.length>0){
     var group=L.featureGroup(mapMarkers);
     tripMap.fitBounds(group.getBounds().pad(0.15));
+  }
+
+  if(dayNum>0&&coords.length>1){
+    fetchRoute(spots);
   }
 
   // Stats
@@ -1065,6 +1064,32 @@ function showDay(dayNum){
       }
     }
   });
+}
+
+function fetchRoute(spots){
+  var walkSegs=[],driveSegs=[];
+  for(var i=0;i<spots.length-1;i++){
+    var seg={from:spots[i],to:spots[i+1]};
+    if(spots[i+1].mode==='walk') walkSegs.push(seg); else driveSegs.push(seg);
+  }
+  function drawSegs(segs,color,dash,profile){
+    segs.forEach(function(seg){
+      var coordStr=seg.from.lng+','+seg.from.lat+';'+seg.to.lng+','+seg.to.lat;
+      var url='https://router.project-osrm.org/route/v1/'+profile+'/'+coordStr+'?overview=full&geometries=geojson';
+      fetch(url).then(function(r){return r.json();}).then(function(data){
+        if(data.routes&&data.routes[0]){
+          var geom=data.routes[0].geometry.coordinates.map(function(c){return[c[1],c[0]];});
+          var line=L.polyline(geom,{color:color,weight:4,opacity:.7,dashArray:dash}).addTo(tripMap);
+          mapRoutes.push(line);
+        }
+      }).catch(function(){
+        var fallback=L.polyline([[seg.from.lat,seg.from.lng],[seg.to.lat,seg.to.lng]],{color:color,weight:3,opacity:.4,dashArray:'4 6'}).addTo(tripMap);
+        mapRoutes.push(fallback);
+      });
+    });
+  }
+  drawSegs(driveSegs,'#1A5F7A',null,'driving');
+  drawSegs(walkSegs,'#2D6A4F','6 4','foot');
 }
 
 function filterDay(d){
