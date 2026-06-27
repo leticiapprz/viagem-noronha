@@ -592,6 +592,7 @@ function switchTab(tabId){
   document.getElementById(tabId).classList.add('active');
   window.scrollTo(0,0);
   history.replaceState(null,null,'#'+tabId);
+  if(tabId==='mapa')setTimeout(function(){if(typeof buildMapa==='function')buildMapa();},150);
 }
 document.querySelectorAll('.nav-btn').forEach(btn=>{
   btn.addEventListener('click',function(e){e.preventDefault();switchTab(this.dataset.tab);});
@@ -1071,12 +1072,7 @@ function filterDay(d){
   buildMapa();
 }
 
-// Init map when tab becomes visible
-var origSwitch=switchTab;
-switchTab=function(tabId){
-  origSwitch(tabId);
-  if(tabId==='mapa')setTimeout(buildMapa,100);
-};
+// map init is handled inside switchTab
 
 // AUTO-SAVE all inputs
 document.addEventListener('input',e=>{
