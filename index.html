@@ -863,14 +863,26 @@ function toggleDay(i){
   chev.classList.toggle('open',isOpen);
   lsSet('day-open-'+i,isOpen);
 }
+var editingIdx=-1;
+
+function startEdit(i){
+  editingIdx=i;buildLista();
+}
+function saveEdit(i){
+  var items=getChecklist();
+  var text=document.getElementById('edit-text-'+i).value.trim();
+  var tag=document.getElementById('edit-tag-'+i).value;
+  if(text) items[i].text=text;
+  items[i].tag=tag;
+  saveChecklist(items);
+  editingIdx=-1;buildLista();
+}
+
 function toggleCheck(i){
   var items=getChecklist();items[i].checked=!items[i].checked;
   saveChecklist(items);buildLista();
 }
-function editCheckText(i,val){
-  var items=getChecklist();items[i].text=val;
-  saveChecklist(items);
-}
+
 function removeCheck(i){
   var items=getChecklist();items.splice(i,1);
   saveChecklist(items);buildLista();
@@ -913,117 +925,55 @@ function buildMares(){
 buildMares();
 
 // LISTA DE COMPRAS
-var listaCats=[
-  {key:'compras',label:'Comprar',icon:'ti-shopping-cart',color:'var(--ocean)'},
-  {key:'resolver',label:'Resolver / organizar / nao esquecer',icon:'ti-clipboard-list',color:'var(--coral)'}
-];
-
-function buildChecklist(){
+function buildLista(){
+  var c=document.getElementById('lista');
   var items=getChecklist();
   var done=items.filter(function(x){return x.checked;}).length;
-  var h='<div style="margin-bottom:28px;">';
-  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><i class="ti ti-clipboard-list" style="color:var(--ocean);font-size:18px;"></i><span style="font-weight:700;color:var(--ocean);font-size:1rem;">Checklist da viagem</span>';
-  h+='<span style="font-size:.75rem;color:var(--text-light);margin-left:auto;">'+done+'/'+items.length+'</span></div>';
+  var h='<h2>Lista <span style="font-weight:400;font-size:.85rem;color:var(--text-light);">'+done+'/'+items.length+'</span></h2>';
   // tag filters
-  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">';
-  h+='<button onclick="checkFilter=\'all\';buildLista();" style="padding:4px 10px;border-radius:16px;font-size:.75rem;font-family:\'DM Sans\',sans-serif;cursor:pointer;border:1px solid '+(checkFilter==='all'?'var(--ocean)':'var(--sand-dark)')+';background:'+(checkFilter==='all'?'var(--ocean)':'var(--white)')+';color:'+(checkFilter==='all'?'#fff':'var(--text)')+';-webkit-tap-highlight-color:transparent;">Todos</button>';
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">';
+  h+='<button onclick="checkFilter=\'all\';buildLista();" style="padding:5px 12px;border-radius:16px;font-size:.8rem;font-family:\'DM Sans\',sans-serif;cursor:pointer;border:1px solid '+(checkFilter==='all'?'var(--ocean)':'var(--sand-dark)')+';background:'+(checkFilter==='all'?'var(--ocean)':'var(--white)')+';color:'+(checkFilter==='all'?'#fff':'var(--text)')+';-webkit-tap-highlight-color:transparent;">Todos</button>';
   Object.keys(checkTags).forEach(function(k){
     var t=checkTags[k],active=checkFilter===k;
-    h+='<button onclick="checkFilter=\''+k+'\';buildLista();" style="padding:4px 10px;border-radius:16px;font-size:.75rem;font-family:\'DM Sans\',sans-serif;cursor:pointer;border:1px solid '+(active?t.color:'var(--sand-dark)')+';background:'+(active?t.color:'var(--white)')+';color:'+(active?'#fff':'var(--text)')+';-webkit-tap-highlight-color:transparent;">'+t.label+'</button>';
+    var count=items.filter(function(x){return x.tag===k;}).length;
+    h+='<button onclick="checkFilter=\''+k+'\';buildLista();" style="padding:5px 12px;border-radius:16px;font-size:.8rem;font-family:\'DM Sans\',sans-serif;cursor:pointer;border:1px solid '+(active?t.color:'var(--sand-dark)')+';background:'+(active?t.color:'var(--white)')+';color:'+(active?'#fff':'var(--text)')+';-webkit-tap-highlight-color:transparent;">'+t.label+' ('+count+')</button>';
   });
   h+='</div>';
   // add new
-  h+='<div style="display:flex;gap:6px;margin-bottom:10px;">';
-  h+='<input type="text" id="check-new-input" onkeydown="if(event.key===\'Enter\')addCheckItem()" placeholder="Novo item..." style="flex:1;border:1px solid var(--sand-dark);border-radius:8px;padding:8px 10px;font-size:.85rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
-  h+='<select id="check-new-tag" style="border:1px solid var(--sand-dark);border-radius:8px;padding:4px 8px;font-size:.8rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
+  h+='<div style="display:flex;gap:6px;margin-bottom:14px;">';
+  h+='<input type="text" id="check-new-input" onkeydown="if(event.key===\'Enter\')addCheckItem()" placeholder="Novo item..." style="flex:1;border:1px solid var(--sand-dark);border-radius:8px;padding:8px 10px;font-size:.85rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:44px;">';
+  h+='<select id="check-new-tag" style="border:1px solid var(--sand-dark);border-radius:8px;padding:4px 8px;font-size:.8rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:44px;">';
   Object.keys(checkTags).forEach(function(k){h+='<option value="'+k+'">'+checkTags[k].label+'</option>';});
   h+='</select>';
-  h+='<button onclick="addCheckItem()" style="background:var(--ocean);color:#fff;border:none;border-radius:8px;padding:0 12px;font-size:1rem;cursor:pointer;min-width:40px;min-height:40px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-plus"></i></button>';
+  h+='<button onclick="addCheckItem()" style="background:var(--ocean);color:#fff;border:none;border-radius:8px;padding:0 14px;font-size:1.1rem;cursor:pointer;min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-plus"></i></button>';
   h+='</div>';
   // items
   var filtered=items.map(function(it,i){return{it:it,idx:i};}).filter(function(x){return checkFilter==='all'||x.it.tag===checkFilter;});
   filtered.forEach(function(x){
     var it=x.it,i=x.idx,t=checkTags[it.tag]||checkTags.outro;
-    h+='<div style="background:var(--white);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);'+(it.checked?'opacity:.5;':'')+'border-left:3px solid '+t.color+';">';
+    var editing=editingIdx===i;
+    h+='<div style="background:var(--white);border-radius:8px;padding:10px 12px;margin-bottom:6px;box-shadow:var(--shadow);'+(it.checked?'opacity:.5;':'')+'border-left:3px solid '+t.color+';">';
+    h+='<div style="display:flex;align-items:center;gap:8px;">';
     h+='<input type="checkbox" '+(it.checked?'checked':'')+' onchange="toggleCheck('+i+')" style="width:20px;height:20px;accent-color:var(--green);flex-shrink:0;">';
-    h+='<div style="flex:1;min-width:0;">';
-    h+='<input type="text" value="'+it.text.replace(/"/g,'&quot;')+'" onchange="editCheckText('+i+',this.value)" style="width:100%;border:none;background:transparent;font-size:.9rem;font-family:\'DM Sans\',sans-serif;color:var(--text);padding:0;'+(it.checked?'text-decoration:line-through;color:var(--text-light);':'')+'">';
-    h+='<span style="font-size:.65rem;color:'+t.color+';font-weight:600;text-transform:uppercase;letter-spacing:.03em;">'+t.label+'</span>';
+    h+='<span style="flex:1;font-size:.9rem;'+(it.checked?'text-decoration:line-through;color:var(--text-light);':'')+'">'+it.text+'</span>';
+    h+='<span style="font-size:.65rem;color:'+t.color+';font-weight:600;text-transform:uppercase;padding:2px 6px;background:'+t.color+'15;border-radius:4px;">'+t.label+'</span>';
+    h+='<button onclick="startEdit('+i+')" style="background:none;border:none;color:var(--ocean);font-size:.95rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-pencil"></i></button>';
+    h+='<button onclick="removeCheck('+i+')" style="background:none;border:none;color:var(--coral);font-size:.95rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-trash"></i></button>';
     h+='</div>';
-    h+='<button onclick="removeCheck('+i+')" style="background:none;border:none;color:var(--coral);font-size:1rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;flex-shrink:0;"><i class="ti ti-trash"></i></button>';
-    h+='</div>';
-  });
-  h+='</div>';
-  return h;
-}
-
-function buildLista(){
-  const c=document.getElementById('lista');
-  let h='<h2>Listas</h2>';
-  h+=buildChecklist();
-  h+='<div style="height:1px;background:var(--sand-dark);margin:20px 0;"></div>';
-  listaCats.forEach(function(cat){
-    const items=JSON.parse(lsGet('lista-'+cat.key,'[]'));
-    const done=items.filter(function(x){return x.checked;}).length;
-    h+='<div style="margin-bottom:24px;">';
-    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><i class="ti '+cat.icon+'" style="color:'+cat.color+';font-size:18px;"></i><span style="font-weight:700;color:'+cat.color+';font-size:1rem;">'+cat.label+'</span>';
-    if(items.length>0) h+='<span style="font-size:.75rem;color:var(--text-light);margin-left:auto;">'+done+'/'+items.length+'</span>';
-    h+='</div>';
-    h+='<div style="display:flex;gap:8px;margin-bottom:10px;">';
-    h+='<input type="text" id="input-'+cat.key+'" placeholder="Adicionar..." style="flex:1;border:1px solid var(--sand-dark);border-radius:8px;padding:10px 12px;font-size:.9rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:44px;">';
-    h+='<button onclick="addListaItem(\''+cat.key+'\')" style="background:'+cat.color+';color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:1.2rem;cursor:pointer;min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;"><i class="ti ti-plus"></i></button>';
-    h+='</div>';
-    items.forEach(function(item,i){
-      h+='<div style="background:var(--white);border-radius:var(--radius);padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);'+(item.checked?'opacity:.5;':'')+'">';
-      h+='<input type="checkbox" '+(item.checked?'checked':'')+' onchange="toggleListaItem(\''+cat.key+'\','+i+')" style="width:20px;height:20px;accent-color:var(--green);flex-shrink:0;">';
-      h+='<span style="flex:1;font-size:.95rem;'+(item.checked?'text-decoration:line-through;color:var(--text-light);':'')+'">'+item.text+'</span>';
-      h+='<button onclick="removeListaItem(\''+cat.key+'\','+i+')" style="background:none;border:none;color:var(--coral);font-size:1.1rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-trash"></i></button>';
+    if(editing){
+      h+='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--sand);display:flex;gap:6px;flex-wrap:wrap;">';
+      h+='<input type="text" id="edit-text-'+i+'" value="'+it.text.replace(/"/g,'&quot;')+'" style="flex:1;min-width:150px;border:1px solid var(--sand-dark);border-radius:8px;padding:8px 10px;font-size:.85rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
+      h+='<select id="edit-tag-'+i+'" style="border:1px solid var(--sand-dark);border-radius:8px;padding:4px 8px;font-size:.8rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
+      Object.keys(checkTags).forEach(function(k){h+='<option value="'+k+'"'+(it.tag===k?' selected':'')+'>'+checkTags[k].label+'</option>';});
+      h+='</select>';
+      h+='<button onclick="saveEdit('+i+')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:0 12px;font-size:.85rem;cursor:pointer;min-height:40px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-check"></i> Salvar</button>';
+      h+='<button onclick="editingIdx=-1;buildLista();" style="background:none;border:1px solid var(--sand-dark);border-radius:8px;padding:0 12px;font-size:.85rem;cursor:pointer;min-height:40px;color:var(--text-light);-webkit-tap-highlight-color:transparent;">Cancelar</button>';
       h+='</div>';
-    });
-    if(items.length===0) h+='<div style="text-align:center;padding:20px;color:var(--text-light);font-size:.85rem;">Nenhum item ainda</div>';
+    }
     h+='</div>';
   });
+  if(filtered.length===0) h+='<div style="text-align:center;padding:24px;color:var(--text-light);font-size:.85rem;">Nenhum item nessa categoria</div>';
   c.innerHTML=h;
-  setTimeout(function(){
-    listaCats.forEach(function(cat){
-      var inp=document.getElementById('input-'+cat.key);
-      if(inp) inp.addEventListener('keydown',function(e){if(e.key==='Enter')addListaItem(cat.key);});
-    });
-  },0);
-}
-
-function addListaItem(cat){
-  var inp=document.getElementById('input-'+cat);
-  var text=inp.value.trim();
-  if(!text)return;
-  var items=JSON.parse(lsGet('lista-'+cat,'[]'));
-  items.push({text:text,checked:false});
-  lsSet('lista-'+cat,JSON.stringify(items));
-  buildLista();
-  syncLista();
-}
-
-function toggleListaItem(cat,i){
-  var items=JSON.parse(lsGet('lista-'+cat,'[]'));
-  items[i].checked=!items[i].checked;
-  lsSet('lista-'+cat,JSON.stringify(items));
-  buildLista();
-  syncLista();
-}
-
-function removeListaItem(cat,i){
-  var items=JSON.parse(lsGet('lista-'+cat,'[]'));
-  items.splice(i,1);
-  lsSet('lista-'+cat,JSON.stringify(items));
-  buildLista();
-  syncLista();
-}
-
-function syncLista(){
-  var compras=JSON.parse(lsGet('lista-compras','[]'));
-  var resolver=JSON.parse(lsGet('lista-resolver','[]'));
-  fbWrite('compras',compras);
-  fbWrite('resolver',resolver);
 }
 
 buildLista();
