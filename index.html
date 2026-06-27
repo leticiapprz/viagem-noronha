@@ -224,19 +224,29 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 
 /* DESKTOP */
 @media(min-width:768px){
-  body { padding-bottom:0; padding-top:64px; }
+  body { padding-bottom:0; padding-left:220px; }
   .bottom-nav {
-    top:0; bottom:auto; height:56px; border-top:none;
-    border-bottom:1px solid var(--sand-dark);
-    box-shadow:0 2px 12px rgba(0,0,0,0.06);
-    max-width:100%;
+    position:fixed; top:0; left:0; bottom:0; right:auto;
+    width:220px; height:100vh;
+    flex-direction:column; justify-content:flex-start;
+    border-top:none; border-right:1px solid var(--sand-dark);
+    box-shadow:2px 0 12px rgba(0,0,0,0.06);
+    padding:24px 0 16px;
+    gap:2px;
   }
-  .nav-btn { flex-direction:row; gap:6px; font-size:13px; }
+  .nav-btn {
+    flex-direction:row; gap:10px; font-size:14px;
+    justify-content:flex-start; padding:12px 20px;
+    border-radius:0; min-height:auto;
+  }
   .nav-btn .icon { font-size:18px; }
-  .tab-content { padding:24px; max-width:860px; }
+  .nav-btn.active {
+    background:rgba(26,95,122,.08);
+    border-right:3px solid var(--ocean);
+  }
+  .tab-content { padding:28px 32px; max-width:900px; }
   .exp-fields { flex-direction:row; gap:10px; }
   .exp-field { flex:1; }
-  .checklist-grid.open { grid-template-columns:1fr 1fr 1fr; }
   .hero { padding:40px 32px; }
   .hero h1 { font-size:2.4rem; }
 }
