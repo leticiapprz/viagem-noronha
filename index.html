@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Nordeste Agosto 2025 · Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/tabler-icons.min.css">
 <style>
 :root {
   --ocean: #1A5F7A;
@@ -31,7 +32,7 @@ body {
   min-height: 100vh;
   padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
-h1,h2,h3 { font-family: 'DM Serif Display', serif; color: var(--ocean); }
+h1,h2,h3 { font-family: 'DM Sans', sans-serif; font-weight: 700; color: var(--ocean); }
 h1 { font-size: 1.8rem; }
 h2 { font-size: 1.35rem; margin-bottom: 12px; }
 h3 { font-size: 1.1rem; margin-bottom: 8px; }
@@ -71,7 +72,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 }
 .card-header {
   display:flex; align-items:center; gap:8px; margin-bottom:10px;
-  font-family:'DM Serif Display',serif; color:var(--ocean); font-size:1.1rem;
+  font-family:'DM Sans',sans-serif; font-weight:700; color:var(--ocean); font-size:1.1rem;
 }
 
 /* HERO */
@@ -109,7 +110,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 
 /* GASTOS TAB */
 .cat-header {
-  font-family:'DM Serif Display',serif; color:var(--ocean);
+  font-family:'DM Sans',sans-serif; font-weight:700; color:var(--ocean);
   font-size:1.05rem; padding:12px 0 6px; border-bottom:2px solid var(--ocean);
   margin-bottom:8px; margin-top:16px;
 }
@@ -142,7 +143,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 .calc-btn {
   width:100%; padding:16px; border:none; border-radius:var(--radius);
   background:var(--ocean); color:var(--white); font-size:1.1rem;
-  font-family:'DM Serif Display',serif; cursor:pointer;
+  font-family:'DM Sans',sans-serif; font-weight:700; cursor:pointer;
   transition: background .2s;
 }
 .calc-btn:active { background:var(--ocean-light); }
@@ -150,7 +151,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   background:var(--white); border-radius:var(--radius); padding:24px;
   margin-top:16px; box-shadow:var(--shadow); text-align:center;
 }
-.calc-result .amount { font-size:2rem; font-family:'DM Serif Display',serif; color:var(--coral); margin:12px 0 4px; }
+.calc-result .amount { font-size:2rem; font-family:'DM Sans',sans-serif; font-weight:700; color:var(--coral); margin:12px 0 4px; }
 .calc-result .label { color:var(--text-light); font-size:.9rem; }
 .calc-detail { font-size:.9rem; color:var(--text-light); margin-top:12px; text-align:left; }
 .calc-detail div { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--sand); }
@@ -162,7 +163,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 }
 .day-header {
   padding:14px 16px; cursor:pointer; display:flex; justify-content:space-between;
-  align-items:center; font-family:'DM Serif Display',serif; color:var(--ocean);
+  align-items:center; font-family:'DM Sans',sans-serif; font-weight:700; color:var(--ocean);
   font-size:1.05rem; user-select:none;
 }
 .day-header .chevron { transition:transform .2s; font-size:1.2rem; }
@@ -253,7 +254,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 .splash > * { position:relative; z-index:1; }
 .splash.hidden { opacity:0; transform:translateY(-30px); pointer-events:none; }
 .splash-title {
-  font-family:'DM Serif Display',serif; font-size:2.2rem; line-height:1.15;
+  font-family:'DM Sans',sans-serif; font-weight:700; font-size:2.2rem; line-height:1.15;
   margin-bottom:8px; color:#fff;
 }
 .splash-sub { font-size:1rem; opacity:.8; margin-bottom:32px; line-height:1.5; max-width:320px; }
@@ -266,7 +267,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   border:1px solid rgba(255,255,255,.15);
 }
 .splash-num {
-  font-family:'DM Serif Display',serif; font-size:2rem; line-height:1; display:block;
+  font-family:'DM Sans',sans-serif; font-weight:700; font-size:2rem; line-height:1; display:block;
 }
 .splash-label { font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; opacity:.7; margin-top:4px; display:block; }
 .splash-msg {
@@ -282,7 +283,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 }
 .splash-btn:active { transform:scale(.96); background:rgba(255,255,255,.3); }
 .splash-faltam { font-size:1.1rem; opacity:.9; letter-spacing:.02em; }
-.splash-faltam span { font-family:'DM Serif Display',serif; font-size:2.8rem; display:block; margin:4px 0; }
+.splash-faltam span { font-family:'DM Sans',sans-serif; font-weight:700; font-size:2.8rem; display:block; margin:4px 0; }
 
 /* PHOTOS STRIP */
 .photos-strip {
@@ -316,7 +317,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   <div class="splash-countdown" id="countdown"></div>
   <div class="splash-msg">
     te amo e to ansiosa pra ver sua versão bochecha vermelhinha de sol,
-    nadando um montão e com todos os dentinhos aparecendo! ❤️
+    nadando um montão e com todos os dentinhos aparecendo! <i class="ti ti-heart" style="color:#e85d75"></i>
   </div>
   <button class="splash-btn" onclick="enterPlanner()">Abrir planner →</button>
   <div class="photos-strip">
@@ -335,7 +336,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <div id="sheets-setup" style="display:none;background:var(--ocean);color:#fff;padding:12px 16px;font-size:13px;line-height:1.5;position:fixed;top:0;left:0;right:0;z-index:200;">
   <div style="max-width:800px;margin:0 auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <strong>☁️ Conectar ao Google Sheets</strong>
+      <strong><i class="ti ti-cloud"></i> Conectar ao Google Sheets</strong>
       <button onclick="document.getElementById('sheets-setup').style.display='none'" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">✕</button>
     </div>
     <p style="opacity:.85;margin-bottom:8px;">Cole a URL do seu Google Apps Script para sincronizar os dados entre dispositivos:</p>
@@ -348,11 +349,12 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <div id="sync-indicator" style="position:fixed;top:8px;right:12px;z-index:150;font-size:11px;font-weight:600;"></div>
 
 <nav class="bottom-nav">
-  <button class="nav-btn active" data-tab="roteiro"><span class="icon">🗺</span>Roteiro</button>
-  <button class="nav-btn" data-tab="gastos"><span class="icon">💰</span>Gastos</button>
-  <button class="nav-btn" data-tab="calc"><span class="icon">🧮</span>Calculadora</button>
-  <button class="nav-btn" data-tab="diadia"><span class="icon">☀️</span>Dia a dia</button>
-  <button class="nav-btn" data-tab="mares"><span class="icon">🌊</span>Marés</button>
+  <button class="nav-btn active" data-tab="roteiro"><span class="icon"><i class="ti ti-map-2"></i></span>Roteiro</button>
+  <button class="nav-btn" data-tab="gastos"><span class="icon"><i class="ti ti-wallet"></i></span>Gastos</button>
+  <button class="nav-btn" data-tab="calc"><span class="icon"><i class="ti ti-calculator"></i></span>Calculadora</button>
+  <button class="nav-btn" data-tab="diadia"><span class="icon"><i class="ti ti-sun"></i></span>Dia a dia</button>
+  <button class="nav-btn" data-tab="mares"><span class="icon"><i class="ti ti-ripple"></i></span>Marés</button>
+  <button class="nav-btn" data-tab="lista"><span class="icon"><i class="ti ti-shopping-cart"></i></span>Lista</button>
 </nav>
 
 <!-- TAB 1: ROTEIRO -->
@@ -360,11 +362,11 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   <div class="hero">
     <h1>Nordeste agosto 2025</h1>
     <p>Leticia + Camila · 2 passageiros</p>
-    <button onclick="document.getElementById('sheets-setup').style.display='block'" style="margin-top:10px;background:rgba(255,255,255,.2);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;">☁️ Configurar sincronização</button>
+    <button onclick="document.getElementById('sheets-setup').style.display='block'" style="margin-top:10px;background:rgba(255,255,255,.2);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;"><i class="ti ti-cloud"></i> Configurar sincronização</button>
   </div>
 
   <div class="card">
-    <div class="card-header">✈️ Voos</div>
+    <div class="card-header"><i class="ti ti-plane"></i> Voos</div>
     <div class="item-row">
       <div class="item-label">GRU → Fernando de Noronha</div>
       <div class="item-detail">LATAM LA3828 · seg 10/ago · 07:40–12:35 · sem escala</div>
@@ -385,7 +387,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   </div>
 
   <div class="card">
-    <div class="card-header">🏨 Hospedagens</div>
+    <div class="card-header"><i class="ti ti-building"></i> Hospedagens</div>
     <div class="item-row">
       <div class="item-label">Pousada Alvorada · Noronha</div>
       <div class="item-detail">10–19/ago · 9 noites · café incluído</div>
@@ -409,7 +411,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   </div>
 
   <div class="card">
-    <div class="card-header">🚗 Transporte</div>
+    <div class="card-header"><i class="ti ti-car"></i> Transporte</div>
     <div class="item-row">
       <div class="item-label">Aluguel de carro Recife→Maceió</div>
       <div class="item-detail">VW Polo · 19–25/ago · 9 diárias · Camila pagou</div>
@@ -452,6 +454,9 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <!-- TAB 5: MARÉS -->
 <div id="mares" class="tab-content"></div>
 
+<!-- TAB 6: LISTA -->
+<div id="lista" class="tab-content"></div>
+
 <script>
 // SPLASH BACKGROUND
 const fotos=['foto1.jpg','foto2.png','foto3.jpg'];
@@ -465,7 +470,7 @@ function updateCountdown(){
   const el=document.getElementById('countdown');
   const d=Math.floor(Math.abs(diff)/86400000);
   if(diff<=0){
-    el.innerHTML='<div class="splash-faltam">há <span>'+d+'</span> dias na nossa aventura ✈️</div>';
+    el.innerHTML='<div class="splash-faltam">há <span>'+d+'</span> dias na nossa aventura <i class="ti ti-plane"></i></div>';
     return;
   }
   el.innerHTML='<div class="splash-faltam">faltam <span>'+d+'</span> dias</div>';
@@ -490,9 +495,9 @@ function lsBool(k,d){const v=localStorage.getItem(LS+k);return v!==null?v==='tru
 function showSync(state){
   const el=document.getElementById('sync-indicator');
   if(!el)return;
-  if(state==='syncing'){el.textContent='☁️ Salvando...';el.style.color='var(--coral)';}
-  else if(state==='ok'){el.textContent='☁️ Sincronizado';el.style.color='var(--green)';}
-  else if(state==='error'){el.textContent='⚠️ Erro ao sincronizar';el.style.color='var(--coral)';}
+  if(state==='syncing'){el.innerHTML='<i class="ti ti-cloud"></i> Salvando...';el.style.color='var(--coral)';}
+  else if(state==='ok'){el.innerHTML='<i class="ti ti-cloud"></i> Sincronizado';el.style.color='var(--green)';}
+  else if(state==='error'){el.innerHTML='<i class="ti ti-alert-triangle"></i> Erro ao sincronizar';el.style.color='var(--coral)';}
   else{el.textContent='';}
 }
 
@@ -556,6 +561,10 @@ function pullFromSheets(){
           localStorage.setItem(LS+'check-'+i,String(c.marcado));
         });
       }
+      if(data.lista){
+        const items=data.lista.map(l=>({text:l.item,checked:l.checked==='Sim'||l.checked===true}));
+        localStorage.setItem(LS+'lista',JSON.stringify(items));
+      }
       showSync('ok');setTimeout(()=>showSync(''),3000);
     })
     .catch(()=>showSync('error'));
@@ -589,33 +598,33 @@ if(location.hash && location.hash!=='#roteiro'){
 
 // GASTOS DATA
 const expenses=[
-  {cat:'✈️ Voos',items:[
+  {cat:'<i class="ti ti-plane"></i> Voos',items:[
     {id:'voo-gru-fen',name:'GRU → FEN',prev:'R$1.264,00',quem:'Camila',deve:'Leticia deve R$632'},
     {id:'voo-fen-rec',name:'FEN → REC',prev:'R$112,40',quem:'Camila',deve:'Leticia deve R$56,20'},
     {id:'voo-mcz-cgh',name:'MCZ → CGH',prev:'R$710,54',quem:'Camila',deve:'Leticia deve R$355,27'},
   ]},
-  {cat:'🏨 Hospedagens',items:[
+  {cat:'<i class="ti ti-building"></i> Hospedagens',items:[
     {id:'hosp-alvorada',name:'Pousada Alvorada',prev:'R$4.500',quem:'Leticia',deve:'Camila deve R$2.250'},
     {id:'hosp-unpaso',name:'Un Paso del Mar',prev:'R$568',quem:'Leticia',deve:'Camila deve R$284'},
     {id:'hosp-villa',name:'Villa Marceneiro',prev:'R$1.326',quem:'Camila',deve:'Leticia deve R$663'},
     {id:'hosp-wave',name:'Wave Suítes',prev:'R$752,58',quem:'Leticia',deve:'Camila deve R$376,29'},
   ]},
-  {cat:'🚗 Transporte',items:[
+  {cat:'<i class="ti ti-car"></i> Transporte',items:[
     {id:'transp-carro',name:'Aluguel de carro',prev:'R$1.505,87',quem:'Camila',deve:'Leticia deve R$752,94'},
     {id:'transp-noronha',name:'Transporte Noronha',prev:'~R$1.300',quem:'',deve:''},
   ]},
-  {cat:'🏝️ Taxas',items:[
+  {cat:'<i class="ti ti-beach"></i> Taxas',items:[
     {id:'taxa-tpa',name:'TPA',prev:'R$1.650,38',quem:'cada uma paga a sua',deve:''},
     {id:'taxa-icmbio',name:'ICMBio',prev:'R$384',quem:'cada uma paga a sua',deve:''},
   ]},
-  {cat:'🍽️ Alimentação',items:[
+  {cat:'<i class="ti ti-tools-kitchen-2"></i> Alimentação',items:[
     {id:'alim-noronha',name:'Noronha 9 dias',prev:'~R$1.800',quem:'',deve:''},
     {id:'alim-porto',name:'Porto de Galinhas 2d',prev:'~R$400',quem:'',deve:''},
     {id:'alim-camara',name:'Camarajibe 5d',prev:'~R$750',quem:'',deve:''},
     {id:'alim-maceio',name:'Maceió 2d',prev:'~R$400',quem:'',deve:''},
     {id:'alim-transito',name:'Trânsito',prev:'~R$350',quem:'',deve:''},
   ]},
-  {cat:'🤿 Passeios',items:[
+  {cat:'<i class="ti ti-scuba-diving"></i> Passeios',items:[
     {id:'pas-barco',name:'Barco Noronha',prev:'~R$400',quem:'',deve:''},
     {id:'pas-snorkel',name:'Snorkeling/mergulho',prev:'~R$400',quem:'',deve:''},
     {id:'pas-jangada',name:'Jangada Porto de Galinhas',prev:'~R$200',quem:'',deve:''},
@@ -624,7 +633,7 @@ const expenses=[
     {id:'pas-zemaria',name:'Zé Maria',prev:'R$821,72',quem:'',deve:''},
     {id:'pas-barco2',name:'Barco Noronha',prev:'~R$400',quem:'',deve:''},
   ]},
-  {cat:'📦 Extras',items:[
+  {cat:'<i class="ti ti-package"></i> Extras',items:[
     {id:'ext-imprevistos',name:'Imprevistos',prev:'~R$300',quem:'',deve:''},
     {id:'ext-souvenirs',name:'Souvenirs',prev:'~R$200',quem:'',deve:''},
   ]},
@@ -634,7 +643,7 @@ function togglePago(btn){
   const id=btn.dataset.pagoId;
   const isNowPago=!btn.classList.contains('active');
   btn.classList.toggle('active',isNowPago);
-  btn.textContent=isNowPago?'✅ Pago':'⬜ Pago?';
+  btn.innerHTML=isNowPago?'<i class="ti ti-check"></i> Pago':'<i class="ti ti-square"></i> Pago?';
   btn.closest('.expense-card').classList.toggle('pago',isNowPago);
   const val=isNowPago?'Sim':'Não';
   lsSet('gasto-pago-'+id,val);
@@ -655,7 +664,7 @@ function buildGastos(){
       h+=`<div class="expense-card${isPago?' pago':''}">
         <div class="exp-top">
           <div><div class="exp-name">${it.name}</div><div class="exp-prev">Previsto: ${it.prev}</div></div>
-          <button class="pago-btn${isPago?' active':''}" data-pago-id="${it.id}" onclick="togglePago(this)">${isPago?'✅ Pago':'⬜ Pago?'}</button>
+          <button class="pago-btn${isPago?' active':''}" data-pago-id="${it.id}" onclick="togglePago(this)">${isPago?'<i class="ti ti-check"></i> Pago':'<i class="ti ti-square"></i> Pago?'}</button>
         </div>
         <div class="exp-fields">
           <div class="exp-field"><label>Gasto real</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="gastoReal" data-ls="gasto-real-${it.id}" value="${realVal}" placeholder="R$..."></div>
@@ -682,12 +691,12 @@ const days=[
     {l:'Noite',t:'Pôr do sol do Piquinho.'},
   ]},
   {d:'Dia 3 · qua 12/ago',star:true,periods:[
-    {l:'Manhã',t:'Cacimba do Padre + ~11h Baía dos Porcos (depende maré — baixa 0.06 ⭐).'},
+    {l:'Manhã',t:'Cacimba do Padre + ~11h Baía dos Porcos (depende maré — baixa 0.06 <i class="ti ti-star"></i>).'},
     {l:'Tarde',t:'Almoço Varanda. Capela São Pedro. Museu Tubarões. Mirante Francês.'},
     {l:'Noite',t:'Pôr do sol Mirante Boldró + Jantar Zé Maria.'},
   ]},
   {d:'Dia 4 · qui 13/ago',star:true,periods:[
-    {l:'Manhã',t:'Praia do Porto + mergulho. ⭐ Maré baixíssima (0.03).'},
+    {l:'Manhã',t:'Praia do Porto + mergulho. <i class="ti ti-star"></i> Maré baixíssima (0.03).'},
     {l:'Tarde',t:'Almoço Mergulhão. Passeio de barco.'},
     {l:'Noite',t:'Restaurante do Vale.'},
   ]},
@@ -725,7 +734,7 @@ function buildDiaDia(){
   let h='<h2>Dia a dia · Noronha</h2>';
   // checklist
   const clOpen=lsBool('checklist-open',false);
-  h+=`<button class="checklist-toggle" onclick="toggleChecklist()">📋 Checklist diário <span id="cl-chevron">${clOpen?'▲':'▼'}</span></button>`;
+  h+=`<button class="checklist-toggle" onclick="toggleChecklist()"><i class="ti ti-clipboard-list"></i> Checklist diário <span id="cl-chevron">${clOpen?'▲':'▼'}</span></button>`;
   h+=`<div class="checklist-grid${clOpen?' open':''}" id="checklist-grid">`;
   checklistItems.forEach((it,i)=>{
     const checked=lsBool('check-'+i,false);
@@ -737,7 +746,7 @@ function buildDiaDia(){
     const isOpen=lsBool('day-open-'+i,i===0);
     h+=`<div class="day-card">
       <div class="day-header" onclick="toggleDay(${i})">
-        <span>${day.star?'⭐ ':''}${day.d}</span>
+        <span>${day.star?'<i class="ti ti-star"></i> ':''}${day.d}</span>
         <span class="chevron${isOpen?' open':''}" id="chev-${i}">▼</span>
       </div>
       <div class="day-body${isOpen?' open':''}" id="day-body-${i}">`;
@@ -745,7 +754,7 @@ function buildDiaDia(){
       if(p.t) h+=`<div class="period"><div class="period-label">${p.l}</div><div class="period-text">${p.t}</div></div>`;
     });
     const gastoVal=lsGet('day-gasto-'+i,'');
-    h+=`<div class="day-gasto"><label>💸 Gasto do dia</label><input type="text" data-ls="day-gasto-${i}" value="${gastoVal}" placeholder="R$..."></div>`;
+    h+=`<div class="day-gasto"><label><i class="ti ti-cash"></i> Gasto do dia</label><input type="text" data-ls="day-gasto-${i}" value="${gastoVal}" placeholder="R$..."></div>`;
     h+='</div></div>';
   });
   c.innerHTML=h;
@@ -770,8 +779,8 @@ function toggleChecklist(){
 const tides=[
   {d:'10/ago · dom',info:'Baixa 09:19 (0.32m) · Alta 02:55 (2.16m) · Alta 15:34 (2.11m) · Baixa 21:38 (0.40m)',best:false},
   {d:'11/ago · seg',info:'Baixa 10:14 (0.16m) · Baixa 22:25 (0.27m)',best:false},
-  {d:'12/ago · ter',info:'⭐ Baixa 11:01 (0.06m) — melhor maré da viagem!',best:true},
-  {d:'13/ago · qua',info:'⭐ Baixa 11:44 (0.03m) — maré baixíssima!',best:true},
+  {d:'12/ago · ter',info:'<i class="ti ti-star"></i> Baixa 11:01 (0.06m) — melhor maré da viagem!',best:true},
+  {d:'13/ago · qua',info:'<i class="ti ti-star"></i> Baixa 11:44 (0.03m) — maré baixíssima!',best:true},
   {d:'14/ago · qui',info:'Baixa 12:25 (0.07m)',best:false},
   {d:'15/ago · sex',info:'Baixa 13:04 (0.17m)',best:false},
   {d:'16/ago · sáb',info:'Baixa 13:42 (0.31m)',best:false},
@@ -782,7 +791,7 @@ const tides=[
 function buildMares(){
   const c=document.getElementById('mares');
   let h='<h2>Tábua de marés · Noronha</h2>';
-  h+='<div class="tide-legend">🌊 depende de maré &nbsp; 〰 melhor na baixa &nbsp; ✓ livre</div>';
+  h+='<div class="tide-legend"><i class="ti ti-ripple"></i> depende de maré &nbsp; 〰 melhor na baixa &nbsp; <i class="ti ti-check"></i> livre</div>';
   tides.forEach(t=>{
     h+=`<div class="tide-day${t.best?' best':''}">
       <div class="td-date">${t.d}</div>
@@ -792,6 +801,66 @@ function buildMares(){
   c.innerHTML=h;
 }
 buildMares();
+
+// LISTA DE COMPRAS
+function buildLista(){
+  const c=document.getElementById('lista');
+  const items=JSON.parse(lsGet('lista','[]'));
+  let h='<h2>Lista de compras</h2>';
+  h+='<div style="display:flex;gap:8px;margin-bottom:16px;">';
+  h+='<input type="text" id="lista-input" placeholder="Adicionar item..." style="flex:1;border:1px solid var(--sand-dark);border-radius:8px;padding:10px 12px;font-size:.9rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:44px;">';
+  h+='<button onclick="addListaItem()" style="background:var(--ocean);color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:1.2rem;cursor:pointer;min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent;"><i class=\"ti ti-plus\"></i></button>';
+  h+='</div>';
+  items.forEach((item,i)=>{
+    h+='<div class="lista-item'+(item.checked?' checked':'')+'" style="background:var(--white);border-radius:var(--radius);padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);'+(item.checked?'opacity:.5;':'')+'">';
+    h+='<input type="checkbox" '+(item.checked?'checked':'')+' onchange="toggleListaItem('+i+')" style="width:20px;height:20px;accent-color:var(--green);flex-shrink:0;">';
+    h+='<span style="flex:1;font-size:.95rem;'+(item.checked?'text-decoration:line-through;color:var(--text-light);':'')+'">'+item.text+'</span>';
+    h+='<button onclick="removeListaItem('+i+')" style="background:none;border:none;color:var(--coral);font-size:1.1rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;"><i class=\"ti ti-trash\"></i></button>';
+    h+='</div>';
+  });
+  if(items.length===0){
+    h+='<div style="text-align:center;padding:32px;color:var(--text-light);font-size:.9rem;">Nenhum item ainda</div>';
+  }
+  c.innerHTML=h;
+  setTimeout(()=>{
+    const inp=document.getElementById('lista-input');
+    if(inp) inp.addEventListener('keydown',e=>{if(e.key==='Enter')addListaItem();});
+  },0);
+}
+
+function addListaItem(){
+  const inp=document.getElementById('lista-input');
+  const text=inp.value.trim();
+  if(!text)return;
+  const items=JSON.parse(lsGet('lista','[]'));
+  items.push({text,checked:false});
+  lsSet('lista',JSON.stringify(items));
+  buildLista();
+  syncLista();
+}
+
+function toggleListaItem(i){
+  const items=JSON.parse(lsGet('lista','[]'));
+  items[i].checked=!items[i].checked;
+  lsSet('lista',JSON.stringify(items));
+  buildLista();
+  syncLista();
+}
+
+function removeListaItem(i){
+  const items=JSON.parse(lsGet('lista','[]'));
+  items.splice(i,1);
+  lsSet('lista',JSON.stringify(items));
+  buildLista();
+  syncLista();
+}
+
+function syncLista(){
+  const items=JSON.parse(lsGet('lista','[]'));
+  sheetPost({action:'update-lista',items});
+}
+
+buildLista();
 
 // AUTO-SAVE all inputs
 document.addEventListener('input',e=>{
@@ -842,7 +911,7 @@ function calcular(){
     msg=`Camila deve R$${Math.abs(net).toFixed(2).replace('.',',')} para Leticia`;
     color='var(--green)';
   } else {
-    msg='Estão quites! 🎉';
+    msg='Estão quites! <i class="ti ti-confetti"></i>';
     color='var(--green)';
   }
   let dh='<div class="calc-detail">';
@@ -919,6 +988,7 @@ if(SHEETS_URL){
     buildGastos();
     document.getElementById('diadia').innerHTML='';
     buildDiaDia();
+    buildLista();
   });
 }
 </script>

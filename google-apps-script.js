@@ -20,7 +20,9 @@ function doGet() {
   var diadia = getOrCreateSheet('Dia a Dia', ['Dia', 'Data', 'Gasto do Dia']);
   var checklist = getOrCreateSheet('Checklist', ['Item', 'Marcado']);
 
-  var result = { gastos: [], diadia: [], checklist: [] };
+  var lista = getOrCreateSheet('Lista', ['Item', 'Comprado?']);
+
+  var result = { gastos: [], diadia: [], checklist: [], lista: [] };
 
   var gData = gastos.getDataRange().getValues();
   for (var i = 1; i < gData.length; i++) {
@@ -51,6 +53,11 @@ function doGet() {
       item: cData[i][0],
       marcado: cData[i][1]
     });
+  }
+
+  var lData = lista.getDataRange().getValues();
+  for (var i = 1; i < lData.length; i++) {
+    result.lista.push({ item: lData[i][0], checked: lData[i][1] });
   }
 
   return ContentService.createTextOutput(JSON.stringify(result))
@@ -133,6 +140,16 @@ function doPost(e) {
     }
     return ContentService.createTextOutput(JSON.stringify({ok: true}))
       .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (action === 'update-lista') {
+    var lista = getOrCreateSheet('Lista', ['Item', 'Comprado?']);
+    if (lista.getLastRow() > 1) lista.getRange(2, 1, lista.getLastRow() - 1, 2).clearContent();
+    var items = payload.items;
+    for (var i = 0; i < items.length; i++) {
+      lista.appendRow([items[i].text, items[i].checked ? 'Sim' : 'Não']);
+    }
+    return ContentService.createTextOutput(JSON.stringify({ok: true})).setMimeType(ContentService.MimeType.JSON);
   }
 
   return ContentService.createTextOutput(JSON.stringify({error: 'ação desconhecida'}))
