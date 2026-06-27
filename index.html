@@ -1052,12 +1052,12 @@ function pushDefaults(){
     diadia:diadiaData,
     checklist:checkData
   });
-  localStorage.setItem(LS+'initial-push-v3','done');
+  localStorage.setItem(LS+'initial-push-v4','done');
 }
 
 if(SHEETS_URL){
   document.getElementById('sheets-url-input').value=SHEETS_URL;
-  if(localStorage.getItem(LS+'initial-push-v3')!=='done'){
+  if(localStorage.getItem(LS+'initial-push-v4')!=='done'){
     pushDefaults();
   }
   pullFromSheets().then(()=>{

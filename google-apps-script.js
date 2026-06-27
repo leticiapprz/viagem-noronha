@@ -74,7 +74,7 @@ function doPost(e) {
     var checklist = getOrCreateSheet('Checklist', ['Item', 'Marcado']);
 
     // Limpa e repopula
-    if (gastos.getLastRow() > 1) gastos.getRange(2, 1, gastos.getLastRow() - 1, 7).clearContent();
+    if (gastos.getLastRow() > 1) gastos.getRange(2, 1, gastos.getLastRow() - 1, 8).clearContent();
     if (diadia.getLastRow() > 1) diadia.getRange(2, 1, diadia.getLastRow() - 1, 3).clearContent();
     if (checklist.getLastRow() > 1) checklist.getRange(2, 1, checklist.getLastRow() - 1, 2).clearContent();
 
