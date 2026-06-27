@@ -745,9 +745,61 @@ function togglePago(btn){
   syncGasto(id,'pago',val);
 }
 
+function calcSaldo(){
+  var leticiaOwes=0,camilaOwes=0,totalPrev=0,totalReal=0,pagos=0,totalItens=0;
+  expenses.forEach(cat=>{
+    cat.items.forEach(it=>{
+      totalItens++;
+      var prev=it.prev.replace(/[^0-9.,]/g,'').replace('.','').replace(',','.');
+      var prevNum=parseFloat(prev);if(!isNaN(prevNum))totalPrev+=prevNum;
+      var real=lsGet('gasto-real-'+it.id,'').replace(/[^0-9.,]/g,'').replace('.','').replace(',','.');
+      var realNum=parseFloat(real);if(!isNaN(realNum))totalReal+=realNum;
+      if(lsGet('gasto-pago-'+it.id,'Não')==='Sim')pagos++;
+      var val=lsGet('gasto-deve-'+it.id,it.deve);
+      if(!val)return;
+      var match=val.match(/(leticia|camila)\s+deve\s+r?\$?([\d.,]+)/i);
+      if(match){
+        var amt=parseFloat(match[2].replace('.','').replace(',','.'));
+        if(!isNaN(amt)){
+          if(match[1].toLowerCase()==='leticia')leticiaOwes+=amt;
+          else camilaOwes+=amt;
+        }
+      }
+    });
+  });
+  var net=leticiaOwes-camilaOwes;
+  return{leticiaOwes,camilaOwes,net,totalPrev,totalReal,pagos,totalItens};
+}
+
 function buildGastos(){
   const c=document.getElementById('gastos');
-  let h='<h2>Controle de gastos</h2>';
+  var s=calcSaldo();
+  var saldoMsg,saldoColor;
+  if(s.net>0){saldoMsg='Leticia deve R$'+s.net.toFixed(2).replace('.',',')+' pra Camila';saldoColor='var(--coral)';}
+  else if(s.net<0){saldoMsg='Camila deve R$'+Math.abs(s.net).toFixed(2).replace('.',',')+' pra Leticia';saldoColor='var(--green)';}
+  else{saldoMsg='Estão quites!';saldoColor='var(--green)';}
+  var pct=s.totalPrev>0?Math.min(100,Math.round(s.totalReal/s.totalPrev*100)):0;
+  var barColor=pct>90?'var(--coral)':pct>70?'#92400E':'var(--green)';
+  let h='<div style="background:var(--white);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--shadow);">';
+  // saldo
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
+  h+='<div><div style="font-size:.75rem;color:var(--text-light);margin-bottom:2px;">Saldo entre vocês</div>';
+  h+='<div style="font-size:1.15rem;font-weight:700;color:'+saldoColor+';">'+saldoMsg+'</div></div>';
+  h+='<div style="text-align:right;"><div style="font-size:.75rem;color:var(--text-light);">'+s.pagos+'/'+s.totalItens+' pagos</div></div>';
+  h+='</div>';
+  // detalhes
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">';
+  h+='<div style="background:var(--sand);border-radius:8px;padding:8px 10px;"><div style="font-size:.7rem;color:var(--text-light);">Leticia deve</div><div style="font-size:1rem;font-weight:700;color:var(--ocean);">R$'+s.leticiaOwes.toFixed(2).replace('.',',')+'</div></div>';
+  h+='<div style="background:var(--sand);border-radius:8px;padding:8px 10px;"><div style="font-size:.7rem;color:var(--text-light);">Camila deve</div><div style="font-size:1rem;font-weight:700;color:var(--ocean);">R$'+s.camilaOwes.toFixed(2).replace('.',',')+'</div></div>';
+  h+='</div>';
+  // barra de progresso
+  h+='<div style="font-size:.7rem;color:var(--text-light);display:flex;justify-content:space-between;margin-bottom:4px;"><span>Gasto real vs previsto</span><span>'+pct+'%</span></div>';
+  h+='<div style="background:var(--sand);border-radius:6px;height:8px;overflow:hidden;">';
+  h+='<div style="background:'+barColor+';height:100%;width:'+pct+'%;border-radius:6px;transition:width .3s;"></div>';
+  h+='</div>';
+  h+='<div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-light);margin-top:4px;"><span>R$'+s.totalReal.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.')+'</span><span>R$'+s.totalPrev.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.')+'</span></div>';
+  h+='</div>';
+  h+='<h2>Controle de gastos</h2>';
   expenses.forEach(cat=>{
     h+=`<div class="cat-header">${cat.cat}</div>`;
     cat.items.forEach(it=>{
