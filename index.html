@@ -281,6 +281,8 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   -webkit-tap-highlight-color:transparent; touch-action:manipulation;
 }
 .splash-btn:active { transform:scale(.96); background:rgba(255,255,255,.3); }
+.splash-faltam { font-size:1.1rem; opacity:.9; letter-spacing:.02em; }
+.splash-faltam span { font-family:'DM Serif Display',serif; font-size:2.8rem; display:block; margin:4px 0; }
 
 /* PHOTOS STRIP */
 .photos-strip {
@@ -461,19 +463,12 @@ function updateCountdown(){
   const now=new Date();
   const diff=TRIP_DATE-now;
   const el=document.getElementById('countdown');
+  const d=Math.floor(Math.abs(diff)/86400000);
   if(diff<=0){
-    el.style.display='none';
+    el.innerHTML='<div class="splash-faltam">há <span>'+d+'</span> dias na nossa aventura ✈️</div>';
     return;
   }
-  const d=Math.floor(diff/86400000);
-  const h=Math.floor((diff%86400000)/3600000);
-  const m=Math.floor((diff%3600000)/60000);
-  const s=Math.floor((diff%60000)/1000);
-  el.innerHTML=
-    '<div class="splash-unit"><span class="splash-num">'+d+'</span><span class="splash-label">dias</span></div>'+
-    '<div class="splash-unit"><span class="splash-num">'+h+'</span><span class="splash-label">horas</span></div>'+
-    '<div class="splash-unit"><span class="splash-num">'+m+'</span><span class="splash-label">min</span></div>'+
-    '<div class="splash-unit"><span class="splash-num">'+s+'</span><span class="splash-label">seg</span></div>';
+  el.innerHTML='<div class="splash-faltam">faltam <span>'+d+'</span> dias</div>';
 }
 updateCountdown();
 setInterval(updateCountdown,1000);
