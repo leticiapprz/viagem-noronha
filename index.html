@@ -252,8 +252,6 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 }
 .splash > * { position:relative; z-index:1; }
 .splash.hidden { opacity:0; transform:translateY(-30px); pointer-events:none; }
-.splash-emoji { font-size:48px; margin-bottom:16px; animation: float 3s ease-in-out infinite; }
-@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
 .splash-title {
   font-family:'DM Serif Display',serif; font-size:2.2rem; line-height:1.15;
   margin-bottom:8px; color:#fff;
@@ -283,6 +281,26 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   -webkit-tap-highlight-color:transparent; touch-action:manipulation;
 }
 .splash-btn:active { transform:scale(.96); background:rgba(255,255,255,.3); }
+
+/* PHOTOS STRIP */
+.photos-strip {
+  width:100vw; overflow:hidden; margin-top:24px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+}
+.photos-track {
+  display:flex; gap:10px; width:max-content;
+  animation: scroll-photos 25s linear infinite;
+}
+.photos-track img {
+  width:90px; height:90px; border-radius:50%; object-fit:cover;
+  border:3px solid rgba(255,255,255,.4); flex-shrink:0;
+}
+@keyframes scroll-photos {
+  0% { transform:translateX(0); }
+  100% { transform:translateX(-50%); }
+}
+
 .splash-wave {
   position:absolute; bottom:0; left:0; right:0; height:80px;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 100'%3E%3Cpath fill='%23F5F0E8' fill-opacity='.3' d='M0 40c240-30 480 20 720 10s480-40 720 0v60H0z'/%3E%3Cpath fill='%23F5F0E8' fill-opacity='.15' d='M0 60c200-20 400 15 600 5s400-25 600 5l240-10v50H0z'/%3E%3C/svg%3E") no-repeat bottom/cover;
@@ -292,8 +310,6 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <body>
 
 <div class="splash" id="splash">
-  <div class="splash-emoji">🏝️</div>
-  <div class="splash-title">Nordeste</div>
   <div class="splash-sub">Leticia & Camila<br>agosto 2025</div>
   <div class="splash-countdown" id="countdown"></div>
   <div class="splash-msg">
@@ -301,6 +317,16 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
     nadando um montão e com todos os dentinhos aparecendo! ❤️
   </div>
   <button class="splash-btn" onclick="enterPlanner()">Abrir planner →</button>
+  <div class="photos-strip">
+    <div class="photos-track">
+      <img src="nos1.jpg" alt=""><img src="nos2.jpg" alt=""><img src="nos3.jpg" alt="">
+      <img src="nos4.jpg" alt=""><img src="nos5.jpg" alt=""><img src="nos6.jpg" alt="">
+      <img src="nos7.jpg" alt=""><img src="nos8.png" alt=""><img src="nos9.png" alt="">
+      <img src="nos1.jpg" alt=""><img src="nos2.jpg" alt=""><img src="nos3.jpg" alt="">
+      <img src="nos4.jpg" alt=""><img src="nos5.jpg" alt=""><img src="nos6.jpg" alt="">
+      <img src="nos7.jpg" alt=""><img src="nos8.png" alt=""><img src="nos9.png" alt="">
+    </div>
+  </div>
   <div class="splash-wave"></div>
 </div>
 
@@ -436,7 +462,7 @@ function updateCountdown(){
   const diff=TRIP_DATE-now;
   const el=document.getElementById('countdown');
   if(diff<=0){
-    el.innerHTML='<div style="font-size:1.3rem;font-weight:600;">A aventura começou! 🎉</div>';
+    el.style.display='none';
     return;
   }
   const d=Math.floor(diff/86400000);
