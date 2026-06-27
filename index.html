@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
 :root {
@@ -461,7 +462,10 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <!-- TAB 7: MAPA -->
 <div id="mapa" class="tab-content">
   <h2>Mapa da viagem</h2>
-  <div id="map-container" style="height:65vh;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;"></div>
+  <div id="day-filter" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
+  <div id="map-container" style="height:50vh;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;"></div>
+  <div id="day-stats" style="display:none;background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;"></div>
+  <div id="elevation-chart" style="display:none;background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;"><canvas id="elev-canvas" height="160"></canvas></div>
   <div id="map-legend" style="display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--text-light);"></div>
 </div>
 
@@ -873,63 +877,198 @@ function syncLista(){
 buildLista();
 
 // MAPA
-var tripMap=null;
+var tripMap=null,mapMarkers=[],mapRoutes=[],elevChart=null,activeDay=0;
+
+var mapDays=[
+  {day:0,label:'Todos',spots:[]},
+  {day:1,label:'Dia 1 · 10/ago',date:'seg',spots:[
+    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'buggy',desc:'Check-in · transfer do aeroporto'},
+    {lat:-3.8420,lng:-32.4110,name:'Praca Flamboyant',type:'food',elev:45,mode:'buggy',desc:'Almoco'},
+    {lat:-3.8410,lng:-32.4100,name:'Mercado',type:'other',elev:42,mode:'walk',desc:'Agua e essenciais'},
+    {lat:-3.8388,lng:-32.4072,name:'Bar do Cachorro',type:'food',elev:35,mode:'buggy',desc:'Por do sol + jantar'},
+  ]},
+  {day:2,label:'Dia 2 · 11/ago',date:'ter',spots:[
+    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8490,lng:-32.4310,name:'Praia da Conceicao',type:'beach',elev:5,mode:'buggy',desc:'Manha e tarde'},
+    {lat:-3.8520,lng:-32.4280,name:'Trilha do Piquinho',type:'trail',elev:321,mode:'walk',desc:'16h30 · por do sol do topo'},
+  ]},
+  {day:3,label:'Dia 3 · 12/ago',date:'qua',spots:[
+    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8570,lng:-32.4400,name:'Cacimba do Padre',type:'beach',elev:8,mode:'buggy',desc:'Manha'},
+    {lat:-3.8531,lng:-32.4451,name:'Baia dos Porcos',type:'beach',elev:5,mode:'walk',desc:'~11h · piscinas naturais'},
+    {lat:-3.8460,lng:-32.4150,name:'Restaurante Varanda',type:'food',elev:55,mode:'buggy',desc:'Almoco'},
+    {lat:-3.8440,lng:-32.4130,name:'Capela Sao Pedro',type:'other',elev:60,mode:'walk',desc:'Visita'},
+    {lat:-3.8435,lng:-32.4095,name:'Museu dos Tubaroes',type:'other',elev:45,mode:'walk',desc:'Visita'},
+    {lat:-3.8500,lng:-32.4200,name:'Mirante do Frances',type:'trail',elev:85,mode:'walk',desc:'Vista'},
+    {lat:-3.8510,lng:-32.4340,name:'Mirante do Boldro',type:'trail',elev:90,mode:'buggy',desc:'Por do sol'},
+    {lat:-3.8476,lng:-32.4090,name:'Ze Maria',type:'food',elev:48,mode:'buggy',desc:'Jantar especial'},
+  ]},
+  {day:4,label:'Dia 4 · 13/ago',date:'qui',spots:[
+    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8530,lng:-32.4100,name:'Praia do Porto',type:'beach',elev:3,mode:'buggy',desc:'Mergulho livre'},
+    {lat:-3.8530,lng:-32.4350,name:'Mergulhao',type:'food',elev:10,mode:'buggy',desc:'Almoco'},
+    {lat:-3.8500,lng:-32.4200,name:'Passeio de barco',type:'beach',elev:0,mode:'buggy',desc:'Tarde · horario a confirmar'},
+    {lat:-3.8470,lng:-32.4160,name:'Restaurante do Vale',type:'food',elev:40,mode:'buggy',desc:'Jantar'},
+  ]},
+  {day:5,label:'Dia 5 · 14/ago',date:'sex',spots:[
+    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8447,lng:-32.4254,name:'Mirante dos Golfinhos',type:'trail',elev:70,mode:'buggy',desc:'Golfinhos de manha'},
+    {lat:-3.8556,lng:-32.4440,name:'Baia do Sancho',type:'beach',elev:5,mode:'walk',desc:'Melhor praia'},
+    {lat:-3.8500,lng:-32.4115,name:'Praia do Cachorro',type:'beach',elev:5,mode:'buggy',desc:'Almoco nas barraquinhas'},
+    {lat:-3.8395,lng:-32.4060,name:'Mirante do Forte',type:'trail',elev:55,mode:'walk',desc:'Por do sol'},
+    {lat:-3.8450,lng:-32.4100,name:'Restaurante Paiol',type:'food',elev:42,mode:'walk',desc:'Jantar'},
+  ]},
+  {day:6,label:'Dia 6 · 15/ago',date:'sab',spots:[
+    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8600,lng:-32.4050,name:'Trilha Pontinha Caieira',type:'trail',elev:95,mode:'walk',desc:'Manha'},
+    {lat:-3.8694,lng:-32.4232,name:'Baia do Sueste',type:'beach',elev:5,mode:'buggy',desc:'~13h · tartarugas'},
+    {lat:-3.8460,lng:-32.4150,name:'Tiate / Varanda',type:'food',elev:55,mode:'buggy',desc:'Jantar especial'},
+  ]},
+  {day:7,label:'Dia 7 · 16/ago',date:'dom',spots:[
+    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8650,lng:-32.4500,name:'Trilha Capim Acu',type:'trail',elev:140,mode:'walk',desc:'Manha · trilha longa'},
+    {lat:-3.8480,lng:-32.4300,name:'Bar do Meio',type:'food',elev:15,mode:'buggy',desc:'Almoco'},
+  ]},
+  {day:8,label:'Dia 8 · 17/ago',date:'seg',spots:[
+    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8560,lng:-32.4420,name:'Morro Dois Irmaos',type:'trail',elev:180,mode:'walk',desc:'Travessia'},
+    {lat:-3.8410,lng:-32.4100,name:'Vila dos Remedios',type:'other',elev:40,mode:'buggy',desc:'Souvenirs'},
+    {lat:-3.8450,lng:-32.4130,name:'Jantar de despedida',type:'food',elev:45,mode:'buggy',desc:'Ultima noite'},
+  ]},
+  {day:9,label:'Dia 9 · 18/ago',date:'ter',spots:[
+    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe + check-out'},
+    {lat:-3.8556,lng:-32.4440,name:'Ultima praia',type:'beach',elev:5,mode:'buggy',desc:'Despedida'},
+    {lat:-3.8460,lng:-32.4150,name:'Almoco de despedida',type:'food',elev:55,mode:'buggy',desc:'Ultimo almoco'},
+  ]},
+];
+
+var typeColors={stay:'#1A5F7A',beach:'#C95D3A',food:'#2D6A4F',trail:'#8B5A2B',other:'#666'};
+var typeLabels={stay:'Hospedagem',beach:'Praia',food:'Restaurante',trail:'Trilha / mirante',other:'Outro'};
+
+function haversine(a,b){
+  var R=6371,dLat=(b.lat-a.lat)*Math.PI/180,dLng=(b.lng-a.lng)*Math.PI/180;
+  var x=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function calcDayStats(spots){
+  var totalKm=0,walkKm=0,buggyKm=0,elevGain=0;
+  for(var i=1;i<spots.length;i++){
+    var d=haversine(spots[i-1],spots[i])*1.3;
+    totalKm+=d;
+    if(spots[i].mode==='walk') walkKm+=d; else buggyKm+=d;
+    var diff=spots[i].elev-spots[i-1].elev;
+    if(diff>0) elevGain+=diff;
+  }
+  return {totalKm:totalKm,walkKm:walkKm,buggyKm:buggyKm,elevGain:elevGain};
+}
+
 function buildMapa(){
-  if(tripMap)return;
   var el=document.getElementById('map-container');
   if(!el||el.offsetHeight===0)return;
-  tripMap=L.map('map-container',{zoomControl:true}).setView([-6.5,-34.5],6);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    maxZoom:18,attribution:'OpenStreetMap'
-  }).addTo(tripMap);
+  if(!tripMap){
+    tripMap=L.map('map-container',{zoomControl:true}).setView([-3.854,-32.425],14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'OpenStreetMap'}).addTo(tripMap);
+  }
+  // Build filter buttons
+  var fh='';
+  mapDays.forEach(function(md){
+    fh+='<button onclick="filterDay('+md.day+')" class="day-pill'+(md.day===activeDay?' active':'')+'" style="padding:6px 12px;border-radius:20px;font-size:.8rem;font-family:\'DM Sans\',sans-serif;cursor:pointer;border:1px solid '+(md.day===activeDay?'var(--ocean)':'var(--sand-dark)')+';background:'+(md.day===activeDay?'var(--ocean)':'var(--white)')+';color:'+(md.day===activeDay?'#fff':'var(--text)')+';white-space:nowrap;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">'+md.label+'</button>';
+  });
+  document.getElementById('day-filter').innerHTML=fh;
+  showDay(activeDay);
+  setTimeout(function(){tripMap.invalidateSize();},200);
+}
 
-  function pin(lat,lng,color,title,desc){
-    var icon=L.divIcon({
-      className:'',
-      html:'<div style="background:'+color+';width:28px;height:28px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;">'+title.charAt(0)+'</div>',
-      iconSize:[28,28],iconAnchor:[14,14]
-    });
-    L.marker([lat,lng],{icon:icon}).addTo(tripMap).bindPopup('<b>'+title+'</b><br><span style="font-size:12px;color:#666">'+desc+'</span>');
+function showDay(dayNum){
+  activeDay=dayNum;
+  mapMarkers.forEach(function(m){tripMap.removeLayer(m);});
+  mapRoutes.forEach(function(r){tripMap.removeLayer(r);});
+  mapMarkers=[];mapRoutes=[];
+
+  var spots=[];
+  if(dayNum===0){
+    mapDays.forEach(function(md){if(md.day>0) spots=spots.concat(md.spots);});
+  } else {
+    spots=mapDays[dayNum].spots;
   }
 
-  // Noronha - pousada e praias
-  pin(-3.8554,-32.4242,'#1A5F7A','Pousada Alvorada','10-19/ago · 9 noites');
-  pin(-3.8556,-32.4440,'#C95D3A','Praia do Sancho','Eleita mais bonita do Brasil');
-  pin(-3.8531,-32.4451,'#C95D3A','Baia dos Porcos','Piscinas naturais · depende de mare');
-  pin(-3.8490,-32.4310,'#C95D3A','Praia da Conceicao','Livre · boa pra todo dia');
-  pin(-3.8694,-32.4232,'#C95D3A','Baia do Sueste','Tartarugas marinhas');
-  pin(-3.8500,-32.4115,'#C95D3A','Praia do Cachorro','Perto da vila');
-  pin(-3.8388,-32.4072,'#2D6A4F','Bar do Cachorro','Jantar + por do sol');
-  pin(-3.8476,-32.4090,'#2D6A4F','Ze Maria','Jantar especial');
-  pin(-3.8530,-32.4350,'#2D6A4F','Mergulhao','Frutos do mar');
-  pin(-3.8447,-32.4254,'#666','Mirante dos Golfinhos','Golfinhos de manha cedo');
-  pin(-3.8560,-32.4420,'#666','Morro Dois Irmaos','Trilha + vista');
+  var coords=[];
+  spots.forEach(function(s,i){
+    var col=typeColors[s.type]||'#666';
+    var num=dayNum===0?'':'<span style="font-size:10px;position:absolute;top:-6px;right:-6px;background:var(--ocean);color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;">'+(i+1)+'</span>';
+    var icon=L.divIcon({
+      className:'',
+      html:'<div style="position:relative;background:'+col+';width:28px;height:28px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;">'+s.name.charAt(0)+num+'</div>',
+      iconSize:[28,28],iconAnchor:[14,14]
+    });
+    var m=L.marker([s.lat,s.lng],{icon:icon}).addTo(tripMap);
+    m.bindPopup('<b>'+s.name+'</b><br><span style="font-size:12px;color:#666">'+s.desc+'</span><br><span style="font-size:11px;color:#999">'+(s.mode==='walk'?'A pe':'Buggy/taxi')+' · '+s.elev+'m alt.</span>');
+    mapMarkers.push(m);
+    coords.push([s.lat,s.lng]);
+  });
 
-  // Porto de Galinhas
-  pin(-8.5060,-35.0060,'#1A5F7A','Un Paso del Mar','Porto de Galinhas · 19-21/ago · 2 noites');
-  pin(-8.5000,-35.0050,'#C95D3A','Piscinas naturais','Jangada · Porto de Galinhas');
+  if(dayNum>0&&coords.length>1){
+    var route=L.polyline(coords,{color:'var(--ocean)',weight:3,opacity:.5,dashArray:'6 4'}).addTo(tripMap);
+    mapRoutes.push(route);
+  }
 
-  // Camarajibe
-  pin(-8.3130,-35.0780,'#1A5F7A','Villa Marceneiro','Passo de Camarajibe · 21-25/ago · 4 noites');
+  if(coords.length>0){
+    var group=L.featureGroup(mapMarkers);
+    tripMap.fitBounds(group.getBounds().pad(0.15));
+  }
 
-  // Maceio
-  pin(-9.5780,-35.7170,'#1A5F7A','Wave Suites','Maceio · 25-27/ago · 2 noites');
-  pin(-9.6165,-35.7360,'#C95D3A','Praia de Ipioca','Maceio');
+  // Stats
+  var statsEl=document.getElementById('day-stats');
+  var elevEl=document.getElementById('elevation-chart');
+  if(dayNum===0){
+    statsEl.style.display='none';elevEl.style.display='none';
+    // Legenda
+    var lh='';
+    Object.keys(typeColors).forEach(function(k){
+      lh+='<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+typeColors[k]+';margin-right:4px;vertical-align:middle;"></span>'+typeLabels[k]+'</span>';
+    });
+    document.getElementById('map-legend').innerHTML=lh;
+    return;
+  }
+  document.getElementById('map-legend').innerHTML='';
 
-  // Rota de carro
-  L.polyline([
-    [-8.1265,-34.9106],[-8.5060,-35.0060],[-8.3130,-35.0780],
-    [-9.5780,-35.7170]
-  ],{color:'#1A5F7A',weight:2,dashArray:'8 6',opacity:.6}).addTo(tripMap);
+  var st=calcDayStats(spots);
+  statsEl.style.display='block';
+  statsEl.innerHTML='<div style="font-weight:700;margin-bottom:8px;color:var(--ocean);">'+mapDays[dayNum].label+'</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
+    '<div style="background:var(--sand);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:.75rem;color:var(--text-light);">Total</div><div style="font-size:1.3rem;font-weight:700;color:var(--ocean);">'+st.totalKm.toFixed(1)+' km</div></div>'+
+    '<div style="background:var(--sand);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:.75rem;color:var(--text-light);">Ganho elevacao</div><div style="font-size:1.3rem;font-weight:700;color:#8B5A2B;">+'+Math.round(st.elevGain)+' m</div></div>'+
+    '<div style="background:var(--sand);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:.75rem;color:var(--text-light);">A pe</div><div style="font-size:1.3rem;font-weight:700;color:var(--green);">'+st.walkKm.toFixed(1)+' km</div></div>'+
+    '<div style="background:var(--sand);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:.75rem;color:var(--text-light);">Buggy / taxi</div><div style="font-size:1.3rem;font-weight:700;color:var(--coral);">'+st.buggyKm.toFixed(1)+' km</div></div>'+
+    '</div>';
 
-  // Legenda
-  document.getElementById('map-legend').innerHTML=
-    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1A5F7A;margin-right:4px;vertical-align:middle;"></span>Hospedagem</span>'+
-    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#C95D3A;margin-right:4px;vertical-align:middle;"></span>Praia / passeio</span>'+
-    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2D6A4F;margin-right:4px;vertical-align:middle;"></span>Restaurante</span>'+
-    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#666;margin-right:4px;vertical-align:middle;"></span>Mirante / trilha</span>';
+  // Elevation chart
+  elevEl.style.display='block';
+  var labels=spots.map(function(s){return s.name.length>12?s.name.substr(0,12)+'..':s.name;});
+  var elevData=spots.map(function(s){return s.elev;});
+  var bgColors=spots.map(function(s){return typeColors[s.type]||'#666';});
 
-  setTimeout(()=>tripMap.invalidateSize(),200);
+  if(elevChart) elevChart.destroy();
+  elevChart=new Chart(document.getElementById('elev-canvas'),{
+    type:'bar',
+    data:{labels:labels,datasets:[{
+      data:elevData,backgroundColor:bgColors,borderRadius:6,barThickness:spots.length>6?16:28
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.raw+'m';}}}},
+      scales:{
+        y:{beginAtZero:true,title:{display:true,text:'Altitude (m)',font:{size:11}},grid:{color:'rgba(0,0,0,.06)'}},
+        x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}}
+      }
+    }
+  });
+}
+
+function filterDay(d){
+  activeDay=d;
+  buildMapa();
 }
 
 // Init map when tab becomes visible
