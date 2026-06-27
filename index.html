@@ -589,10 +589,7 @@ function syncDiaDia(dia,gasto){
   fbWrite('diadia/'+dia,{gasto:gasto});
 }
 
-function syncChecklist(item,marcado){
-  var key=item.replace(/[^a-zA-Z0-9]/g,'_');
-  fbWrite('checklist/'+key,{item:item,marcado:marcado});
-}
+
 
 function pullFromFirebase(){
   return fetch(FB+'/.json')
@@ -613,11 +610,8 @@ function pullFromFirebase(){
           if(data.diadia[i].gasto) localStorage.setItem(LS+'day-gasto-'+i,data.diadia[i].gasto);
         });
       }
-      if(data.checklist){
-        var checkKeys=Object.keys(data.checklist);
-        checkKeys.forEach((key,i)=>{
-          localStorage.setItem(LS+'check-'+i,String(data.checklist[key].marcado));
-        });
+      if(data['checklist-v2']){
+        localStorage.setItem(LS+'checklist-data',JSON.stringify(data['checklist-v2']));
       }
       if(data.compras){
         localStorage.setItem(LS+'lista-compras',JSON.stringify(data.compras));
@@ -788,18 +782,85 @@ const days=[
   ]},
 ];
 
-const checklistItems=['Protetor solar','Repelente','Água','Câmera/GoPro','Snorkel','Sapatilha aquática','Dinheiro','Cartão','Celular carregado','Carregador portátil','TPA paga','ICMBio pago'];
+var defaultChecklist=[
+  {text:'Protetor solar eco-friendly',tag:'higiene'},
+  {text:'Repelente',tag:'higiene'},
+  {text:'Remédios (enjoo, dor, alergia)',tag:'remedios'},
+  {text:'Band-aid / curativos',tag:'remedios'},
+  {text:'Antisséptico',tag:'remedios'},
+  {text:'RG ou passaporte',tag:'documentos'},
+  {text:'Cartão de crédito',tag:'documentos'},
+  {text:'Comprovante TPA',tag:'documentos'},
+  {text:'Ingresso ICMBio',tag:'documentos'},
+  {text:'Reservas impressas',tag:'documentos'},
+  {text:'Câmera / GoPro',tag:'equipamento'},
+  {text:'Snorkel',tag:'equipamento'},
+  {text:'Sapatilha aquática',tag:'equipamento'},
+  {text:'Carregador portátil',tag:'equipamento'},
+  {text:'Garrafa de água reutilizável',tag:'equipamento'},
+  {text:'Dinheiro trocado',tag:'dinheiro'},
+  {text:'Pix configurado',tag:'dinheiro'},
+];
+
+var checkTags={
+  higiene:{label:'Higiene',color:'#2a7f9e'},
+  remedios:{label:'Remédios',color:'#C95D3A'},
+  documentos:{label:'Documentos',color:'#8B5A2B'},
+  equipamento:{label:'Equipamento',color:'#2D6A4F'},
+  dinheiro:{label:'Dinheiro',color:'#92400E'},
+  outro:{label:'Outro',color:'#666'},
+};
+
+function getChecklist(){
+  var saved=lsGet('checklist-data','');
+  if(saved) return JSON.parse(saved);
+  return defaultChecklist.map(function(it){return{text:it.text,tag:it.tag,checked:false};});
+}
+function saveChecklist(items){
+  lsSet('checklist-data',JSON.stringify(items));
+  fbWrite('checklist-v2',items);
+}
+
+var checkFilter='all';
 
 function buildDiaDia(){
   const c=document.getElementById('diadia');
   let h='<h2>Dia a dia · Noronha</h2>';
   // checklist
   const clOpen=lsBool('checklist-open',false);
-  h+=`<button class="checklist-toggle" onclick="toggleChecklist()"><i class="ti ti-clipboard-list"></i> Checklist diário <span id="cl-chevron">${clOpen?'▲':'▼'}</span></button>`;
-  h+=`<div class="checklist-grid${clOpen?' open':''}" id="checklist-grid">`;
-  checklistItems.forEach((it,i)=>{
-    const checked=lsBool('check-'+i,false);
-    h+=`<label class="check-item"><input type="checkbox" data-check="${i}" ${checked?'checked':''}>${it}</label>`;
+  var items=getChecklist();
+  var done=items.filter(function(x){return x.checked;}).length;
+  h+=`<button class="checklist-toggle" onclick="toggleChecklist()"><i class="ti ti-clipboard-list"></i> Checklist ${done}/${items.length} <span id="cl-chevron">${clOpen?'▲':'▼'}</span></button>`;
+  h+=`<div class="checklist-grid${clOpen?' open':''}" id="checklist-grid" style="display:${clOpen?'block':'none'};">`;
+  // tag filters
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">';
+  h+=`<button onclick="checkFilter='all';buildDiaDia();" style="padding:4px 10px;border-radius:16px;font-size:.75rem;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid ${checkFilter==='all'?'var(--ocean)':'var(--sand-dark)'};background:${checkFilter==='all'?'var(--ocean)':'var(--white)'};color:${checkFilter==='all'?'#fff':'var(--text)'};-webkit-tap-highlight-color:transparent;">Todos</button>`;
+  Object.keys(checkTags).forEach(function(k){
+    var t=checkTags[k];
+    var active=checkFilter===k;
+    h+=`<button onclick="checkFilter='${k}';buildDiaDia();" style="padding:4px 10px;border-radius:16px;font-size:.75rem;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid ${active?t.color:'var(--sand-dark)'};background:${active?t.color:'var(--white)'};color:${active?'#fff':'var(--text)'};-webkit-tap-highlight-color:transparent;">${t.label}</button>`;
+  });
+  h+='</div>';
+  // add new
+  h+='<div style="display:flex;gap:6px;margin-bottom:12px;">';
+  h+='<input type="text" id="check-new-input" onkeydown="if(event.key===\'Enter\')addCheckItem()" placeholder="Novo item..." style="flex:1;border:1px solid var(--sand-dark);border-radius:8px;padding:8px 10px;font-size:.85rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
+  h+='<select id="check-new-tag" style="border:1px solid var(--sand-dark);border-radius:8px;padding:4px 8px;font-size:.8rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
+  Object.keys(checkTags).forEach(function(k){h+=`<option value="${k}">${checkTags[k].label}</option>`;});
+  h+='</select>';
+  h+=`<button onclick="addCheckItem()" style="background:var(--ocean);color:#fff;border:none;border-radius:8px;padding:0 12px;font-size:1rem;cursor:pointer;min-width:40px;min-height:40px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-plus"></i></button>`;
+  h+='</div>';
+  // items
+  var filtered=items.map(function(it,i){return{it:it,idx:i};}).filter(function(x){return checkFilter==='all'||x.it.tag===checkFilter;});
+  filtered.forEach(function(x){
+    var it=x.it,i=x.idx,t=checkTags[it.tag]||checkTags.outro;
+    h+=`<div style="background:var(--white);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);${it.checked?'opacity:.5;':''}border-left:3px solid ${t.color};">`;
+    h+=`<input type="checkbox" ${it.checked?'checked':''} onchange="toggleCheck(${i})" style="width:20px;height:20px;accent-color:var(--green);flex-shrink:0;">`;
+    h+=`<div style="flex:1;min-width:0;">`;
+    h+=`<input type="text" value="${it.text.replace(/"/g,'&quot;')}" onchange="editCheckText(${i},this.value)" style="width:100%;border:none;background:transparent;font-size:.9rem;font-family:'DM Sans',sans-serif;color:var(--text);padding:0;${it.checked?'text-decoration:line-through;color:var(--text-light);':''}">`;
+    h+=`<span style="font-size:.65rem;color:${t.color};font-weight:600;text-transform:uppercase;letter-spacing:.03em;">${t.label}</span>`;
+    h+=`</div>`;
+    h+=`<button onclick="removeCheck(${i})" style="background:none;border:none;color:var(--coral);font-size:1rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;flex-shrink:0;"><i class="ti ti-trash"></i></button>`;
+    h+=`</div>`;
   });
   h+='</div>';
   // days
@@ -829,9 +890,31 @@ function toggleDay(i){
   chev.classList.toggle('open',isOpen);
   lsSet('day-open-'+i,isOpen);
 }
+function toggleCheck(i){
+  var items=getChecklist();items[i].checked=!items[i].checked;
+  saveChecklist(items);buildDiaDia();
+}
+function editCheckText(i,val){
+  var items=getChecklist();items[i].text=val;
+  saveChecklist(items);
+}
+function removeCheck(i){
+  var items=getChecklist();items.splice(i,1);
+  saveChecklist(items);buildDiaDia();
+}
+function addCheckItem(){
+  var inp=document.getElementById('check-new-input');
+  var tag=document.getElementById('check-new-tag');
+  var text=inp.value.trim();if(!text)return;
+  var items=getChecklist();
+  items.push({text:text,tag:tag.value,checked:false});
+  saveChecklist(items);buildDiaDia();
+  lsSet('checklist-open',true);
+}
 function toggleChecklist(){
   const g=document.getElementById('checklist-grid');
-  const isOpen=g.classList.toggle('open');
+  const isOpen=g.style.display==='none';
+  g.style.display=isOpen?'block':'none';
   document.getElementById('cl-chevron').textContent=isOpen?'▲':'▼';
   lsSet('checklist-open',isOpen);
 }
@@ -1172,13 +1255,7 @@ document.addEventListener('input',e=>{
     }
   }
 });
-document.addEventListener('change',e=>{
-  if(e.target.dataset.check!==undefined){
-    const idx=e.target.dataset.check;
-    lsSet('check-'+idx,e.target.checked);
-    syncChecklist(checklistItems[idx],e.target.checked);
-  }
-});
+document.addEventListener('change',e=>{});
 
 // CALCULATOR
 function calcular(){
