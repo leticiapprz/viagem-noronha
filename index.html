@@ -6,6 +6,8 @@
 <title>Nordeste Agosto 2025 · Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/tabler-icons.min.css">
 <style>
 :root {
@@ -354,6 +356,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   <button class="nav-btn" data-tab="calc"><span class="icon"><i class="ti ti-calculator"></i></span>Calculadora</button>
   <button class="nav-btn" data-tab="diadia"><span class="icon"><i class="ti ti-sun"></i></span>Dia a dia</button>
   <button class="nav-btn" data-tab="mares"><span class="icon"><i class="ti ti-ripple"></i></span>Marés</button>
+  <button class="nav-btn" data-tab="mapa"><span class="icon"><i class="ti ti-map-pin"></i></span>Mapa</button>
   <button class="nav-btn" data-tab="lista"><span class="icon"><i class="ti ti-shopping-cart"></i></span>Lista</button>
 </nav>
 
@@ -455,6 +458,13 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <div id="mares" class="tab-content"></div>
 
 <!-- TAB 6: LISTA -->
+<!-- TAB 7: MAPA -->
+<div id="mapa" class="tab-content">
+  <h2>Mapa da viagem</h2>
+  <div id="map-container" style="height:65vh;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;"></div>
+  <div id="map-legend" style="display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--text-light);"></div>
+</div>
+
 <div id="lista" class="tab-content"></div>
 
 <script>
@@ -861,6 +871,73 @@ function syncLista(){
 }
 
 buildLista();
+
+// MAPA
+var tripMap=null;
+function buildMapa(){
+  if(tripMap)return;
+  var el=document.getElementById('map-container');
+  if(!el||el.offsetHeight===0)return;
+  tripMap=L.map('map-container',{zoomControl:true}).setView([-6.5,-34.5],6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:18,attribution:'OpenStreetMap'
+  }).addTo(tripMap);
+
+  function pin(lat,lng,color,title,desc){
+    var icon=L.divIcon({
+      className:'',
+      html:'<div style="background:'+color+';width:28px;height:28px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;">'+title.charAt(0)+'</div>',
+      iconSize:[28,28],iconAnchor:[14,14]
+    });
+    L.marker([lat,lng],{icon:icon}).addTo(tripMap).bindPopup('<b>'+title+'</b><br><span style="font-size:12px;color:#666">'+desc+'</span>');
+  }
+
+  // Noronha - pousada e praias
+  pin(-3.8554,-32.4242,'#1A5F7A','Pousada Alvorada','10-19/ago · 9 noites');
+  pin(-3.8556,-32.4440,'#C95D3A','Praia do Sancho','Eleita mais bonita do Brasil');
+  pin(-3.8531,-32.4451,'#C95D3A','Baia dos Porcos','Piscinas naturais · depende de mare');
+  pin(-3.8490,-32.4310,'#C95D3A','Praia da Conceicao','Livre · boa pra todo dia');
+  pin(-3.8694,-32.4232,'#C95D3A','Baia do Sueste','Tartarugas marinhas');
+  pin(-3.8500,-32.4115,'#C95D3A','Praia do Cachorro','Perto da vila');
+  pin(-3.8388,-32.4072,'#2D6A4F','Bar do Cachorro','Jantar + por do sol');
+  pin(-3.8476,-32.4090,'#2D6A4F','Ze Maria','Jantar especial');
+  pin(-3.8530,-32.4350,'#2D6A4F','Mergulhao','Frutos do mar');
+  pin(-3.8447,-32.4254,'#666','Mirante dos Golfinhos','Golfinhos de manha cedo');
+  pin(-3.8560,-32.4420,'#666','Morro Dois Irmaos','Trilha + vista');
+
+  // Porto de Galinhas
+  pin(-8.5060,-35.0060,'#1A5F7A','Un Paso del Mar','Porto de Galinhas · 19-21/ago · 2 noites');
+  pin(-8.5000,-35.0050,'#C95D3A','Piscinas naturais','Jangada · Porto de Galinhas');
+
+  // Camarajibe
+  pin(-8.3130,-35.0780,'#1A5F7A','Villa Marceneiro','Passo de Camarajibe · 21-25/ago · 4 noites');
+
+  // Maceio
+  pin(-9.5780,-35.7170,'#1A5F7A','Wave Suites','Maceio · 25-27/ago · 2 noites');
+  pin(-9.6165,-35.7360,'#C95D3A','Praia de Ipioca','Maceio');
+
+  // Rota de carro
+  L.polyline([
+    [-8.1265,-34.9106],[-8.5060,-35.0060],[-8.3130,-35.0780],
+    [-9.5780,-35.7170]
+  ],{color:'#1A5F7A',weight:2,dashArray:'8 6',opacity:.6}).addTo(tripMap);
+
+  // Legenda
+  document.getElementById('map-legend').innerHTML=
+    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1A5F7A;margin-right:4px;vertical-align:middle;"></span>Hospedagem</span>'+
+    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#C95D3A;margin-right:4px;vertical-align:middle;"></span>Praia / passeio</span>'+
+    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2D6A4F;margin-right:4px;vertical-align:middle;"></span>Restaurante</span>'+
+    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#666;margin-right:4px;vertical-align:middle;"></span>Mirante / trilha</span>';
+
+  setTimeout(()=>tripMap.invalidateSize(),200);
+}
+
+// Init map when tab becomes visible
+var origSwitch=switchTab;
+switchTab=function(tabId){
+  origSwitch(tabId);
+  if(tabId==='mapa')setTimeout(buildMapa,100);
+};
 
 // AUTO-SAVE all inputs
 document.addEventListener('input',e=>{
