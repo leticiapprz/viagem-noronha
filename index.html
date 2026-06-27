@@ -535,11 +535,15 @@ function pullFromSheets(){
     .then(r=>r.json())
     .then(data=>{
       if(data.gastos){
-        data.gastos.forEach(g=>{
-          if(g.gastoReal) localStorage.setItem(LS+'gasto-real-'+g.id,g.gastoReal);
-          if(g.quemPagou) localStorage.setItem(LS+'gasto-quem-'+g.id,g.quemPagou);
-          if(g.deveAlguem) localStorage.setItem(LS+'gasto-deve-'+g.id,g.deveAlguem);
-          if(g.pago) localStorage.setItem(LS+'gasto-pago-'+g.id,g.pago);
+        const allIds=[];
+        expenses.forEach(cat=>cat.items.forEach(it=>allIds.push(it.id)));
+        data.gastos.forEach((g,i)=>{
+          const id=g.id||allIds[i];
+          if(!id)return;
+          if(g.gastoReal) localStorage.setItem(LS+'gasto-real-'+id,g.gastoReal);
+          if(g.quemPagou) localStorage.setItem(LS+'gasto-quem-'+id,g.quemPagou);
+          if(g.deveAlguem) localStorage.setItem(LS+'gasto-deve-'+id,g.deveAlguem);
+          if(g.pago) localStorage.setItem(LS+'gasto-pago-'+id,g.pago);
         });
       }
       if(data.diadia){
@@ -557,25 +561,31 @@ function pullFromSheets(){
     .catch(()=>showSync('error'));
 }
 
-// TABS
+// TABS with hash routing
 function switchTab(tabId){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelector('[data-tab="'+tabId+'"]').classList.add('active');
   document.getElementById(tabId).classList.add('active');
   window.scrollTo(0,0);
-  lsSet('active-tab',tabId);
+  history.replaceState(null,null,'#'+tabId);
 }
 document.querySelectorAll('.nav-btn').forEach(btn=>{
   btn.addEventListener('click',function(e){e.preventDefault();switchTab(this.dataset.tab);});
   btn.addEventListener('touchend',function(e){e.preventDefault();switchTab(this.dataset.tab);});
 });
-
-// Restore active tab
-const savedTab=lsGet('active-tab','roteiro');
-document.querySelectorAll('.nav-btn').forEach(b=>{
-  if(b.dataset.tab===savedTab){b.click();}
+window.addEventListener('hashchange',()=>{
+  const tab=location.hash.replace('#','');
+  if(tab && document.getElementById(tab)) switchTab(tab);
 });
+
+// Restore tab from hash or default
+const initTab=location.hash.replace('#','')||'roteiro';
+if(document.getElementById(initTab)) switchTab(initTab);
+// Skip splash if deep-linking to a tab
+if(location.hash && location.hash!=='#roteiro'){
+  document.getElementById('splash').style.display='none';
+}
 
 // GASTOS DATA
 const expenses=[
@@ -896,12 +906,12 @@ function pushDefaults(){
     diadia:diadiaData,
     checklist:checkData
   });
-  localStorage.setItem(LS+'initial-push-v2','done');
+  localStorage.setItem(LS+'initial-push-v3','done');
 }
 
 if(SHEETS_URL){
   document.getElementById('sheets-url-input').value=SHEETS_URL;
-  if(localStorage.getItem(LS+'initial-push-v2')!=='done'){
+  if(localStorage.getItem(LS+'initial-push-v3')!=='done'){
     pushDefaults();
   }
   pullFromSheets().then(()=>{
