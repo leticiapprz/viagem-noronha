@@ -118,8 +118,17 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   background:var(--white); border-radius:var(--radius); padding:14px;
   margin-bottom:8px; box-shadow:var(--shadow);
 }
-.expense-card .exp-name { font-weight:600; font-size:.95rem; margin-bottom:6px; }
-.expense-card .exp-prev { font-size:.85rem; color:var(--text-light); margin-bottom:8px; }
+.expense-card .exp-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px; }
+.expense-card .exp-name { font-weight:600; font-size:.95rem; margin-bottom:2px; }
+.expense-card .exp-prev { font-size:.85rem; color:var(--text-light); }
+.expense-card.pago { border-left:3px solid var(--green); opacity:.75; }
+.pago-btn {
+  border:1px solid var(--sand-dark); background:var(--sand); border-radius:8px;
+  padding:6px 12px; font-size:.8rem; font-family:'DM Sans',sans-serif;
+  cursor:pointer; white-space:nowrap; min-height:36px;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
+.pago-btn.active { background:#d8f0e4; border-color:var(--green); color:var(--green); font-weight:600; }
 .exp-fields { display:flex; flex-direction:column; gap:6px; }
 .exp-field label { font-size:.8rem; color:var(--text-light); display:block; margin-bottom:2px; }
 .exp-field input {
@@ -226,9 +235,74 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   .hero { padding:40px 32px; }
   .hero h1 { font-size:2.4rem; }
 }
+
+/* SPLASH */
+.splash {
+  position:fixed; inset:0; z-index:500;
+  background: #0d3d56;
+  background-size:cover; background-position:center;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  color:#fff; text-align:center; padding:32px 24px;
+  transition: opacity .6s, transform .6s;
+}
+.splash::before {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,.15) 40%, rgba(0,0,0,.45) 100%);
+  z-index:0;
+}
+.splash > * { position:relative; z-index:1; }
+.splash.hidden { opacity:0; transform:translateY(-30px); pointer-events:none; }
+.splash-emoji { font-size:48px; margin-bottom:16px; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.splash-title {
+  font-family:'DM Serif Display',serif; font-size:2.2rem; line-height:1.15;
+  margin-bottom:8px; color:#fff;
+}
+.splash-sub { font-size:1rem; opacity:.8; margin-bottom:32px; line-height:1.5; max-width:320px; }
+.splash-countdown {
+  display:flex; gap:12px; margin-bottom:32px; flex-wrap:wrap; justify-content:center;
+}
+.splash-unit {
+  background:rgba(255,255,255,.12); backdrop-filter:blur(8px);
+  border-radius:14px; padding:14px 16px; min-width:72px;
+  border:1px solid rgba(255,255,255,.15);
+}
+.splash-num {
+  font-family:'DM Serif Display',serif; font-size:2rem; line-height:1; display:block;
+}
+.splash-label { font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; opacity:.7; margin-top:4px; display:block; }
+.splash-msg {
+  font-size:.95rem; opacity:.75; line-height:1.6; max-width:300px;
+  font-style:italic; margin-bottom:28px;
+}
+.splash-btn {
+  background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.35);
+  color:#fff; padding:14px 32px; border-radius:50px; font-size:1rem;
+  font-family:'DM Sans',sans-serif; font-weight:600; cursor:pointer;
+  transition: background .2s, transform .15s;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
+.splash-btn:active { transform:scale(.96); background:rgba(255,255,255,.3); }
+.splash-wave {
+  position:absolute; bottom:0; left:0; right:0; height:80px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 100'%3E%3Cpath fill='%23F5F0E8' fill-opacity='.3' d='M0 40c240-30 480 20 720 10s480-40 720 0v60H0z'/%3E%3Cpath fill='%23F5F0E8' fill-opacity='.15' d='M0 60c200-20 400 15 600 5s400-25 600 5l240-10v50H0z'/%3E%3C/svg%3E") no-repeat bottom/cover;
+}
 </style>
 </head>
 <body>
+
+<div class="splash" id="splash">
+  <div class="splash-emoji">🏝️</div>
+  <div class="splash-title">Nordeste</div>
+  <div class="splash-sub">Leticia & Camila<br>agosto 2025</div>
+  <div class="splash-countdown" id="countdown"></div>
+  <div class="splash-msg">
+    te amo e to ansiosa pra ver sua versão bochecha vermelhinha de sol,
+    nadando um montão e com todos os dentinhos aparecendo! ❤️
+  </div>
+  <button class="splash-btn" onclick="enterPlanner()">Abrir planner →</button>
+  <div class="splash-wave"></div>
+</div>
 
 <div id="sheets-setup" style="display:none;background:var(--ocean);color:#fff;padding:12px 16px;font-size:13px;line-height:1.5;position:fixed;top:0;left:0;right:0;z-index:200;">
   <div style="max-width:800px;margin:0 auto;">
@@ -351,22 +425,45 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <div id="mares" class="tab-content"></div>
 
 <script>
+// SPLASH BACKGROUND
+const fotos=['foto1.jpg','foto2.png','foto3.jpg'];
+document.getElementById('splash').style.backgroundImage='url('+fotos[Math.floor(Math.random()*fotos.length)]+')';
+
+// COUNTDOWN
+const TRIP_DATE = new Date('2025-08-10T07:40:00-03:00');
+function updateCountdown(){
+  const now=new Date();
+  const diff=TRIP_DATE-now;
+  const el=document.getElementById('countdown');
+  if(diff<=0){
+    el.innerHTML='<div style="font-size:1.3rem;font-weight:600;">A aventura começou! 🎉</div>';
+    return;
+  }
+  const d=Math.floor(diff/86400000);
+  const h=Math.floor((diff%86400000)/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  const s=Math.floor((diff%60000)/1000);
+  el.innerHTML=
+    '<div class="splash-unit"><span class="splash-num">'+d+'</span><span class="splash-label">dias</span></div>'+
+    '<div class="splash-unit"><span class="splash-num">'+h+'</span><span class="splash-label">horas</span></div>'+
+    '<div class="splash-unit"><span class="splash-num">'+m+'</span><span class="splash-label">min</span></div>'+
+    '<div class="splash-unit"><span class="splash-num">'+s+'</span><span class="splash-label">seg</span></div>';
+}
+updateCountdown();
+setInterval(updateCountdown,1000);
+
+function enterPlanner(){
+  document.getElementById('splash').classList.add('hidden');
+  setTimeout(()=>{document.getElementById('splash').style.display='none';},600);
+}
+
 const LS = 'viagem-noronha-';
 const SHEETS_URL = localStorage.getItem(LS+'sheets-url') || 'https://script.google.com/macros/s/AKfycbyUkJpHPjBKy8EXy1EZ-Ik9RRV7N5_82eY0tPKOR2msOxmcXsArp9n_EfRaugQekJ-_tA/exec';
-let sheetCache = {};
-let syncQueue = [];
 let syncTimer = null;
+let syncQueue = [];
 
 function lsGet(k,d){const v=localStorage.getItem(LS+k);return v!==null?v:d;}
-function lsSet(k,v){
-  localStorage.setItem(LS+k,v);
-  if(SHEETS_URL){
-    syncQueue.push({key:k,value:String(v)});
-    clearTimeout(syncTimer);
-    syncTimer=setTimeout(flushSync,1500);
-    showSync('syncing');
-  }
-}
+function lsSet(k,v){localStorage.setItem(LS+k,v);}
 function lsBool(k,d){const v=localStorage.getItem(LS+k);return v!==null?v==='true':d;}
 
 function showSync(state){
@@ -377,22 +474,63 @@ function showSync(state){
   else if(state==='error'){el.textContent='⚠️ Erro ao sincronizar';el.style.color='var(--coral)';}
   else{el.textContent='';}
 }
-function flushSync(){
-  if(!SHEETS_URL||syncQueue.length===0)return;
-  const batch=[...syncQueue];
-  syncQueue=[];
-  fetch(SHEETS_URL,{method:'POST',body:JSON.stringify({batch}),headers:{'Content-Type':'text/plain'}})
-    .then(r=>{if(!r.ok)throw r;showSync('ok');setTimeout(()=>showSync(''),3000);})
-    .catch(()=>{showSync('error');});
+
+function sheetPost(payload){
+  if(!SHEETS_URL)return;
+  showSync('syncing');
+  var xhr=new XMLHttpRequest();
+  xhr.open('POST',SHEETS_URL);
+  xhr.setRequestHeader('Content-Type','text/plain;charset=utf-8');
+  xhr.onload=function(){showSync('ok');setTimeout(()=>showSync(''),3000);};
+  xhr.onerror=function(){showSync('error');};
+  xhr.send(JSON.stringify(payload));
 }
+
+function syncGasto(id,field,value){
+  lsSet('gasto-'+field+'-'+id,value);
+  if(!SHEETS_URL)return;
+  clearTimeout(syncTimer);
+  syncQueue.push({action:'update-gasto',id,field,value});
+  syncTimer=setTimeout(()=>{
+    syncQueue.forEach(q=>sheetPost(q));
+    syncQueue=[];
+  },1500);
+}
+
+function syncDiaDia(dia,gasto){
+  lsSet('day-gasto-'+dia,gasto);
+  if(!SHEETS_URL)return;
+  sheetPost({action:'update-diadia',dia:String(dia),gasto});
+}
+
+function syncChecklist(item,marcado){
+  if(!SHEETS_URL)return;
+  sheetPost({action:'update-checklist',item,marcado});
+}
+
 function pullFromSheets(){
   if(!SHEETS_URL)return Promise.resolve();
   return fetch(SHEETS_URL)
     .then(r=>r.json())
     .then(data=>{
-      Object.entries(data).forEach(([k,v])=>{
-        localStorage.setItem(LS+k,String(v));
-      });
+      if(data.gastos){
+        data.gastos.forEach(g=>{
+          if(g.gastoReal) localStorage.setItem(LS+'gasto-real-'+g.id,g.gastoReal);
+          if(g.quemPagou) localStorage.setItem(LS+'gasto-quem-'+g.id,g.quemPagou);
+          if(g.deveAlguem) localStorage.setItem(LS+'gasto-deve-'+g.id,g.deveAlguem);
+          if(g.pago) localStorage.setItem(LS+'gasto-pago-'+g.id,g.pago);
+        });
+      }
+      if(data.diadia){
+        data.diadia.forEach((d,i)=>{
+          if(d.gasto) localStorage.setItem(LS+'day-gasto-'+i,d.gasto);
+        });
+      }
+      if(data.checklist){
+        data.checklist.forEach((c,i)=>{
+          localStorage.setItem(LS+'check-'+i,String(c.marcado));
+        });
+      }
       showSync('ok');setTimeout(()=>showSync(''),3000);
     })
     .catch(()=>showSync('error'));
@@ -461,6 +599,17 @@ const expenses=[
   ]},
 ];
 
+function togglePago(btn){
+  const id=btn.dataset.pagoId;
+  const isNowPago=!btn.classList.contains('active');
+  btn.classList.toggle('active',isNowPago);
+  btn.textContent=isNowPago?'✅ Pago':'⬜ Pago?';
+  btn.closest('.expense-card').classList.toggle('pago',isNowPago);
+  const val=isNowPago?'Sim':'Não';
+  lsSet('gasto-pago-'+id,val);
+  syncGasto(id,'pago',val);
+}
+
 function buildGastos(){
   const c=document.getElementById('gastos');
   let h='<h2>Controle de gastos</h2>';
@@ -470,13 +619,17 @@ function buildGastos(){
       const realVal=lsGet('gasto-real-'+it.id,'');
       const quemVal=lsGet('gasto-quem-'+it.id,it.quem);
       const deveVal=lsGet('gasto-deve-'+it.id,it.deve);
-      h+=`<div class="expense-card">
-        <div class="exp-name">${it.name}</div>
-        <div class="exp-prev">Previsto: ${it.prev}</div>
+      const pagoVal=lsGet('gasto-pago-'+it.id,'Não');
+      const isPago=pagoVal==='Sim';
+      h+=`<div class="expense-card${isPago?' pago':''}">
+        <div class="exp-top">
+          <div><div class="exp-name">${it.name}</div><div class="exp-prev">Previsto: ${it.prev}</div></div>
+          <button class="pago-btn${isPago?' active':''}" data-pago-id="${it.id}" onclick="togglePago(this)">${isPago?'✅ Pago':'⬜ Pago?'}</button>
+        </div>
         <div class="exp-fields">
-          <div class="exp-field"><label>Gasto real</label><input type="text" data-ls="gasto-real-${it.id}" value="${realVal}" placeholder="R$..."></div>
-          <div class="exp-field"><label>Quem pagou</label><input type="text" data-ls="gasto-quem-${it.id}" value="${quemVal}"></div>
-          <div class="exp-field"><label>Deve alguém?</label><input type="text" data-ls="gasto-deve-${it.id}" value="${deveVal}"></div>
+          <div class="exp-field"><label>Gasto real</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="gastoReal" data-ls="gasto-real-${it.id}" value="${realVal}" placeholder="R$..."></div>
+          <div class="exp-field"><label>Quem pagou</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="quemPagou" data-ls="gasto-quem-${it.id}" value="${quemVal}"></div>
+          <div class="exp-field"><label>Deve alguém?</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="deveAlguem" data-ls="gasto-deve-${it.id}" value="${deveVal}"></div>
         </div>
       </div>`;
     });
@@ -611,16 +764,21 @@ buildMares();
 
 // AUTO-SAVE all inputs
 document.addEventListener('input',e=>{
-  if(e.target.dataset.ls){
+  if(e.target.dataset.gastoId){
+    syncGasto(e.target.dataset.gastoId, e.target.dataset.gastoField, e.target.value);
+  } else if(e.target.dataset.ls){
     lsSet(e.target.dataset.ls,e.target.value);
-  }
-  if(e.target.dataset.check!==undefined){
-    lsSet('check-'+e.target.dataset.check,e.target.checked);
+    if(e.target.dataset.ls.startsWith('day-gasto-')){
+      const dayIdx=e.target.dataset.ls.replace('day-gasto-','');
+      syncDiaDia(dayIdx,e.target.value);
+    }
   }
 });
 document.addEventListener('change',e=>{
   if(e.target.dataset.check!==undefined){
-    lsSet('check-'+e.target.dataset.check,e.target.checked);
+    const idx=e.target.dataset.check;
+    lsSet('check-'+idx,e.target.checked);
+    syncChecklist(checklistItems[idx],e.target.checked);
   }
 });
 
@@ -685,8 +843,46 @@ function saveSheetUrl(){
   alert('Conectado! Recarregue a página para sincronizar.');
   location.reload();
 }
+function pushDefaults(){
+  if(!SHEETS_URL)return;
+  const gastosData=[];
+  expenses.forEach(cat=>{
+    cat.items.forEach(it=>{
+      gastosData.push({
+        id:it.id,
+        categoria:cat.cat,
+        item:it.name,
+        previsto:it.prev,
+        gastoReal:lsGet('gasto-real-'+it.id,''),
+        quemPagou:lsGet('gasto-quem-'+it.id,it.quem),
+        deveAlguem:lsGet('gasto-deve-'+it.id,it.deve),
+        pago:lsGet('gasto-pago-'+it.id,'Não')
+      });
+    });
+  });
+  const diadiaData=days.map((d,i)=>({
+    dia:String(i+1),
+    data:d.title,
+    gasto:lsGet('day-gasto-'+i,'')
+  }));
+  const checkData=checklistItems.map((c,i)=>({
+    item:c,
+    marcado:lsBool('check-'+i,false)
+  }));
+  sheetPost({
+    action:'init',
+    gastos:gastosData,
+    diadia:diadiaData,
+    checklist:checkData
+  });
+  localStorage.setItem(LS+'initial-push-v2','done');
+}
+
 if(SHEETS_URL){
   document.getElementById('sheets-url-input').value=SHEETS_URL;
+  if(localStorage.getItem(LS+'initial-push-v2')!=='done'){
+    pushDefaults();
+  }
   pullFromSheets().then(()=>{
     document.getElementById('gastos').innerHTML='';
     buildGastos();
