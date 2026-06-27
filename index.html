@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/tabler-icons.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
 :root {
   --ocean: #1A5F7A;
@@ -315,7 +315,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <body>
 
 <div class="splash" id="splash">
-  <div class="splash-sub">Leticia & Camila<br>agosto 2025</div>
+  <div class="splash-sub">Leticia & Camila<br>agosto 2026</div>
   <div class="splash-countdown" id="countdown"></div>
   <div class="splash-msg">
     te amo e to ansiosa pra ver sua versão bochecha vermelhinha de sol,
@@ -363,7 +363,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <!-- TAB 1: ROTEIRO -->
 <div id="roteiro" class="tab-content active">
   <div class="hero">
-    <h1>Nordeste agosto 2025</h1>
+    <h1>Nordeste agosto 2026</h1>
     <p>Leticia + Camila · 2 passageiros</p>
     <button onclick="document.getElementById('sheets-setup').style.display='block'" style="margin-top:10px;background:rgba(255,255,255,.2);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;"><i class="ti ti-cloud"></i> Configurar sincronização</button>
   </div>
@@ -473,7 +473,7 @@ const fotos=['foto1.jpg','foto2.png','foto3.jpg'];
 document.getElementById('splash').style.backgroundImage='url('+fotos[Math.floor(Math.random()*fotos.length)]+')';
 
 // COUNTDOWN
-const TRIP_DATE = new Date('2025-08-10T07:40:00-03:00');
+const TRIP_DATE = new Date('2026-08-10T07:40:00-03:00');
 function updateCountdown(){
   const now=new Date();
   const diff=TRIP_DATE-now;
