@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Nordeste Agosto 2025 · Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ocean: #1A5F7A;
+  --ocean-light: #2a7f9e;
+  --sand: #F5F0E8;
+  --sand-dark: #e8e0d0;
+  --coral: #C95D3A;
+  --green: #2D6A4F;
+  --text: #2c2c2c;
+  --text-light: #666;
+  --white: #fff;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--sand);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+h1,h2,h3 { font-family: 'DM Serif Display', serif; color: var(--ocean); }
+h1 { font-size: 1.8rem; }
+h2 { font-size: 1.35rem; margin-bottom: 12px; }
+h3 { font-size: 1.1rem; margin-bottom: 8px; }
+
+/* NAV */
+.bottom-nav {
+  position: fixed; bottom:0; left:0; right:0; z-index:100;
+  background: var(--white); border-top: 1px solid var(--sand-dark);
+  display: flex; height: calc(64px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+.nav-btn {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  border:none; background:none; color: var(--text-light); font-size:10px;
+  font-family:'DM Sans',sans-serif; cursor:pointer; gap:2px; padding:4px 0;
+  transition: color .2s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none; -webkit-user-select: none;
+  min-height: 48px;
+}
+.nav-btn .icon { font-size:22px; line-height:1; pointer-events:none; }
+.nav-btn span { pointer-events:none; }
+.nav-btn.active { color: var(--ocean); font-weight:600; }
+
+/* TAB CONTENT */
+.tab-content { display:none; padding:16px; max-width:800px; margin:0 auto; }
+.tab-content.active { display:block; }
+
+/* CARDS */
+.card {
+  background: var(--white); border-radius: var(--radius);
+  padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow);
+}
+.card-header {
+  display:flex; align-items:center; gap:8px; margin-bottom:10px;
+  font-family:'DM Serif Display',serif; color:var(--ocean); font-size:1.1rem;
+}
+
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, var(--ocean) 0%, var(--ocean-light) 100%);
+  color:var(--white); border-radius: var(--radius); padding:28px 20px;
+  margin-bottom:16px; text-align:center;
+}
+.hero h1 { color:var(--white); font-size:1.9rem; margin-bottom:4px; }
+.hero p { opacity:.85; font-size:.95rem; }
+
+/* FLIGHT/HOTEL ITEMS */
+.item-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--sand);
+}
+.item-row:last-child { border-bottom:none; }
+.item-label { font-weight:600; font-size:.95rem; margin-bottom:2px; }
+.item-detail { font-size:.85rem; color:var(--text-light); }
+.item-price { font-weight:700; color:var(--coral); margin-top:4px; font-size:.95rem; }
+.item-price s { color:var(--text-light); font-weight:400; font-size:.85rem; }
+.item-tag {
+  display:inline-block; background:var(--sand); border-radius:6px;
+  padding:2px 8px; font-size:.75rem; color:var(--ocean); font-weight:600; margin-top:4px;
+}
+
+/* TOTALS */
+.total-card {
+  background: linear-gradient(135deg, var(--ocean) 0%, var(--ocean-light) 100%);
+  color:var(--white); border-radius:var(--radius); padding:20px; margin-top:16px;
+}
+.total-card h3 { color:var(--white); }
+.total-row { display:flex; justify-content:space-between; padding:4px 0; font-size:.9rem; opacity:.9; }
+.total-row.grand { font-size:1.15rem; font-weight:700; opacity:1; border-top:1px solid rgba(255,255,255,.3); margin-top:8px; padding-top:8px; }
+
+/* GASTOS TAB */
+.cat-header {
+  font-family:'DM Serif Display',serif; color:var(--ocean);
+  font-size:1.05rem; padding:12px 0 6px; border-bottom:2px solid var(--ocean);
+  margin-bottom:8px; margin-top:16px;
+}
+.cat-header:first-child { margin-top:0; }
+.expense-card {
+  background:var(--white); border-radius:var(--radius); padding:14px;
+  margin-bottom:8px; box-shadow:var(--shadow);
+}
+.expense-card .exp-name { font-weight:600; font-size:.95rem; margin-bottom:6px; }
+.expense-card .exp-prev { font-size:.85rem; color:var(--text-light); margin-bottom:8px; }
+.exp-fields { display:flex; flex-direction:column; gap:6px; }
+.exp-field label { font-size:.8rem; color:var(--text-light); display:block; margin-bottom:2px; }
+.exp-field input {
+  width:100%; border:1px solid var(--sand-dark); border-radius:8px;
+  padding:10px 12px; font-size:.9rem; font-family:'DM Sans',sans-serif;
+  background:var(--sand); min-height:44px;
+}
+.exp-field input:focus { outline:none; border-color:var(--ocean); background:var(--white); }
+
+/* CALCULATOR */
+.calc-btn {
+  width:100%; padding:16px; border:none; border-radius:var(--radius);
+  background:var(--ocean); color:var(--white); font-size:1.1rem;
+  font-family:'DM Serif Display',serif; cursor:pointer;
+  transition: background .2s;
+}
+.calc-btn:active { background:var(--ocean-light); }
+.calc-result {
+  background:var(--white); border-radius:var(--radius); padding:24px;
+  margin-top:16px; box-shadow:var(--shadow); text-align:center;
+}
+.calc-result .amount { font-size:2rem; font-family:'DM Serif Display',serif; color:var(--coral); margin:12px 0 4px; }
+.calc-result .label { color:var(--text-light); font-size:.9rem; }
+.calc-detail { font-size:.9rem; color:var(--text-light); margin-top:12px; text-align:left; }
+.calc-detail div { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--sand); }
+
+/* DIA A DIA */
+.day-card {
+  background:var(--white); border-radius:var(--radius); margin-bottom:10px;
+  box-shadow:var(--shadow); overflow:hidden;
+}
+.day-header {
+  padding:14px 16px; cursor:pointer; display:flex; justify-content:space-between;
+  align-items:center; font-family:'DM Serif Display',serif; color:var(--ocean);
+  font-size:1.05rem; user-select:none;
+}
+.day-header .chevron { transition:transform .2s; font-size:1.2rem; }
+.day-header .chevron.open { transform:rotate(180deg); }
+.day-body { padding:0 16px 16px; display:none; }
+.day-body.open { display:block; }
+.period { margin-bottom:12px; }
+.period-label {
+  font-weight:700; font-size:.8rem; text-transform:uppercase;
+  color:var(--coral); letter-spacing:.5px; margin-bottom:4px;
+}
+.period-text { font-size:.9rem; line-height:1.6; }
+.day-gasto {
+  margin-top:8px; padding-top:8px; border-top:1px solid var(--sand);
+}
+.day-gasto label { font-size:.8rem; color:var(--text-light); }
+.day-gasto input {
+  width:100%; border:1px solid var(--sand-dark); border-radius:8px;
+  padding:10px 12px; font-size:.9rem; font-family:'DM Sans',sans-serif;
+  background:var(--sand); margin-top:4px; min-height:44px;
+}
+.day-gasto input:focus { outline:none; border-color:var(--ocean); background:var(--white); }
+
+/* CHECKLIST */
+.checklist-toggle {
+  background:var(--ocean); color:var(--white); border:none; border-radius:var(--radius);
+  padding:12px 16px; width:100%; text-align:left; font-size:.95rem;
+  font-family:'DM Sans',sans-serif; font-weight:600; cursor:pointer;
+  margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;
+}
+.checklist-grid {
+  display:none; background:var(--white); border-radius:var(--radius);
+  padding:12px 16px; margin-bottom:16px; box-shadow:var(--shadow);
+}
+.checklist-grid.open { display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; }
+.check-item {
+  display:flex; align-items:center; gap:8px; padding:6px 0;
+  font-size:.9rem; min-height:44px;
+}
+.check-item input[type=checkbox] { width:20px; height:20px; accent-color:var(--green); flex-shrink:0; }
+
+/* MARES */
+.tide-day {
+  background:var(--white); border-radius:var(--radius); padding:12px 16px;
+  margin-bottom:8px; box-shadow:var(--shadow);
+}
+.tide-day.best { border-left:4px solid var(--coral); background:linear-gradient(90deg,#fff5f0,var(--white)); }
+.tide-day .td-date { font-weight:700; font-size:.95rem; color:var(--ocean); }
+.tide-day .td-info { font-size:.85rem; color:var(--text-light); margin-top:4px; }
+.tide-tag { display:inline-block; font-size:.75rem; padding:2px 6px; border-radius:4px; margin-right:4px; }
+.tide-tag.low { background:#e6f4ea; color:var(--green); }
+.tide-tag.high { background:#e3f0f9; color:var(--ocean); }
+.tide-legend { font-size:.85rem; color:var(--text-light); margin-bottom:16px; }
+
+/* DESKTOP */
+@media(min-width:768px){
+  body { padding-bottom:0; padding-top:64px; }
+  .bottom-nav {
+    top:0; bottom:auto; height:56px; border-top:none;
+    border-bottom:1px solid var(--sand-dark);
+    box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    max-width:100%;
+  }
+  .nav-btn { flex-direction:row; gap:6px; font-size:13px; }
+  .nav-btn .icon { font-size:18px; }
+  .tab-content { padding:24px; max-width:860px; }
+  .exp-fields { flex-direction:row; gap:10px; }
+  .exp-field { flex:1; }
+  .checklist-grid.open { grid-template-columns:1fr 1fr 1fr; }
+  .hero { padding:40px 32px; }
+  .hero h1 { font-size:2.4rem; }
+}
+</style>
+</head>
+<body>
+
+<div id="sheets-setup" style="display:none;background:var(--ocean);color:#fff;padding:12px 16px;font-size:13px;line-height:1.5;position:fixed;top:0;left:0;right:0;z-index:200;">
+  <div style="max-width:800px;margin:0 auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <strong>☁️ Conectar ao Google Sheets</strong>
+      <button onclick="document.getElementById('sheets-setup').style.display='none'" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">✕</button>
+    </div>
+    <p style="opacity:.85;margin-bottom:8px;">Cole a URL do seu Google Apps Script para sincronizar os dados entre dispositivos:</p>
+    <div style="display:flex;gap:8px;">
+      <input id="sheets-url-input" type="text" placeholder="https://script.google.com/macros/s/..." style="flex:1;padding:8px 12px;border:none;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;">
+      <button onclick="saveSheetUrl()" style="background:var(--coral);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Conectar</button>
+    </div>
+  </div>
+</div>
+<div id="sync-indicator" style="position:fixed;top:8px;right:12px;z-index:150;font-size:11px;font-weight:600;"></div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-tab="roteiro"><span class="icon">🗺</span>Roteiro</button>
+  <button class="nav-btn" data-tab="gastos"><span class="icon">💰</span>Gastos</button>
+  <button class="nav-btn" data-tab="calc"><span class="icon">🧮</span>Calculadora</button>
+  <button class="nav-btn" data-tab="diadia"><span class="icon">☀️</span>Dia a dia</button>
+  <button class="nav-btn" data-tab="mares"><span class="icon">🌊</span>Marés</button>
+</nav>
+
+<!-- TAB 1: ROTEIRO -->
+<div id="roteiro" class="tab-content active">
+  <div class="hero">
+    <h1>Nordeste agosto 2025</h1>
+    <p>Leticia + Camila · 2 passageiros</p>
+    <button onclick="document.getElementById('sheets-setup').style.display='block'" style="margin-top:10px;background:rgba(255,255,255,.2);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;">☁️ Configurar sincronização</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header">✈️ Voos</div>
+    <div class="item-row">
+      <div class="item-label">GRU → Fernando de Noronha</div>
+      <div class="item-detail">LATAM LA3828 · seg 10/ago · 07:40–12:35 · sem escala</div>
+      <div class="item-price"><s>R$1.469,08</s> R$1.264,00 <span style="font-weight:400;font-size:.8rem;color:var(--text-light)">(R$632/pessoa)</span></div>
+    </div>
+    <div class="item-row">
+      <div class="item-label">Fernando de Noronha → Recife</div>
+      <div class="item-detail">Azul AD 2418 · qua 19/ago · 15:30–15:45 · milhas Azul</div>
+      <div class="item-tag">Reserva: QIJ5YV</div>
+      <div class="item-price">R$112,40 <span style="font-weight:400;font-size:.8rem;color:var(--text-light)">(R$56,20/pessoa)</span></div>
+    </div>
+    <div class="item-row">
+      <div class="item-label">Maceió → São Paulo (CGH)</div>
+      <div class="item-detail">LATAM · qui 27/ago · 13:25–19:30 · 1 parada BSB · milhas Azul</div>
+      <div class="item-tag">Reserva: UKMXFQ</div>
+      <div class="item-price"><s>R$1.240</s> R$710,54</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">🏨 Hospedagens</div>
+    <div class="item-row">
+      <div class="item-label">Pousada Alvorada · Noronha</div>
+      <div class="item-detail">10–19/ago · 9 noites · café incluído</div>
+      <div class="item-price"><s>R$5.805</s> R$4.500 <span style="font-weight:400;font-size:.8rem;color:var(--text-light)">(pago via Pix, Leticia pagou)</span></div>
+    </div>
+    <div class="item-row">
+      <div class="item-label">Pousada Un Paso del Mar · Porto de Galinhas</div>
+      <div class="item-detail">19–21/ago · 2 noites</div>
+      <div class="item-price"><s>R$712</s> R$568</div>
+    </div>
+    <div class="item-row">
+      <div class="item-label">Villa Marceneiro Beach · Passo de Camarajibe</div>
+      <div class="item-detail">21–25/ago · 4 noites</div>
+      <div class="item-price"><s>R$3.346</s> R$1.326 <span style="font-weight:400;font-size:.8rem;color:var(--text-light)">(R$331,50/nt)</span></div>
+    </div>
+    <div class="item-row">
+      <div class="item-label">Wave Suítes Hotel · Maceió</div>
+      <div class="item-detail">25–27/ago · 2 noites</div>
+      <div class="item-price"><s>R$880</s> R$752,58</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">🚗 Transporte</div>
+    <div class="item-row">
+      <div class="item-label">Aluguel de carro Recife→Maceió</div>
+      <div class="item-detail">VW Polo · 19–25/ago · 9 diárias · Camila pagou</div>
+      <div class="item-price"><s>R$1.703</s> R$1.505,87</div>
+    </div>
+  </div>
+
+  <div class="total-card">
+    <h3>Resumo de custos</h3>
+    <div style="font-size:.8rem;opacity:.7;margin-bottom:8px;">Confirmados</div>
+    <div class="total-row"><span>Passagens</span><span>R$2.086,94</span></div>
+    <div class="total-row"><span>Hospedagens</span><span>R$7.146,58</span></div>
+    <div class="total-row"><span>Carro</span><span>R$1.505,87</span></div>
+    <div class="total-row"><span>TPA</span><span>R$1.650,38</span></div>
+    <div class="total-row"><span>ICMBio</span><span>R$384,00</span></div>
+    <div style="font-size:.8rem;opacity:.7;margin:12px 0 8px;">Estimativas</div>
+    <div class="total-row"><span>Transporte Noronha</span><span>~R$1.300</span></div>
+    <div class="total-row"><span>Alimentação</span><span>~R$3.700</span></div>
+    <div class="total-row"><span>Passeios</span><span>~R$1.500</span></div>
+    <div class="total-row"><span>Imprevistos</span><span>~R$500</span></div>
+    <div class="total-row grand"><span>Total estimado</span><span>~R$19.405,19</span></div>
+    <div class="total-row grand"><span>Por pessoa</span><span>~R$9.702,60</span></div>
+  </div>
+</div>
+
+<!-- TAB 2: GASTOS -->
+<div id="gastos" class="tab-content"></div>
+
+<!-- TAB 3: CALCULADORA -->
+<div id="calc" class="tab-content">
+  <h2>Calculadora de saldo</h2>
+  <p style="color:var(--text-light);margin-bottom:16px;font-size:.9rem;">Lê os campos "Deve alguém?" da aba Gastos e calcula quem deve quanto.</p>
+  <button class="calc-btn" onclick="calcular()">Calcular saldo</button>
+  <div id="calc-result"></div>
+</div>
+
+<!-- TAB 4: DIA A DIA -->
+<div id="diadia" class="tab-content"></div>
+
+<!-- TAB 5: MARÉS -->
+<div id="mares" class="tab-content"></div>
+
+<script>
+const LS = 'viagem-noronha-';
+const SHEETS_URL = localStorage.getItem(LS+'sheets-url') || 'https://script.google.com/macros/s/AKfycbyUkJpHPjBKy8EXy1EZ-Ik9RRV7N5_82eY0tPKOR2msOxmcXsArp9n_EfRaugQekJ-_tA/exec';
+let sheetCache = {};
+let syncQueue = [];
+let syncTimer = null;
+
+function lsGet(k,d){const v=localStorage.getItem(LS+k);return v!==null?v:d;}
+function lsSet(k,v){
+  localStorage.setItem(LS+k,v);
+  if(SHEETS_URL){
+    syncQueue.push({key:k,value:String(v)});
+    clearTimeout(syncTimer);
+    syncTimer=setTimeout(flushSync,1500);
+    showSync('syncing');
+  }
+}
+function lsBool(k,d){const v=localStorage.getItem(LS+k);return v!==null?v==='true':d;}
+
+function showSync(state){
+  const el=document.getElementById('sync-indicator');
+  if(!el)return;
+  if(state==='syncing'){el.textContent='☁️ Salvando...';el.style.color='var(--coral)';}
+  else if(state==='ok'){el.textContent='☁️ Sincronizado';el.style.color='var(--green)';}
+  else if(state==='error'){el.textContent='⚠️ Erro ao sincronizar';el.style.color='var(--coral)';}
+  else{el.textContent='';}
+}
+function flushSync(){
+  if(!SHEETS_URL||syncQueue.length===0)return;
+  const batch=[...syncQueue];
+  syncQueue=[];
+  fetch(SHEETS_URL,{method:'POST',body:JSON.stringify({batch}),headers:{'Content-Type':'text/plain'}})
+    .then(r=>{if(!r.ok)throw r;showSync('ok');setTimeout(()=>showSync(''),3000);})
+    .catch(()=>{showSync('error');});
+}
+function pullFromSheets(){
+  if(!SHEETS_URL)return Promise.resolve();
+  return fetch(SHEETS_URL)
+    .then(r=>r.json())
+    .then(data=>{
+      Object.entries(data).forEach(([k,v])=>{
+        localStorage.setItem(LS+k,String(v));
+      });
+      showSync('ok');setTimeout(()=>showSync(''),3000);
+    })
+    .catch(()=>showSync('error'));
+}
+
+// TABS
+function switchTab(tabId){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelector('[data-tab="'+tabId+'"]').classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+  window.scrollTo(0,0);
+  lsSet('active-tab',tabId);
+}
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',function(e){e.preventDefault();switchTab(this.dataset.tab);});
+  btn.addEventListener('touchend',function(e){e.preventDefault();switchTab(this.dataset.tab);});
+});
+
+// Restore active tab
+const savedTab=lsGet('active-tab','roteiro');
+document.querySelectorAll('.nav-btn').forEach(b=>{
+  if(b.dataset.tab===savedTab){b.click();}
+});
+
+// GASTOS DATA
+const expenses=[
+  {cat:'✈️ Voos',items:[
+    {id:'voo-gru-fen',name:'GRU → FEN',prev:'R$1.264,00',quem:'Camila',deve:'Leticia deve R$632'},
+    {id:'voo-fen-rec',name:'FEN → REC',prev:'R$112,40',quem:'Camila',deve:'Leticia deve R$56,20'},
+    {id:'voo-mcz-cgh',name:'MCZ → CGH',prev:'R$710,54',quem:'Camila',deve:'Leticia deve R$355,27'},
+  ]},
+  {cat:'🏨 Hospedagens',items:[
+    {id:'hosp-alvorada',name:'Pousada Alvorada',prev:'R$4.500',quem:'Leticia',deve:'Camila deve R$2.250'},
+    {id:'hosp-unpaso',name:'Un Paso del Mar',prev:'R$568',quem:'Leticia',deve:'Camila deve R$284'},
+    {id:'hosp-villa',name:'Villa Marceneiro',prev:'R$1.326',quem:'Camila',deve:'Leticia deve R$663'},
+    {id:'hosp-wave',name:'Wave Suítes',prev:'R$752,58',quem:'Leticia',deve:'Camila deve R$376,29'},
+  ]},
+  {cat:'🚗 Transporte',items:[
+    {id:'transp-carro',name:'Aluguel de carro',prev:'R$1.505,87',quem:'Camila',deve:'Leticia deve R$752,94'},
+    {id:'transp-noronha',name:'Transporte Noronha',prev:'~R$1.300',quem:'',deve:''},
+  ]},
+  {cat:'🏝️ Taxas',items:[
+    {id:'taxa-tpa',name:'TPA',prev:'R$1.650,38',quem:'cada uma paga a sua',deve:''},
+    {id:'taxa-icmbio',name:'ICMBio',prev:'R$384',quem:'cada uma paga a sua',deve:''},
+  ]},
+  {cat:'🍽️ Alimentação',items:[
+    {id:'alim-noronha',name:'Noronha 9 dias',prev:'~R$1.800',quem:'',deve:''},
+    {id:'alim-porto',name:'Porto de Galinhas 2d',prev:'~R$400',quem:'',deve:''},
+    {id:'alim-camara',name:'Camarajibe 5d',prev:'~R$750',quem:'',deve:''},
+    {id:'alim-maceio',name:'Maceió 2d',prev:'~R$400',quem:'',deve:''},
+    {id:'alim-transito',name:'Trânsito',prev:'~R$350',quem:'',deve:''},
+  ]},
+  {cat:'🤿 Passeios',items:[
+    {id:'pas-barco',name:'Barco Noronha',prev:'~R$400',quem:'',deve:''},
+    {id:'pas-snorkel',name:'Snorkeling/mergulho',prev:'~R$400',quem:'',deve:''},
+    {id:'pas-jangada',name:'Jangada Porto de Galinhas',prev:'~R$200',quem:'',deve:''},
+    {id:'pas-maragogi',name:'Maragogi',prev:'~R$300',quem:'',deve:''},
+    {id:'pas-outros',name:'Outros',prev:'~R$200',quem:'',deve:''},
+    {id:'pas-zemaria',name:'Zé Maria',prev:'R$821,72',quem:'',deve:''},
+    {id:'pas-barco2',name:'Barco Noronha',prev:'~R$400',quem:'',deve:''},
+  ]},
+  {cat:'📦 Extras',items:[
+    {id:'ext-imprevistos',name:'Imprevistos',prev:'~R$300',quem:'',deve:''},
+    {id:'ext-souvenirs',name:'Souvenirs',prev:'~R$200',quem:'',deve:''},
+  ]},
+];
+
+function buildGastos(){
+  const c=document.getElementById('gastos');
+  let h='<h2>Controle de gastos</h2>';
+  expenses.forEach(cat=>{
+    h+=`<div class="cat-header">${cat.cat}</div>`;
+    cat.items.forEach(it=>{
+      const realVal=lsGet('gasto-real-'+it.id,'');
+      const quemVal=lsGet('gasto-quem-'+it.id,it.quem);
+      const deveVal=lsGet('gasto-deve-'+it.id,it.deve);
+      h+=`<div class="expense-card">
+        <div class="exp-name">${it.name}</div>
+        <div class="exp-prev">Previsto: ${it.prev}</div>
+        <div class="exp-fields">
+          <div class="exp-field"><label>Gasto real</label><input type="text" data-ls="gasto-real-${it.id}" value="${realVal}" placeholder="R$..."></div>
+          <div class="exp-field"><label>Quem pagou</label><input type="text" data-ls="gasto-quem-${it.id}" value="${quemVal}"></div>
+          <div class="exp-field"><label>Deve alguém?</label><input type="text" data-ls="gasto-deve-${it.id}" value="${deveVal}"></div>
+        </div>
+      </div>`;
+    });
+  });
+  c.innerHTML=h;
+}
+buildGastos();
+
+// DIA A DIA
+const days=[
+  {d:'Dia 1 · seg 10/ago',star:false,periods:[
+    {l:'Manhã',t:'Voo LATAM LA3828 · 07:40 GRU'},
+    {l:'Tarde',t:'Chegada 12:35. Transfer Pousada Alvorada. Almoço Praça Flamboyant. Mercado para compras básicas.'},
+    {l:'Noite',t:'Pôr do sol + jantar Bar do Cachorro.'},
+  ]},
+  {d:'Dia 2 · ter 11/ago',star:false,periods:[
+    {l:'Manhã',t:'Praia da Conceição.'},
+    {l:'Tarde',t:'Continua Conceição + 16h30 Trilha do Piquinho.'},
+    {l:'Noite',t:'Pôr do sol do Piquinho.'},
+  ]},
+  {d:'Dia 3 · qua 12/ago',star:true,periods:[
+    {l:'Manhã',t:'Cacimba do Padre + ~11h Baía dos Porcos (depende maré — baixa 0.06 ⭐).'},
+    {l:'Tarde',t:'Almoço Varanda. Capela São Pedro. Museu Tubarões. Mirante Francês.'},
+    {l:'Noite',t:'Pôr do sol Mirante Boldró + Jantar Zé Maria.'},
+  ]},
+  {d:'Dia 4 · qui 13/ago',star:true,periods:[
+    {l:'Manhã',t:'Praia do Porto + mergulho. ⭐ Maré baixíssima (0.03).'},
+    {l:'Tarde',t:'Almoço Mergulhão. Passeio de barco.'},
+    {l:'Noite',t:'Restaurante do Vale.'},
+  ]},
+  {d:'Dia 5 · sex 14/ago',star:false,periods:[
+    {l:'Manhã',t:'Mirante Golfinhos + Baía do Sancho.'},
+    {l:'Tarde',t:'Barraquinhas Praia do Cachorro + Mirante do Forte.'},
+    {l:'Noite',t:'Restaurante Paiol.'},
+  ]},
+  {d:'Dia 6 · sáb 15/ago',star:false,periods:[
+    {l:'Manhã',t:'Trilha Pontinha Caieira.'},
+    {l:'Tarde',t:'~13h Baía do Sueste + tartarugas.'},
+    {l:'Noite',t:'Tiatê ou Varanda.'},
+  ]},
+  {d:'Dia 7 · dom 16/ago',star:false,periods:[
+    {l:'Manhã',t:'Trilha Capim Açu.'},
+    {l:'Tarde',t:'Bar do Meio + descanso.'},
+    {l:'Noite',t:'Livre.'},
+  ]},
+  {d:'Dia 8 · seg 17/ago',star:false,periods:[
+    {l:'Manhã',t:'Travessia Morro Dois Irmãos.'},
+    {l:'Tarde',t:'Souvenirs Vila dos Remédios.'},
+    {l:'Noite',t:'Jantar de despedida.'},
+  ]},
+  {d:'Dia 9 · ter 18/ago',star:false,periods:[
+    {l:'Manhã',t:'Última praia favorita.'},
+    {l:'Tarde',t:'Almoço despedida. Check-out. Preparar mala. Amanhã: voo 19/ago 15:30 FEN→REC Azul QIJ5YV.'},
+    {l:'Noite',t:''},
+  ]},
+];
+
+const checklistItems=['Protetor solar','Repelente','Água','Câmera/GoPro','Snorkel','Sapatilha aquática','Dinheiro','Cartão','Celular carregado','Carregador portátil','TPA paga','ICMBio pago'];
+
+function buildDiaDia(){
+  const c=document.getElementById('diadia');
+  let h='<h2>Dia a dia · Noronha</h2>';
+  // checklist
+  const clOpen=lsBool('checklist-open',false);
+  h+=`<button class="checklist-toggle" onclick="toggleChecklist()">📋 Checklist diário <span id="cl-chevron">${clOpen?'▲':'▼'}</span></button>`;
+  h+=`<div class="checklist-grid${clOpen?' open':''}" id="checklist-grid">`;
+  checklistItems.forEach((it,i)=>{
+    const checked=lsBool('check-'+i,false);
+    h+=`<label class="check-item"><input type="checkbox" data-check="${i}" ${checked?'checked':''}>${it}</label>`;
+  });
+  h+='</div>';
+  // days
+  days.forEach((day,i)=>{
+    const isOpen=lsBool('day-open-'+i,i===0);
+    h+=`<div class="day-card">
+      <div class="day-header" onclick="toggleDay(${i})">
+        <span>${day.star?'⭐ ':''}${day.d}</span>
+        <span class="chevron${isOpen?' open':''}" id="chev-${i}">▼</span>
+      </div>
+      <div class="day-body${isOpen?' open':''}" id="day-body-${i}">`;
+    day.periods.forEach(p=>{
+      if(p.t) h+=`<div class="period"><div class="period-label">${p.l}</div><div class="period-text">${p.t}</div></div>`;
+    });
+    const gastoVal=lsGet('day-gasto-'+i,'');
+    h+=`<div class="day-gasto"><label>💸 Gasto do dia</label><input type="text" data-ls="day-gasto-${i}" value="${gastoVal}" placeholder="R$..."></div>`;
+    h+='</div></div>';
+  });
+  c.innerHTML=h;
+}
+buildDiaDia();
+
+function toggleDay(i){
+  const body=document.getElementById('day-body-'+i);
+  const chev=document.getElementById('chev-'+i);
+  const isOpen=body.classList.toggle('open');
+  chev.classList.toggle('open',isOpen);
+  lsSet('day-open-'+i,isOpen);
+}
+function toggleChecklist(){
+  const g=document.getElementById('checklist-grid');
+  const isOpen=g.classList.toggle('open');
+  document.getElementById('cl-chevron').textContent=isOpen?'▲':'▼';
+  lsSet('checklist-open',isOpen);
+}
+
+// MARÉS
+const tides=[
+  {d:'10/ago · dom',info:'Baixa 09:19 (0.32m) · Alta 02:55 (2.16m) · Alta 15:34 (2.11m) · Baixa 21:38 (0.40m)',best:false},
+  {d:'11/ago · seg',info:'Baixa 10:14 (0.16m) · Baixa 22:25 (0.27m)',best:false},
+  {d:'12/ago · ter',info:'⭐ Baixa 11:01 (0.06m) — melhor maré da viagem!',best:true},
+  {d:'13/ago · qua',info:'⭐ Baixa 11:44 (0.03m) — maré baixíssima!',best:true},
+  {d:'14/ago · qui',info:'Baixa 12:25 (0.07m)',best:false},
+  {d:'15/ago · sex',info:'Baixa 13:04 (0.17m)',best:false},
+  {d:'16/ago · sáb',info:'Baixa 13:42 (0.31m)',best:false},
+  {d:'17/ago · dom',info:'Baixa 14:16 (0.46m)',best:false},
+  {d:'18/ago · seg',info:'Baixa 14:57 (0.62m)',best:false},
+];
+
+function buildMares(){
+  const c=document.getElementById('mares');
+  let h='<h2>Tábua de marés · Noronha</h2>';
+  h+='<div class="tide-legend">🌊 depende de maré &nbsp; 〰 melhor na baixa &nbsp; ✓ livre</div>';
+  tides.forEach(t=>{
+    h+=`<div class="tide-day${t.best?' best':''}">
+      <div class="td-date">${t.d}</div>
+      <div class="td-info">${t.info}</div>
+    </div>`;
+  });
+  c.innerHTML=h;
+}
+buildMares();
+
+// AUTO-SAVE all inputs
+document.addEventListener('input',e=>{
+  if(e.target.dataset.ls){
+    lsSet(e.target.dataset.ls,e.target.value);
+  }
+  if(e.target.dataset.check!==undefined){
+    lsSet('check-'+e.target.dataset.check,e.target.checked);
+  }
+});
+document.addEventListener('change',e=>{
+  if(e.target.dataset.check!==undefined){
+    lsSet('check-'+e.target.dataset.check,e.target.checked);
+  }
+});
+
+// CALCULATOR
+function calcular(){
+  let leticiaOwes=0, camilaOwes=0;
+  const details=[];
+  expenses.forEach(cat=>{
+    cat.items.forEach(it=>{
+      const val=lsGet('gasto-deve-'+it.id,it.deve);
+      if(!val)return;
+      const match=val.match(/(leticia|camila)\s+deve\s+r?\$?([\d.,]+)/i);
+      if(match){
+        const who=match[1].toLowerCase();
+        const amt=parseFloat(match[2].replace('.','').replace(',','.'));
+        if(!isNaN(amt)){
+          if(who==='leticia') leticiaOwes+=amt;
+          else camilaOwes+=amt;
+          details.push({item:it.name,who:match[1],amt});
+        }
+      }
+    });
+  });
+  const net=leticiaOwes-camilaOwes;
+  let msg,color;
+  if(net>0){
+    msg=`Leticia deve R$${net.toFixed(2).replace('.',',')} para Camila`;
+    color='var(--coral)';
+  } else if(net<0){
+    msg=`Camila deve R$${Math.abs(net).toFixed(2).replace('.',',')} para Leticia`;
+    color='var(--green)';
+  } else {
+    msg='Estão quites! 🎉';
+    color='var(--green)';
+  }
+  let dh='<div class="calc-detail">';
+  details.forEach(d=>{
+    dh+=`<div><span>${d.item}</span><span>${d.who} deve R$${d.amt.toFixed(2).replace('.',',')}</span></div>`;
+  });
+  dh+='</div>';
+
+  document.getElementById('calc-result').innerHTML=`
+    <div class="calc-result">
+      <div class="label">Leticia deve no total</div>
+      <div style="font-size:1.3rem;font-weight:700;color:var(--coral);">R$${leticiaOwes.toFixed(2).replace('.',',')}</div>
+      <div class="label" style="margin-top:12px;">Camila deve no total</div>
+      <div style="font-size:1.3rem;font-weight:700;color:var(--coral);">R$${camilaOwes.toFixed(2).replace('.',',')}</div>
+      <div style="margin-top:16px;padding-top:16px;border-top:2px solid var(--sand);">
+        <div class="label">Saldo final</div>
+        <div class="amount" style="color:${color}">${msg}</div>
+      </div>
+      ${dh}
+    </div>`;
+}
+
+// SHEETS SETUP
+function saveSheetUrl(){
+  const url=document.getElementById('sheets-url-input').value.trim();
+  if(!url){alert('Cole a URL do Apps Script');return;}
+  localStorage.setItem(LS+'sheets-url',url);
+  document.getElementById('sheets-setup').style.display='none';
+  alert('Conectado! Recarregue a página para sincronizar.');
+  location.reload();
+}
+if(SHEETS_URL){
+  document.getElementById('sheets-url-input').value=SHEETS_URL;
+  pullFromSheets().then(()=>{
+    document.getElementById('gastos').innerHTML='';
+    buildGastos();
+    document.getElementById('diadia').innerHTML='';
+    buildDiaDia();
+  });
+}
+</script>
+</body>
+</html>
