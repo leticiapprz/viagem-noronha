@@ -64,6 +64,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 .nav-btn .icon { font-size:22px; line-height:1; pointer-events:none; }
 .nav-btn span { pointer-events:none; }
 .nav-btn.active { color: var(--ocean); font-weight:600; }
+.sidebar-logo, .sidebar-section { display:none; }
 
 /* TAB CONTENT */
 .tab-content { display:none; padding:16px; max-width:800px; margin:0 auto; }
@@ -224,27 +225,52 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 
 /* DESKTOP */
 @media(min-width:768px){
-  body { padding-bottom:0; padding-left:220px; }
+  body { padding-bottom:0; padding-left:240px; }
   .bottom-nav {
     position:fixed; top:0; left:0; bottom:0; right:auto;
-    width:220px; height:100vh;
+    width:240px; height:100vh;
     flex-direction:column; justify-content:flex-start;
-    border-top:none; border-right:1px solid var(--sand-dark);
-    box-shadow:2px 0 12px rgba(0,0,0,0.06);
-    padding:24px 0 16px;
-    gap:2px;
+    border-top:none; border-right:none;
+    background:var(--ocean);
+    box-shadow:4px 0 20px rgba(0,0,0,.1);
+    padding:0;
+    gap:0;
   }
+  .sidebar-logo {
+    display:flex; align-items:center; gap:10px;
+    padding:28px 24px 24px; color:rgba(255,255,255,.9);
+    font-size:15px; font-weight:700; letter-spacing:.02em;
+    border-bottom:1px solid rgba(255,255,255,.1);
+    margin-bottom:8px;
+  }
+  .sidebar-logo .logo-icon { font-size:22px; }
   .nav-btn {
-    flex-direction:row; gap:10px; font-size:14px;
-    justify-content:flex-start; padding:12px 20px;
+    flex-direction:row; gap:12px; font-size:13.5px;
+    justify-content:flex-start; padding:11px 24px;
     border-radius:0; min-height:auto;
+    color:rgba(255,255,255,.55);
+    transition: all .15s;
   }
-  .nav-btn .icon { font-size:18px; }
+  .nav-btn:hover {
+    color:rgba(255,255,255,.85);
+    background:rgba(255,255,255,.06);
+  }
+  .nav-btn .icon { font-size:17px; }
+  .nav-btn span { pointer-events:none; }
   .nav-btn.active {
-    background:rgba(26,95,122,.08);
-    border-right:3px solid var(--ocean);
+    color:#fff;
+    background:rgba(255,255,255,.12);
+    border-right:none;
+    border-left:3px solid #fff;
+    font-weight:600;
   }
-  .tab-content { padding:28px 32px; max-width:900px; }
+  .sidebar-section {
+    display:block;
+    font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+    color:rgba(255,255,255,.3);
+    padding:20px 24px 6px;
+  }
+  .tab-content { padding:28px 36px; max-width:920px; }
   .exp-fields { flex-direction:row; gap:10px; }
   .exp-field { flex:1; }
   .hero { padding:40px 32px; }
@@ -386,13 +412,17 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <div id="sync-indicator" style="position:fixed;top:8px;right:12px;z-index:150;font-size:11px;font-weight:600;"></div>
 
 <nav class="bottom-nav">
+  <div class="sidebar-logo"><i class="ti ti-fish logo-icon"></i> Nordeste 2026</div>
+  <span class="sidebar-section">Planejamento</span>
   <button class="nav-btn active" data-tab="roteiro"><span class="icon"><i class="ti ti-map-2"></i></span>Roteiro</button>
   <button class="nav-btn" data-tab="gastos"><span class="icon"><i class="ti ti-wallet"></i></span>Gastos</button>
   <button class="nav-btn" data-tab="calc"><span class="icon"><i class="ti ti-calculator"></i></span>Calculadora</button>
+  <span class="sidebar-section">Na viagem</span>
   <button class="nav-btn" data-tab="diadia"><span class="icon"><i class="ti ti-sun"></i></span>Dia a dia</button>
   <button class="nav-btn" data-tab="mares"><span class="icon"><i class="ti ti-ripple"></i></span>Marés</button>
   <button class="nav-btn" data-tab="mapa"><span class="icon"><i class="ti ti-map-pin"></i></span>Mapa</button>
-  <button class="nav-btn" data-tab="lista"><span class="icon"><i class="ti ti-shopping-cart"></i></span>Lista</button>
+  <span class="sidebar-section">Organização</span>
+  <button class="nav-btn" data-tab="lista"><span class="icon"><i class="ti ti-clipboard-check"></i></span>Lista</button>
 </nav>
 
 <!-- TAB 1: ROTEIRO -->
