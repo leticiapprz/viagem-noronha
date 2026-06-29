@@ -275,6 +275,12 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   .exp-field { flex:1; }
   .hero { padding:40px 32px; }
   .hero h1 { font-size:2.4rem; }
+  #map-wrap { flex-direction:row; }
+  #stops-list { width:220px; }
+}
+@media(max-width:767px){
+  #map-wrap { flex-direction:column !important; }
+  #stops-list { width:100% !important; max-height:200px !important; }
 }
 
 /* SPLASH */
@@ -526,7 +532,10 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <div id="mapa" class="tab-content">
   <h2>Mapa da viagem</h2>
   <div id="day-filter" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
-  <div id="map-container" style="height:50vh;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;"></div>
+  <div id="map-wrap" style="display:flex;gap:12px;margin-bottom:12px;">
+    <div id="map-container" style="flex:1;height:50vh;min-height:300px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);"></div>
+    <div id="stops-list" style="display:none;width:220px;max-height:50vh;overflow-y:auto;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px;flex-shrink:0;"></div>
+  </div>
   <div id="day-stats" style="display:none;background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;"></div>
   <div id="elevation-chart" style="display:none;background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;"><canvas id="elev-canvas" height="160"></canvas></div>
   <div id="map-legend" style="display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--text-light);"></div>
@@ -1081,7 +1090,7 @@ var mapDays=[
     {lat:-3.8545,lng:-32.4230,name:'Aeroporto FEN',type:'other',elev:55,mode:'buggy',desc:'Chegada 12:35 · LATAM LA3828'},
     {lat:-3.8473,lng:-32.4119,name:'Pousada Alvorada',type:'stay',elev:48,mode:'buggy',desc:'Check-in · Alameda das Amendoeiras · Floresta Nova'},
     {lat:-3.8452,lng:-32.4107,name:'Bosque Flamboyant',type:'food',elev:42,mode:'walk',desc:'Almoco · ~250m da pousada'},
-    {lat:-3.8422,lng:-32.4111,name:'Mercado Vila dos Remedios',type:'other',elev:38,mode:'walk',desc:'Agua, protetor solar, essenciais'},
+    {lat:-3.8468,lng:-32.4061,name:'Mercado das Frutas',type:'other',elev:42,mode:'walk',desc:'Vila da Trinta · frutas, agua, essenciais'},
     {lat:-3.8473,lng:-32.4119,name:'Pousada Alvorada',type:'stay',elev:48,mode:'walk',desc:'Deixar compras · descansar'},
     {lat:-3.8396,lng:-32.4107,name:'Bar do Cachorro',type:'food',elev:25,mode:'walk',desc:'Por do sol + jantar · Praia do Cachorro'},
   ]},
@@ -1194,10 +1203,9 @@ function showDay(dayNum){
   var coords=[];
   spots.forEach(function(s,i){
     var col=typeColors[s.type]||'#666';
-    var num=dayNum===0?'':'<span style="font-size:10px;position:absolute;top:-6px;right:-6px;background:var(--ocean);color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;">'+(i+1)+'</span>';
     var icon=L.divIcon({
       className:'',
-      html:'<div style="position:relative;background:'+col+';width:28px;height:28px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;">'+s.name.charAt(0)+num+'</div>',
+      html:'<div style="background:'+col+';width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;">'+(i+1)+'</div>',
       iconSize:[28,28],iconAnchor:[14,14]
     });
     var m=L.marker([s.lat,s.lng],{icon:icon}).addTo(tripMap);
@@ -1215,12 +1223,31 @@ function showDay(dayNum){
     fetchRoute(spots);
   }
 
+  // Stops list
+  var stopsEl=document.getElementById('stops-list');
+  if(dayNum>0){
+    stopsEl.style.display='block';
+    var sh='<div style="font-weight:700;font-size:.85rem;color:var(--ocean);margin-bottom:8px;">Paradas</div>';
+    spots.forEach(function(s,i){
+      var t=checkTags[s.type]||{color:'#666'};
+      var col=typeColors[s.type]||'#666';
+      sh+='<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--sand);cursor:pointer;" onclick="tripMap.setView(['+s.lat+','+s.lng+'],17);mapMarkers['+i+'].openPopup();">';
+      sh+='<div style="background:'+col+';color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">'+(i+1)+'</div>';
+      sh+='<div style="min-width:0;"><div style="font-size:.8rem;font-weight:600;color:var(--text);line-height:1.3;">'+s.name+'</div>';
+      sh+='<div style="font-size:.7rem;color:var(--text-light);line-height:1.3;">'+s.desc+'</div>';
+      sh+='<div style="font-size:.65rem;color:'+col+';margin-top:2px;">'+(s.mode==='walk'?'A pe':'Buggy')+'</div>';
+      sh+='</div></div>';
+    });
+    stopsEl.innerHTML=sh;
+  } else {
+    stopsEl.style.display='none';
+  }
+
   // Stats
   var statsEl=document.getElementById('day-stats');
   var elevEl=document.getElementById('elevation-chart');
   if(dayNum===0){
     statsEl.style.display='none';elevEl.style.display='none';
-    // Legenda
     var lh='';
     Object.keys(typeColors).forEach(function(k){
       lh+='<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+typeColors[k]+';margin-right:4px;vertical-align:middle;"></span>'+typeLabels[k]+'</span>';
