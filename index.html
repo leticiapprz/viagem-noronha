@@ -1097,8 +1097,10 @@ var mapDays=[
   {day:2,label:'Dia 2 · 11/ago',date:'ter',spots:[
     {lat:-3.8473,lng:-32.4119,name:'Pousada Alvorada',type:'stay',elev:48,mode:'walk',desc:'Cafe da manha incluido'},
     {lat:-3.8406,lng:-32.4106,name:'Igreja N.S. dos Remedios',type:'other',elev:45,mode:'walk',desc:'Igreja historica · Vila dos Remedios'},
-    {lat:-3.8398,lng:-32.4122,name:'Praia do Meio (inicio)',type:'beach',elev:3,mode:'walk',desc:'Descer ate a praia · caminhar toda a extensao'},
-    {lat:-3.8397,lng:-32.4148,name:'Bar do Meio',type:'food',elev:5,mode:'walk',desc:'Almoco · pe na areia · final da Praia do Meio'},
+    {lat:-3.8398,lng:-32.4122,name:'Praia do Meio (inicio)',type:'beach',elev:3,mode:'walk',desc:'Descer ate a praia · caminhar toda a extensao',
+      beach:[[-3.8398,-32.4122],[-3.8396,-32.4128],[-3.8394,-32.4133],[-3.8393,-32.4138],[-3.8394,-32.4143],[-3.8397,-32.4148]]},
+    {lat:-3.8397,lng:-32.4148,name:'Bar do Meio',type:'food',elev:5,mode:'walk',desc:'Almoco · pe na areia · final da Praia do Meio',
+      beach:[[-3.8397,-32.4148],[-3.8399,-32.4152],[-3.8402,-32.4155],[-3.8405,-32.4158],[-3.8409,-32.4163]]},
     {lat:-3.8409,lng:-32.4163,name:'Praia da Conceicao',type:'beach',elev:3,mode:'walk',desc:'Tarde inteira · praia livre'},
     {lat:-3.8448,lng:-32.4215,name:'Trilha do Piquinho',type:'trail',elev:321,mode:'buggy',desc:'16h30 · subida ~30min · por do sol a 321m'},
     {lat:-3.8473,lng:-32.4123,name:'Pousada Alvorada',type:'stay',elev:48,mode:'buggy',desc:'Volta · banho · descanso'},
@@ -1314,11 +1316,18 @@ function addArrows(line,color){
 
 function fetchRoute(spots){
   for(var i=0;i<spots.length-1;i++){
-    (function(seg,idx){
-      var profile=seg.to.mode==='walk'?'foot':'driving';
-      var color=seg.to.mode==='walk'?'#2D6A4F':'#1A5F7A';
-      var dash=seg.to.mode==='walk'?'6 4':null;
-      var coordStr=seg.from.lng+','+seg.from.lat+';'+seg.to.lng+','+seg.to.lat;
+    (function(from,to){
+      var color=to.mode==='walk'?'#2D6A4F':'#1A5F7A';
+      var dash=to.mode==='walk'?'6 4':null;
+      // Manual beach route
+      if(from.beach){
+        var line=L.polyline(from.beach,{color:'#C95D3A',weight:4,opacity:.7}).addTo(tripMap);
+        mapRoutes.push(line);
+        addArrows(line,'#C95D3A');
+        return;
+      }
+      var profile=to.mode==='walk'?'foot':'driving';
+      var coordStr=from.lng+','+from.lat+';'+to.lng+','+to.lat;
       var url='https://router.project-osrm.org/route/v1/'+profile+'/'+coordStr+'?overview=full&geometries=geojson';
       fetch(url).then(function(r){return r.json();}).then(function(data){
         if(data.routes&&data.routes[0]){
@@ -1328,11 +1337,11 @@ function fetchRoute(spots){
           addArrows(line,color);
         }
       }).catch(function(){
-        var fallback=L.polyline([[seg.from.lat,seg.from.lng],[seg.to.lat,seg.to.lng]],{color:color,weight:3,opacity:.4,dashArray:'4 6'}).addTo(tripMap);
+        var fallback=L.polyline([[from.lat,from.lng],[to.lat,to.lng]],{color:color,weight:3,opacity:.4,dashArray:'4 6'}).addTo(tripMap);
         mapRoutes.push(fallback);
         addArrows(fallback,color);
       });
-    })({from:spots[i],to:spots[i+1]},i);
+    })(spots[i],spots[i+1]);
   }
 }
 
