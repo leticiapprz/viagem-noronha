@@ -1101,7 +1101,7 @@ var mapDays=[
     {lat:-3.8397,lng:-32.4148,name:'Bar do Meio',type:'food',elev:5,mode:'walk',desc:'Almoco · pe na areia · final da Praia do Meio'},
     {lat:-3.8409,lng:-32.4163,name:'Praia da Conceicao',type:'beach',elev:3,mode:'walk',desc:'Tarde inteira · praia livre'},
     {lat:-3.8448,lng:-32.4215,name:'Trilha do Piquinho',type:'trail',elev:321,mode:'buggy',desc:'16h30 · subida ~30min · por do sol a 321m'},
-    {lat:-3.8473,lng:-32.4119,name:'Pousada Alvorada',type:'stay',elev:48,mode:'buggy',desc:'Volta · banho · descanso'},
+    {lat:-3.8473,lng:-32.4123,name:'Pousada Alvorada',type:'stay',elev:48,mode:'buggy',desc:'Volta · banho · descanso'},
   ]},
   {day:3,label:'Dia 3 · 12/ago',date:'qua',spots:[
     {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
@@ -1294,14 +1294,30 @@ function showDay(dayNum){
   });
 }
 
-function fetchRoute(spots){
-  var walkSegs=[],driveSegs=[];
-  for(var i=0;i<spots.length-1;i++){
-    var seg={from:spots[i],to:spots[i+1]};
-    if(spots[i+1].mode==='walk') walkSegs.push(seg); else driveSegs.push(seg);
+function addArrows(line,color){
+  var coords=line.getLatLngs();
+  if(coords.length<2)return;
+  var step=Math.max(1,Math.floor(coords.length/5));
+  for(var i=step;i<coords.length;i+=step){
+    var a=coords[i-1],b=coords[i];
+    var angle=Math.atan2(b.lng-a.lng,b.lat-a.lat)*180/Math.PI;
+    var mid=L.latLng((a.lat+b.lat)/2,(a.lng+b.lng)/2);
+    var arrow=L.divIcon({
+      className:'',
+      html:'<div style="color:'+color+';font-size:14px;font-weight:700;transform:rotate('+(90-angle)+'deg);line-height:1;">&#9654;</div>',
+      iconSize:[14,14],iconAnchor:[7,7]
+    });
+    var m=L.marker(mid,{icon:arrow,interactive:false}).addTo(tripMap);
+    mapRoutes.push(m);
   }
-  function drawSegs(segs,color,dash,profile){
-    segs.forEach(function(seg){
+}
+
+function fetchRoute(spots){
+  for(var i=0;i<spots.length-1;i++){
+    (function(seg,idx){
+      var profile=seg.to.mode==='walk'?'foot':'driving';
+      var color=seg.to.mode==='walk'?'#2D6A4F':'#1A5F7A';
+      var dash=seg.to.mode==='walk'?'6 4':null;
       var coordStr=seg.from.lng+','+seg.from.lat+';'+seg.to.lng+','+seg.to.lat;
       var url='https://router.project-osrm.org/route/v1/'+profile+'/'+coordStr+'?overview=full&geometries=geojson';
       fetch(url).then(function(r){return r.json();}).then(function(data){
@@ -1309,15 +1325,15 @@ function fetchRoute(spots){
           var geom=data.routes[0].geometry.coordinates.map(function(c){return[c[1],c[0]];});
           var line=L.polyline(geom,{color:color,weight:4,opacity:.7,dashArray:dash}).addTo(tripMap);
           mapRoutes.push(line);
+          addArrows(line,color);
         }
       }).catch(function(){
         var fallback=L.polyline([[seg.from.lat,seg.from.lng],[seg.to.lat,seg.to.lng]],{color:color,weight:3,opacity:.4,dashArray:'4 6'}).addTo(tripMap);
         mapRoutes.push(fallback);
+        addArrows(fallback,color);
       });
-    });
+    })({from:spots[i],to:spots[i+1]},i);
   }
-  drawSegs(driveSegs,'#1A5F7A',null,'driving');
-  drawSegs(walkSegs,'#2D6A4F','6 4','foot');
 }
 
 function filterDay(d){
