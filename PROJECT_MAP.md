@@ -36,7 +36,7 @@ Fundo aleatório entre `foto1.jpg`, `foto2.png`, `foto3.jpg`. Contador regressiv
 - `fbWrite(path, data)` / `fbPatch(path, data)` — grava no Firebase (`PUT` substitui o nó inteiro, `PATCH` atualiza campos).
 - `syncGasto(id, field, value)` — salva local na hora e manda pro Firebase com debounce de 1s (evita 1 request por tecla digitada).
 - `syncDiaDia(dia, gasto)` — mesma ideia pro campo "gasto do dia" de cada dia do roteiro.
-- `pullFromFirebase()` — na carga da página, busca o banco inteiro (`FB + '/.json'`) e sobrescreve o `localStorage` com o que vier de `gastos`, `diadia`, `checklist-v2`, `compras` e `resolver`.
+- `pullFromFirebase()` — na carga da página, busca o banco inteiro (`FB + '/.json'`) e sobrescreve o `localStorage` com o que vier de `gastos`, `diadia`, `checklist-v2`, `gastosCustom`, `compras` e `resolver`.
 - **Nota de dado morto:** `compras` e `resolver` ainda são lidos/gravados aqui e em `pushDefaults()`, mas desde a unificação da lista em um checklist único com tags (ver seção 2.7) nada mais **exibe** esses dois nós — ficam sincronizados só por inércia, sem efeito visível. Se for mexer na lista/checklist, não é preciso se preocupar com eles; se for fazer limpeza, são candidatos a remover.
 
 ### 2.4 Navegação por abas (linhas ~676–701)
@@ -45,11 +45,16 @@ Fundo aleatório entre `foto1.jpg`, `foto2.png`, `foto3.jpg`. Contador regressiv
 ### 2.5 Aba Roteiro (HTML estático, linhas ~435–511)
 Única aba com conteúdo fixo no HTML (não gerado por JS): voos, hospedagens, transporte e o resumo de custos totais. Pra mudar voos/hospedagens/valores, editar direto esse bloco de HTML.
 
-### 2.6 Aba Gastos (JS, linhas ~703–847)
-- `expenses` (array, linha ~704) — a lista de todas as despesas por categoria (voos, hospedagens, transporte, taxas, alimentação, passeios, extras), cada item com `id`, `name`, `prev` (previsto) e `deve` (texto tipo "Leticia deve R$632"). **Editar valores previstos ou adicionar uma despesa nova é aqui.**
-- `calcSaldo()` — soma quanto cada uma deve, lendo o texto livre do campo "Deve alguém?" via regex (`/(leticia|camila)\s+deve\s+r?\$?([\d.,]+)/i`). Se o texto não seguir esse padrão, o valor não entra na conta.
-- `buildGastos()` — monta o HTML da aba: card de saldo, barra de progresso gasto real vs. previsto, e um card por item (edita "Gasto real", "Quem pagou", "Deve alguém?", ou marca como "Pago").
-- `togglePago(btn)` — marca/desmarca um item como pago e sincroniza.
+### 2.6 Aba Gastos (JS, linhas ~703–~910)
+- `expenses` (array, linha ~704) — a lista **fixa** (hardcoded) de despesas por categoria (voos, hospedagens, transporte, taxas, alimentação, passeios, extras), cada item com `id`, `name`, `prev` (previsto) e `deve` (texto tipo "Leticia deve R$632"). **Editar valores previstos das despesas originais é aqui.**
+- **Gastos adicionados pela UI** (botão "+ Adicionar gasto" no topo da aba) não entram em `expenses` — ficam num array separado:
+  - `getCustomExpenses()`/`saveCustomExpenses()` — leem/gravam esse array (localStorage `custom-expenses` + Firebase `gastosCustom`, nó novo, mesmo padrão do `checklist-v2`).
+  - `getRenderExpenses()` — retorna `expenses` com os itens custom **anexados à categoria "Extras"** só na hora de renderizar/calcular (não altera `expenses` em si). É essa função que `buildGastos()` e `calcSaldo()` usam pra listar/somar despesas — nunca iterar `expenses` direto se for mexer nessas duas funções.
+  - `addCustomExpense()` — lê os campos do formulário "Adicionar gasto" (nome + valor previsto), cria um item com `id` tipo `custom-<timestamp>` e chama `saveCustomExpenses`.
+  - `removeCustomExpense(id)` — remove um item custom pelo id (botão de lixeira, aparece só nos itens cujo `id` começa com `custom-`).
+- `calcSaldo()` — soma quanto cada uma deve, lendo o texto livre do campo "Deve alguém?" via regex (`/(leticia|camila)\s+deve\s+r?\$?([\d.,]+)/i`). Se o texto não seguir esse padrão, o valor não entra na conta. Usa `getRenderExpenses()`, então inclui os gastos adicionados pela UI.
+- `buildGastos()` — monta o HTML da aba: card de saldo, barra de progresso gasto real vs. previsto, o card "Adicionar gasto", e um card por item (edita "Gasto real", "Quem pagou", "Deve alguém?", marca como "Pago", ou remove — só nos itens custom).
+- `togglePago(btn)` — marca/desmarca um item como pago e sincroniza. Funciona igual pra itens fixos e custom (o campo `data-gasto-id` do input é o mesmo mecanismo pros dois).
 
 ### 2.7 Aba Calculadora (linhas ~1369–1419)
 `calcular()` — mesma lógica de `calcSaldo()`, mas mostra o detalhamento por item de quem deve quanto pra quem.
@@ -109,6 +114,7 @@ Referenciados pelo `index.html`:
 
 - Login é só uma barreira leve (hash de senha no client-side, ver seção 2.1) — não trate isso como proteção real de dados privados.
 - O Firebase Realtime Database é acessado sem autenticação a partir do client (`fetch` direto pra URL pública) — significa que as regras do banco no console do Firebase devem estar liberando leitura/escrita pública nesse projeto. Qualquer um com a URL (`viagem-noronha-default-rtdb.firebaseio.com`) visível no código-fonte consegue ler/escrever os dados. Isso é aceitável pro uso atual (dados de viagem entre duas pessoas, sem informação crítica), mas vale ter em mente antes de guardar algo mais sensível ali.
+- **As regras do Realtime Database têm data de expiração** (`.read`/`.write`: `"now < <timestamp>"`, configurado direto no console do Firebase, fora deste repo). O Firebase cria isso automaticamente em bancos criados em "Test Mode" e manda email de aviso ~1 dia antes de expirar. Em 26/07/2026 foi estendido para expirar em **31/12/2026** (timestamp `1798761599000`). Se o site parar de sincronizar depois dessa data (ou vier um novo email de aviso), é só abrir o Firebase Console → Realtime Database → aba Rules → colar uma regra nova com uma data mais no futuro → Publish. Não tem nada pra mudar no código deste repo.
 
 ---
 
