@@ -34,7 +34,7 @@ Fundo aleatório entre `foto1.jpg`, `foto2.png`, `foto3.jpg`. Contador regressiv
 - `lsGet`/`lsSet`/`lsBool` — helpers de leitura/escrita no localStorage.
 - `showSync(state)` — atualiza o indicadorzinho "Salvando… / Sincronizado / Erro" no canto superior direito (`#sync-indicator`).
 - `fbWrite(path, data)` / `fbPatch(path, data)` — grava no Firebase (`PUT` substitui o nó inteiro, `PATCH` atualiza campos).
-- `syncGasto(id, field, value)` — salva local na hora e manda pro Firebase com debounce de 1s (evita 1 request por tecla digitada).
+- `syncGasto(id, field, value)` — salva local na hora e manda pro Firebase com debounce de 1s (evita 1 request por tecla digitada). O debounce é **por `id`+`field`** (`syncTimers[id+'-'+field]`) — não usar um único timer global aqui: já foi bug (marcar "Pago" em vários itens rápido cancelava o envio dos anteriores, e ao dar F5 o `pullFromFirebase` sobrescrevia com o que sobrou no Firebase, "desmarcando" tudo que não chegou lá a tempo).
 - `syncDiaDia(dia, gasto)` — mesma ideia pro campo "gasto do dia" de cada dia do roteiro.
 - `pullFromFirebase()` — na carga da página, busca o banco inteiro (`FB + '/.json'`) e sobrescreve o `localStorage` com o que vier de `gastos`, `diadia`, `checklist-v2`, `gastosCustom`, `compras` e `resolver`.
 - **Nota de dado morto:** `compras` e `resolver` ainda são lidos/gravados aqui e em `pushDefaults()`, mas desde a unificação da lista em um checklist único com tags (ver seção 2.7) nada mais **exibe** esses dois nós — ficam sincronizados só por inércia, sem efeito visível. Se for mexer na lista/checklist, não é preciso se preocupar com eles; se for fazer limpeza, são candidatos a remover.
