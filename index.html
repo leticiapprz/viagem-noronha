@@ -519,7 +519,10 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <!-- TAB 6: LISTA -->
 <!-- TAB 7: MAPA -->
 <div id="mapa" class="tab-content">
-  <h2>Mapa da viagem</h2>
+  <h2 style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">Mapa da viagem
+    <button id="map-edit-toggle" onclick="toggleMapEditMode()" style="font-size:.75rem;font-weight:600;padding:6px 12px;border-radius:20px;border:1px solid var(--sand-dark);background:var(--white);color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation;"><i class="ti ti-pencil"></i> Editar pontos</button>
+  </h2>
+  <div id="map-hint" style="display:none;background:#fff5f0;border:1px solid var(--coral);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:.8rem;color:var(--coral);"></div>
   <div id="day-filter" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
   <div id="map-wrap" style="display:flex;gap:12px;margin-bottom:12px;">
     <div id="map-container" style="flex:1;height:50vh;min-height:300px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);"></div>
@@ -657,6 +660,11 @@ function pullFromFirebase(){
       }
       if(data.gastosCustom){
         localStorage.setItem(LS+'custom-expenses',JSON.stringify(data.gastosCustom));
+      }
+      if(data.mapDaysCustom){
+        Object.keys(data.mapDaysCustom).forEach(function(d){
+          localStorage.setItem(LS+'map-day-'+d,JSON.stringify(data.mapDaysCustom[d]));
+        });
       }
       if(data.compras){
         localStorage.setItem(LS+'lista-compras',JSON.stringify(data.compras));
@@ -1152,6 +1160,21 @@ buildLista();
 
 // MAPA
 var tripMap=null,mapMarkers=[],mapRoutes=[],elevChart=null,activeDay=0;
+var mapEditMode=false,mapAddingPoint=false,mapMovingSpotId=null,editingSpotId=null;
+
+function newSpotId(){ return 'sp-'+Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function getMapSpots(dayNum){
+  var saved=lsGet('map-day-'+dayNum,'');
+  var spots=saved?JSON.parse(saved):mapDays[dayNum].spots.map(function(s){return Object.assign({},s);});
+  var changed=false;
+  spots.forEach(function(s){ if(!s.id){ s.id=newSpotId(); changed=true; } });
+  if(changed) saveMapSpots(dayNum,spots);
+  return spots;
+}
+function saveMapSpots(dayNum,spots){
+  lsSet('map-day-'+dayNum,JSON.stringify(spots));
+  fbWrite('mapDaysCustom/'+dayNum,spots);
+}
 
 var mapDays=[
   {day:0,label:'Todos',spots:[]},
@@ -1175,50 +1198,50 @@ var mapDays=[
     {lat:-3.8473,lng:-32.4123,name:'Pousada Alvorada',type:'stay',elev:48,mode:'buggy',desc:'Volta · banho · descanso'},
   ]},
   {day:3,label:'Dia 3 · 12/ago',date:'qua',spots:[
-    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
-    {lat:-3.8570,lng:-32.4400,name:'Cacimba do Padre',type:'beach',elev:8,mode:'buggy',desc:'Manha'},
-    {lat:-3.8531,lng:-32.4451,name:'Baia dos Porcos',type:'beach',elev:5,mode:'walk',desc:'~11h · piscinas naturais'},
-    {lat:-3.8460,lng:-32.4150,name:'Restaurante Varanda',type:'food',elev:55,mode:'buggy',desc:'Almoco'},
+    {lat:-3.8473,lng:-32.4119,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8498,lng:-32.4390,name:'Cacimba do Padre',type:'beach',elev:8,mode:'buggy',desc:'Manha'},
+    {lat:-3.8514,lng:-32.4413,name:'Baia dos Porcos',type:'beach',elev:5,mode:'walk',desc:'~11h · piscinas naturais'},
+    {lat:-3.8441,lng:-32.4057,name:'Restaurante Varanda',type:'food',elev:55,mode:'buggy',desc:'Almoco'},
     {lat:-3.8440,lng:-32.4130,name:'Capela Sao Pedro',type:'other',elev:60,mode:'walk',desc:'Visita'},
     {lat:-3.8435,lng:-32.4095,name:'Museu dos Tubaroes',type:'other',elev:45,mode:'walk',desc:'Visita'},
     {lat:-3.8500,lng:-32.4200,name:'Mirante do Frances',type:'trail',elev:85,mode:'walk',desc:'Vista'},
-    {lat:-3.8510,lng:-32.4340,name:'Mirante do Boldro',type:'trail',elev:90,mode:'buggy',desc:'Por do sol'},
+    {lat:-3.8460,lng:-32.4291,name:'Mirante do Boldro',type:'trail',elev:90,mode:'buggy',desc:'Por do sol'},
     {lat:-3.8476,lng:-32.4090,name:'Ze Maria',type:'food',elev:48,mode:'buggy',desc:'Jantar especial'},
   ]},
   {day:4,label:'Dia 4 · 13/ago',date:'qui',spots:[
-    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
-    {lat:-3.8530,lng:-32.4100,name:'Praia do Porto',type:'beach',elev:3,mode:'buggy',desc:'Mergulho livre'},
+    {lat:-3.8473,lng:-32.4119,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8346,lng:-32.4011,name:'Praia do Porto',type:'beach',elev:3,mode:'buggy',desc:'Mergulho livre'},
     {lat:-3.8530,lng:-32.4350,name:'Mergulhao',type:'food',elev:10,mode:'buggy',desc:'Almoco'},
     {lat:-3.8500,lng:-32.4200,name:'Passeio de barco',type:'beach',elev:0,mode:'buggy',desc:'Tarde · horario a confirmar'},
     {lat:-3.8470,lng:-32.4160,name:'Restaurante do Vale',type:'food',elev:40,mode:'buggy',desc:'Jantar'},
   ]},
   {day:5,label:'Dia 5 · 14/ago',date:'sex',spots:[
-    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8473,lng:-32.4119,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
     {lat:-3.8447,lng:-32.4254,name:'Mirante dos Golfinhos',type:'trail',elev:70,mode:'buggy',desc:'Golfinhos de manha'},
-    {lat:-3.8556,lng:-32.4440,name:'Baia do Sancho',type:'beach',elev:5,mode:'walk',desc:'Melhor praia'},
-    {lat:-3.8500,lng:-32.4115,name:'Praia do Cachorro',type:'beach',elev:5,mode:'buggy',desc:'Almoco nas barraquinhas'},
+    {lat:-3.8540,lng:-32.4428,name:'Baia do Sancho',type:'beach',elev:5,mode:'walk',desc:'Melhor praia'},
+    {lat:-3.8390,lng:-32.4109,name:'Praia do Cachorro',type:'beach',elev:5,mode:'buggy',desc:'Almoco nas barraquinhas'},
     {lat:-3.8395,lng:-32.4060,name:'Mirante do Forte',type:'trail',elev:55,mode:'walk',desc:'Por do sol'},
     {lat:-3.8450,lng:-32.4100,name:'Restaurante Paiol',type:'food',elev:42,mode:'walk',desc:'Jantar'},
   ]},
   {day:6,label:'Dia 6 · 15/ago',date:'sab',spots:[
-    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8473,lng:-32.4119,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
     {lat:-3.8600,lng:-32.4050,name:'Trilha Pontinha Caieira',type:'trail',elev:95,mode:'walk',desc:'Manha'},
-    {lat:-3.8694,lng:-32.4232,name:'Baia do Sueste',type:'beach',elev:5,mode:'buggy',desc:'~13h · tartarugas'},
+    {lat:-3.8713,lng:-32.4244,name:'Baia do Sueste',type:'beach',elev:5,mode:'buggy',desc:'~13h · tartarugas'},
     {lat:-3.8460,lng:-32.4150,name:'Tiate / Varanda',type:'food',elev:55,mode:'buggy',desc:'Jantar especial'},
   ]},
   {day:7,label:'Dia 7 · 16/ago',date:'dom',spots:[
-    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
-    {lat:-3.8650,lng:-32.4500,name:'Trilha Capim Acu',type:'trail',elev:140,mode:'walk',desc:'Manha · trilha longa'},
-    {lat:-3.8480,lng:-32.4300,name:'Bar do Meio',type:'food',elev:15,mode:'buggy',desc:'Almoco'},
+    {lat:-3.8473,lng:-32.4119,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8776,lng:-32.4595,name:'Trilha Capim Acu',type:'trail',elev:140,mode:'walk',desc:'Manha · trilha longa'},
+    {lat:-3.8397,lng:-32.4148,name:'Bar do Meio',type:'food',elev:15,mode:'buggy',desc:'Almoco'},
   ]},
   {day:8,label:'Dia 8 · 17/ago',date:'seg',spots:[
-    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
-    {lat:-3.8560,lng:-32.4420,name:'Morro Dois Irmaos',type:'trail',elev:180,mode:'walk',desc:'Travessia'},
-    {lat:-3.8410,lng:-32.4100,name:'Vila dos Remedios',type:'other',elev:40,mode:'buggy',desc:'Souvenirs'},
+    {lat:-3.8473,lng:-32.4119,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe'},
+    {lat:-3.8488,lng:-32.4423,name:'Morro Dois Irmaos',type:'trail',elev:180,mode:'walk',desc:'Travessia'},
+    {lat:-3.8549,lng:-32.4209,name:'Vila dos Remedios',type:'other',elev:40,mode:'buggy',desc:'Souvenirs'},
     {lat:-3.8450,lng:-32.4130,name:'Jantar de despedida',type:'food',elev:45,mode:'buggy',desc:'Ultima noite'},
   ]},
   {day:9,label:'Dia 9 · 18/ago',date:'ter',spots:[
-    {lat:-3.8554,lng:-32.4242,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe + check-out'},
+    {lat:-3.8473,lng:-32.4119,name:'Pousada Alvorada',type:'stay',elev:50,mode:'walk',desc:'Cafe + check-out'},
     {lat:-3.8556,lng:-32.4440,name:'Ultima praia',type:'beach',elev:5,mode:'buggy',desc:'Despedida'},
     {lat:-3.8460,lng:-32.4150,name:'Almoco de despedida',type:'food',elev:55,mode:'buggy',desc:'Ultimo almoco'},
   ]},
@@ -1251,7 +1274,27 @@ function buildMapa(){
   if(!tripMap){
     tripMap=L.map('map-container',{zoomControl:true}).setView([-3.854,-32.425],14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'OpenStreetMap'}).addTo(tripMap);
+    tripMap.on('click',function(e){
+      if(mapAddingPoint&&activeDay>0){
+        var spots=getMapSpots(activeDay);
+        var ns={id:newSpotId(),lat:+e.latlng.lat.toFixed(5),lng:+e.latlng.lng.toFixed(5),name:'Novo ponto',type:'other',elev:0,mode:'walk',desc:''};
+        spots.push(ns);
+        saveMapSpots(activeDay,spots);
+        mapAddingPoint=false;
+        editingSpotId=ns.id;
+        updateMapHint();
+        showDay(activeDay);
+      } else if(mapMovingSpotId&&activeDay>0){
+        var spots2=getMapSpots(activeDay);
+        var s=spots2.find(function(x){return x.id===mapMovingSpotId;});
+        if(s){ s.lat=+e.latlng.lat.toFixed(5); s.lng=+e.latlng.lng.toFixed(5); saveMapSpots(activeDay,spots2); }
+        mapMovingSpotId=null;
+        updateMapHint();
+        showDay(activeDay);
+      }
+    });
   }
+  document.getElementById('map-edit-toggle').style.display=activeDay===0?'none':'inline-flex';
   // Build filter buttons
   var fh='';
   mapDays.forEach(function(md){
@@ -1270,9 +1313,9 @@ function showDay(dayNum){
 
   var spots=[];
   if(dayNum===0){
-    mapDays.forEach(function(md){if(md.day>0) spots=spots.concat(md.spots);});
+    mapDays.forEach(function(md){if(md.day>0) spots=spots.concat(getMapSpots(md.day));});
   } else {
-    spots=mapDays[dayNum].spots;
+    spots=getMapSpots(dayNum);
   }
 
   var coords=[];
@@ -1284,7 +1327,7 @@ function showDay(dayNum){
       iconSize:[28,28],iconAnchor:[14,14]
     });
     var m=L.marker([s.lat,s.lng],{icon:icon}).addTo(tripMap);
-    m.bindPopup('<b>'+s.name+'</b><br><span style="font-size:12px;color:#666">'+s.desc+'</span><br><span style="font-size:11px;color:#999">'+(s.mode==='walk'?'A pe':'Buggy/taxi')+' · '+s.elev+'m alt.</span>');
+    m.bindPopup('<b>'+escapeHtml(s.name)+'</b><br><span style="font-size:12px;color:#666">'+escapeHtml(s.desc)+'</span><br><span style="font-size:11px;color:#999">'+(s.mode==='walk'?'A pe':'Buggy/taxi')+' · '+s.elev+'m alt.</span>');
     mapMarkers.push(m);
     coords.push([s.lat,s.lng]);
   });
@@ -1304,15 +1347,43 @@ function showDay(dayNum){
     stopsEl.style.display='block';
     var sh='<div style="font-weight:700;font-size:.85rem;color:var(--ocean);margin-bottom:8px;">Paradas</div>';
     spots.forEach(function(s,i){
-      var t=checkTags[s.type]||{color:'#666'};
       var col=typeColors[s.type]||'#666';
-      sh+='<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--sand);cursor:pointer;" onclick="tripMap.setView(['+s.lat+','+s.lng+'],17);mapMarkers['+i+'].openPopup();">';
+      var nameSafe=escapeHtml(s.name),descSafe=escapeHtml(s.desc||'');
+      sh+='<div style="padding:6px 0;border-bottom:1px solid var(--sand);">';
+      sh+='<div style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;" onclick="tripMap.setView(['+s.lat+','+s.lng+'],17);mapMarkers['+i+'].openPopup();">';
       sh+='<div style="background:'+col+';color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">'+(i+1)+'</div>';
-      sh+='<div style="min-width:0;"><div style="font-size:.8rem;font-weight:600;color:var(--text);line-height:1.3;">'+s.name+'</div>';
-      sh+='<div style="font-size:.7rem;color:var(--text-light);line-height:1.3;">'+s.desc+'</div>';
+      sh+='<div style="min-width:0;flex:1;"><div style="font-size:.8rem;font-weight:600;color:var(--text);line-height:1.3;">'+nameSafe+'</div>';
+      sh+='<div style="font-size:.7rem;color:var(--text-light);line-height:1.3;">'+descSafe+'</div>';
       sh+='<div style="font-size:.65rem;color:'+col+';margin-top:2px;">'+(s.mode==='walk'?'A pe':'Buggy')+'</div>';
       sh+='</div></div>';
+      if(mapEditMode){
+        sh+='<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">';
+        sh+='<button onclick="moveSpotOrder(\''+s.id+'\',-1)" '+(i===0?'disabled':'')+' style="background:var(--sand);border:none;border-radius:6px;padding:4px 7px;cursor:pointer;font-size:.75rem;min-height:28px;">↑</button>';
+        sh+='<button onclick="moveSpotOrder(\''+s.id+'\',1)" '+(i===spots.length-1?'disabled':'')+' style="background:var(--sand);border:none;border-radius:6px;padding:4px 7px;cursor:pointer;font-size:.75rem;min-height:28px;">↓</button>';
+        sh+='<button onclick="startEditSpot(\''+s.id+'\')" style="background:var(--sand);border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.75rem;color:var(--ocean);min-height:28px;"><i class="ti ti-pencil"></i></button>';
+        sh+='<button onclick="startMoveSpot(\''+s.id+'\')" style="background:var(--sand);border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.7rem;color:var(--ocean);min-height:28px;"><i class="ti ti-map-pin"></i> local</button>';
+        sh+='<button onclick="deleteSpot(\''+s.id+'\')" style="background:var(--sand);border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.75rem;color:var(--coral);min-height:28px;"><i class="ti ti-trash"></i></button>';
+        sh+='</div>';
+        if(editingSpotId===s.id){
+          sh+='<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px;">';
+          sh+='<input type="text" id="spot-edit-name" value="'+nameSafe+'" placeholder="Nome" style="border:1px solid var(--sand-dark);border-radius:6px;padding:6px 8px;font-size:.75rem;font-family:\'DM Sans\',sans-serif;">';
+          sh+='<input type="text" id="spot-edit-desc" value="'+descSafe+'" placeholder="Descrição" style="border:1px solid var(--sand-dark);border-radius:6px;padding:6px 8px;font-size:.75rem;font-family:\'DM Sans\',sans-serif;">';
+          sh+='<select id="spot-edit-type" style="border:1px solid var(--sand-dark);border-radius:6px;padding:6px 8px;font-size:.75rem;font-family:\'DM Sans\',sans-serif;">';
+          Object.keys(typeLabels).forEach(function(k){ sh+='<option value="'+k+'"'+(s.type===k?' selected':'')+'>'+typeLabels[k]+'</option>'; });
+          sh+='</select>';
+          sh+='<select id="spot-edit-mode" style="border:1px solid var(--sand-dark);border-radius:6px;padding:6px 8px;font-size:.75rem;font-family:\'DM Sans\',sans-serif;">';
+          sh+='<option value="walk"'+(s.mode==='walk'?' selected':'')+'>A pé</option><option value="buggy"'+(s.mode==='buggy'?' selected':'')+'>Buggy/taxi</option>';
+          sh+='</select>';
+          sh+='<input type="number" id="spot-edit-elev" value="'+(s.elev||0)+'" placeholder="Altitude (m)" style="border:1px solid var(--sand-dark);border-radius:6px;padding:6px 8px;font-size:.75rem;font-family:\'DM Sans\',sans-serif;">';
+          sh+='<div style="display:flex;gap:6px;"><button onclick="saveEditSpot(\''+s.id+'\')" style="flex:1;background:var(--green);color:#fff;border:none;border-radius:6px;padding:8px;font-size:.75rem;cursor:pointer;min-height:32px;">Salvar</button><button onclick="editingSpotId=null;showDay(activeDay);" style="flex:1;background:none;border:1px solid var(--sand-dark);border-radius:6px;padding:8px;font-size:.75rem;cursor:pointer;min-height:32px;">Cancelar</button></div>';
+          sh+='</div>';
+        }
+      }
+      sh+='</div>';
     });
+    if(mapEditMode){
+      sh+='<button onclick="startAddPoint()" style="width:100%;margin-top:10px;background:var(--ocean);color:#fff;border:none;border-radius:8px;padding:10px;font-size:.8rem;font-weight:600;cursor:pointer;min-height:40px;"><i class="ti ti-map-pin-plus"></i> + Adicionar ponto</button>';
+    }
     stopsEl.innerHTML=sh;
   } else {
     stopsEl.style.display='none';
@@ -1368,18 +1439,30 @@ function showDay(dayNum){
 function addArrows(line,color){
   var coords=line.getLatLngs();
   if(coords.length<2)return;
-  var step=Math.max(1,Math.floor(coords.length/5));
-  for(var i=step;i<coords.length;i+=step){
-    var a=coords[i-1],b=coords[i];
-    var angle=Math.atan2(b.lng-a.lng,b.lat-a.lat)*180/Math.PI;
-    var mid=L.latLng((a.lat+b.lat)/2,(a.lng+b.lng)/2);
-    var arrow=L.divIcon({
-      className:'',
-      html:'<div style="color:'+color+';font-size:14px;font-weight:700;transform:rotate('+(90-angle)+'deg);line-height:1;">&#9654;</div>',
-      iconSize:[14,14],iconAnchor:[7,7]
-    });
-    var m=L.marker(mid,{icon:arrow,interactive:false}).addTo(tripMap);
-    mapRoutes.push(m);
+  // Distância acumulada real (metros) em vez de contagem de pontos — OSRM devolve
+  // muito mais pontos num trecho de carro do que num trecho a pé da mesma distância,
+  // então espaçar por índice deixava as setas ora amontoadas, ora escassas.
+  var cum=[0];
+  for(var i=1;i<coords.length;i++){
+    cum.push(cum[i-1]+haversine({lat:coords[i-1].lat,lng:coords[i-1].lng},{lat:coords[i].lat,lng:coords[i].lng})*1000);
+  }
+  var total=cum[cum.length-1];
+  if(total<25)return; // trecho curto demais — não polui com seta
+  var spacing=Math.max(35,Math.min(120,total/4));
+  var next=spacing*0.6;
+  for(var i=1;i<coords.length;i++){
+    if(cum[i]>=next){
+      var a=coords[i-1],b=coords[i];
+      var angle=Math.atan2(b.lng-a.lng,b.lat-a.lat)*180/Math.PI;
+      var arrow=L.divIcon({
+        className:'',
+        html:'<div style="color:'+color+';font-size:13px;font-weight:700;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 4px #fff;transform:rotate('+(90-angle)+'deg);line-height:1;">&#9654;</div>',
+        iconSize:[14,14],iconAnchor:[7,7]
+      });
+      var m=L.marker(b,{icon:arrow,interactive:false}).addTo(tripMap);
+      mapRoutes.push(m);
+      next+=spacing;
+    }
   }
 }
 
@@ -1416,7 +1499,69 @@ function fetchRoute(spots){
 
 function filterDay(d){
   activeDay=d;
+  mapAddingPoint=false;mapMovingSpotId=null;editingSpotId=null;
+  if(d===0) mapEditMode=false;
+  updateMapHint();
   buildMapa();
+}
+
+function toggleMapEditMode(){
+  if(activeDay===0)return;
+  mapEditMode=!mapEditMode;
+  mapAddingPoint=false;mapMovingSpotId=null;editingSpotId=null;
+  var btn=document.getElementById('map-edit-toggle');
+  btn.innerHTML=mapEditMode?'<i class="ti ti-check"></i> Concluir edição':'<i class="ti ti-pencil"></i> Editar pontos';
+  btn.style.background=mapEditMode?'var(--ocean)':'var(--white)';
+  btn.style.color=mapEditMode?'#fff':'var(--text)';
+  btn.style.borderColor=mapEditMode?'var(--ocean)':'var(--sand-dark)';
+  updateMapHint();
+  showDay(activeDay);
+}
+
+function updateMapHint(){
+  var hint=document.getElementById('map-hint');
+  if(!hint)return;
+  if(mapAddingPoint){ hint.style.display='block'; hint.textContent='Toque no mapa pra marcar onde fica o novo ponto.'; }
+  else if(mapMovingSpotId){ hint.style.display='block'; hint.textContent='Toque no mapa pra mover esse ponto pra posição certa.'; }
+  else if(mapEditMode){ hint.style.display='block'; hint.textContent='Modo de edição: use as setas pra reordenar, o lápis pra editar, "local" pra corrigir a posição no mapa, ou adicione um ponto novo.'; }
+  else { hint.style.display='none'; }
+}
+
+function moveSpotOrder(id,dir){
+  var spots=getMapSpots(activeDay);
+  var i=spots.findIndex(function(x){return x.id===id;});
+  var j=i+dir;
+  if(i<0||j<0||j>=spots.length)return;
+  var tmp=spots[i];spots[i]=spots[j];spots[j]=tmp;
+  saveMapSpots(activeDay,spots);
+  showDay(activeDay);
+}
+function startEditSpot(id){ editingSpotId=id; showDay(activeDay); }
+function saveEditSpot(id){
+  var spots=getMapSpots(activeDay);
+  var s=spots.find(function(x){return x.id===id;});
+  if(!s)return;
+  s.name=document.getElementById('spot-edit-name').value.trim()||s.name;
+  s.desc=document.getElementById('spot-edit-desc').value.trim();
+  s.type=document.getElementById('spot-edit-type').value;
+  s.mode=document.getElementById('spot-edit-mode').value;
+  s.elev=parseFloat(document.getElementById('spot-edit-elev').value)||0;
+  saveMapSpots(activeDay,spots);
+  editingSpotId=null;
+  showDay(activeDay);
+}
+function deleteSpot(id){
+  saveMapSpots(activeDay,getMapSpots(activeDay).filter(function(x){return x.id!==id;}));
+  if(editingSpotId===id)editingSpotId=null;
+  showDay(activeDay);
+}
+function startMoveSpot(id){
+  mapMovingSpotId=id;mapAddingPoint=false;
+  updateMapHint();
+}
+function startAddPoint(){
+  mapAddingPoint=true;mapMovingSpotId=null;
+  updateMapHint();
 }
 
 // map init is handled inside switchTab
