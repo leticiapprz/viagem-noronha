@@ -595,7 +595,7 @@ function enterPlanner(){
 
 const LS = 'viagem-noronha-';
 const FB = 'https://viagem-noronha-default-rtdb.firebaseio.com';
-let syncTimer = null;
+let syncTimers = {};
 
 function lsGet(k,d){const v=localStorage.getItem(LS+k);return v!==null?v:d;}
 function lsSet(k,v){localStorage.setItem(LS+k,v);}
@@ -626,8 +626,9 @@ function fbPatch(path,data){
 
 function syncGasto(id,field,value){
   lsSet('gasto-'+field+'-'+id,value);
-  clearTimeout(syncTimer);
-  syncTimer=setTimeout(function(){
+  var key=id+'-'+field;
+  clearTimeout(syncTimers[key]);
+  syncTimers[key]=setTimeout(function(){
     var obj={};obj[field]=value;
     fbPatch('gastos/'+id,obj);
   },1000);
@@ -661,6 +662,9 @@ function pullFromFirebase(){
       }
       if(data['checklist-v2']){
         localStorage.setItem(LS+'checklist-data',JSON.stringify(data['checklist-v2']));
+      }
+      if(data.gastosCustom){
+        localStorage.setItem(LS+'custom-expenses',JSON.stringify(data.gastosCustom));
       }
       if(data.compras){
         localStorage.setItem(LS+'lista-compras',JSON.stringify(data.compras));
@@ -743,6 +747,43 @@ const expenses=[
   ]},
 ];
 
+// GASTOS ADICIONADOS PELO USUÁRIO (não fazem parte de `expenses` acima;
+// somam-se à categoria Extras na hora de renderizar/calcular).
+function getCustomExpenses(){
+  try{ return JSON.parse(lsGet('custom-expenses','[]')); }catch(e){ return []; }
+}
+function saveCustomExpenses(arr){
+  lsSet('custom-expenses',JSON.stringify(arr));
+  fbWrite('gastosCustom',arr);
+}
+function getRenderExpenses(){
+  var custom=getCustomExpenses();
+  if(!custom.length) return expenses;
+  var extrasCat='<i class="ti ti-package"></i> Extras';
+  var copy=expenses.map(function(c){return{cat:c.cat,items:c.items.slice()};});
+  var extras=copy.find(function(c){return c.cat===extrasCat;});
+  if(!extras){extras={cat:extrasCat,items:[]};copy.push(extras);}
+  custom.forEach(function(it){
+    extras.items.push({id:it.id,name:it.name,prev:it.prev,quem:it.quem||'',deve:it.deve||''});
+  });
+  return copy;
+}
+function addCustomExpense(){
+  var nameInp=document.getElementById('new-exp-name');
+  var prevInp=document.getElementById('new-exp-prev');
+  var name=nameInp.value.trim();
+  if(!name)return;
+  var prev=prevInp.value.trim()||'R$0';
+  var custom=getCustomExpenses();
+  custom.push({id:'custom-'+Date.now(),name:name,prev:prev,quem:'',deve:''});
+  saveCustomExpenses(custom);
+  buildGastos();
+}
+function removeCustomExpense(id){
+  saveCustomExpenses(getCustomExpenses().filter(function(it){return it.id!==id;}));
+  buildGastos();
+}
+
 function togglePago(btn){
   const id=btn.dataset.pagoId;
   const isNowPago=!btn.classList.contains('active');
@@ -754,7 +795,7 @@ function togglePago(btn){
 
 function calcSaldo(){
   var leticiaOwes=0,camilaOwes=0,totalPrev=0,totalReal=0,pagos=0,totalItens=0;
-  expenses.forEach(cat=>{
+  getRenderExpenses().forEach(cat=>{
     cat.items.forEach(it=>{
       totalItens++;
       var prev=it.prev.replace(/[^0-9.,]/g,'').replace('.','').replace(',','.');
@@ -806,8 +847,16 @@ function buildGastos(){
   h+='</div>';
   h+='<div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-light);margin-top:4px;"><span>R$'+s.totalReal.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.')+'</span><span>R$'+s.totalPrev.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.')+'</span></div>';
   h+='</div>';
+  h+=`<div class="card" style="margin-bottom:16px;">
+    <div class="card-header"><i class="ti ti-plus-circle"></i> Adicionar gasto</div>
+    <div class="exp-fields" style="margin-bottom:10px;">
+      <div class="exp-field"><label>Nome do gasto</label><input type="text" id="new-exp-name" placeholder="Ex: Passeio de bike" onkeydown="if(event.key==='Enter')addCustomExpense()"></div>
+      <div class="exp-field"><label>Valor previsto</label><input type="text" id="new-exp-prev" placeholder="R$..." onkeydown="if(event.key==='Enter')addCustomExpense()"></div>
+    </div>
+    <button class="pago-btn" onclick="addCustomExpense()" style="width:100%;background:var(--ocean);color:#fff;border-color:var(--ocean);font-weight:600;min-height:44px;"><i class="ti ti-plus"></i> Adicionar gasto</button>
+  </div>`;
   h+='<h2>Controle de gastos</h2>';
-  expenses.forEach(cat=>{
+  getRenderExpenses().forEach(cat=>{
     h+=`<div class="cat-header">${cat.cat}</div>`;
     cat.items.forEach(it=>{
       const realVal=lsGet('gasto-real-'+it.id,'');
@@ -815,12 +864,15 @@ function buildGastos(){
       const deveVal=lsGet('gasto-deve-'+it.id,it.deve);
       const pagoVal=lsGet('gasto-pago-'+it.id,'Não');
       const isPago=pagoVal==='Sim';
+      const isCustom=it.id.indexOf('custom-')===0;
+      const removeBtn=isCustom?`<button class="pago-btn" onclick="removeCustomExpense('${it.id}')" style="color:var(--coral);border-color:var(--coral);padding:4px 10px;"><i class="ti ti-trash"></i></button>`:'';
       if(isPago){
         h+=`<div class="expense-card pago" style="padding:10px 14px;">
           <div style="display:flex;align-items:center;gap:8px;">
             <button class="pago-btn active" data-pago-id="${it.id}" onclick="togglePago(this)" style="padding:4px 10px;font-size:.75rem;"><i class="ti ti-check"></i> Pago</button>
             <span class="exp-name" style="font-size:.85rem;margin:0;">${it.name}</span>
             <span style="margin-left:auto;font-size:.8rem;color:var(--text-light);">${realVal||it.prev}</span>
+            ${removeBtn}
           </div>
           <div style="font-size:.7rem;color:var(--text-light);margin-top:4px;display:flex;gap:12px;">
             <span>${quemVal?'Pagou: '+quemVal:''}</span>
@@ -831,7 +883,10 @@ function buildGastos(){
         h+=`<div class="expense-card">
           <div class="exp-top">
             <div><div class="exp-name">${it.name}</div><div class="exp-prev">Previsto: ${it.prev}</div></div>
-            <button class="pago-btn" data-pago-id="${it.id}" onclick="togglePago(this)"><i class="ti ti-square"></i> Pago?</button>
+            <div style="display:flex;gap:6px;">
+              <button class="pago-btn" data-pago-id="${it.id}" onclick="togglePago(this)"><i class="ti ti-square"></i> Pago?</button>
+              ${removeBtn}
+            </div>
           </div>
           <div class="exp-fields">
             <div class="exp-field"><label>Gasto real</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="gastoReal" data-ls="gasto-real-${it.id}" value="${realVal}" placeholder="R$..."></div>
