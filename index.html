@@ -193,17 +193,6 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 .day-gasto input:focus { outline:none; border-color:var(--ocean); background:var(--white); }
 
 /* CHECKLIST */
-.checklist-toggle {
-  background:var(--ocean); color:var(--white); border:none; border-radius:var(--radius);
-  padding:12px 16px; width:100%; text-align:left; font-size:.95rem;
-  font-family:'DM Sans',sans-serif; font-weight:600; cursor:pointer;
-  margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;
-}
-.checklist-grid {
-  display:none; background:var(--white); border-radius:var(--radius);
-  padding:12px 16px; margin-bottom:16px; box-shadow:var(--shadow);
-}
-.checklist-grid.open { display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; }
 .check-item {
   display:flex; align-items:center; gap:8px; padding:6px 0;
   font-size:.9rem; min-height:44px;
@@ -600,6 +589,8 @@ let syncTimers = {};
 function lsGet(k,d){const v=localStorage.getItem(LS+k);return v!==null?v:d;}
 function lsSet(k,v){localStorage.setItem(LS+k,v);}
 function lsBool(k,d){const v=localStorage.getItem(LS+k);return v!==null?v==='true':d;}
+const HTML_ESCAPE_MAP={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return HTML_ESCAPE_MAP[c];});}
 
 function showSync(state){
   const el=document.getElementById('sync-indicator');
@@ -873,39 +864,41 @@ function buildGastos(){
       const isPago=pagoVal==='Sim';
       const isCustom=it.id.indexOf('custom-')===0;
       const removeBtn=isCustom?`<button class="pago-btn" onclick="removeCustomExpense('${it.id}')" style="color:var(--coral);border-color:var(--coral);padding:4px 10px;"><i class="ti ti-trash"></i></button>`:'';
+      const nameSafe=escapeHtml(it.name), prevSafe=escapeHtml(it.prev);
+      const realSafe=escapeHtml(realVal), quemSafe=escapeHtml(quemVal), deveSafe=escapeHtml(deveVal);
       if(isPago){
         const isEditing=editingExpenseId===it.id;
         h+=`<div class="expense-card pago" style="padding:10px 14px;">
           <div style="display:flex;align-items:center;gap:8px;">
             <button class="pago-btn active" data-pago-id="${it.id}" onclick="togglePago(this)" style="padding:4px 10px;font-size:.75rem;"><i class="ti ti-check"></i> Pago</button>
-            <span class="exp-name" style="font-size:.85rem;margin:0;">${it.name}</span>
-            <span style="margin-left:auto;font-size:.8rem;color:var(--text-light);">${realVal||it.prev}</span>
+            <span class="exp-name" style="font-size:.85rem;margin:0;">${nameSafe}</span>
+            <span style="margin-left:auto;font-size:.8rem;color:var(--text-light);">${realSafe||prevSafe}</span>
             <button onclick="toggleEditExpense('${it.id}')" style="background:none;border:none;color:var(--ocean);font-size:.95rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-pencil"></i></button>
             ${removeBtn}
           </div>
           <div style="font-size:.7rem;color:var(--text-light);margin-top:4px;display:flex;gap:12px;">
-            <span>${quemVal?'Pagou: '+quemVal:''}</span>
-            <span>${deveVal}</span>
+            <span>${quemSafe?'Pagou: '+quemSafe:''}</span>
+            <span>${deveSafe}</span>
           </div>
           ${isEditing?`<div class="exp-fields" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--sand);">
-            <div class="exp-field"><label>Gasto real</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="gastoReal" data-ls="gasto-real-${it.id}" value="${realVal}" placeholder="R$..."></div>
-            <div class="exp-field"><label>Quem pagou</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="quemPagou" data-ls="gasto-quem-${it.id}" value="${quemVal}"></div>
-            <div class="exp-field"><label>Deve alguém?</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="deveAlguem" data-ls="gasto-deve-${it.id}" value="${deveVal}"></div>
+            <div class="exp-field"><label>Gasto real</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="gastoReal" data-ls="gasto-real-${it.id}" value="${realSafe}" placeholder="R$..."></div>
+            <div class="exp-field"><label>Quem pagou</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="quemPagou" data-ls="gasto-quem-${it.id}" value="${quemSafe}"></div>
+            <div class="exp-field"><label>Deve alguém?</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="deveAlguem" data-ls="gasto-deve-${it.id}" value="${deveSafe}"></div>
           </div>`:''}
         </div>`;
       } else {
         h+=`<div class="expense-card">
           <div class="exp-top">
-            <div><div class="exp-name">${it.name}</div><div class="exp-prev">Previsto: ${it.prev}</div></div>
+            <div><div class="exp-name">${nameSafe}</div><div class="exp-prev">Previsto: ${prevSafe}</div></div>
             <div style="display:flex;gap:6px;">
               <button class="pago-btn" data-pago-id="${it.id}" onclick="togglePago(this)"><i class="ti ti-square"></i> Pago?</button>
               ${removeBtn}
             </div>
           </div>
           <div class="exp-fields">
-            <div class="exp-field"><label>Gasto real</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="gastoReal" data-ls="gasto-real-${it.id}" value="${realVal}" placeholder="R$..."></div>
-            <div class="exp-field"><label>Quem pagou</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="quemPagou" data-ls="gasto-quem-${it.id}" value="${quemVal}"></div>
-            <div class="exp-field"><label>Deve alguém?</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="deveAlguem" data-ls="gasto-deve-${it.id}" value="${deveVal}"></div>
+            <div class="exp-field"><label>Gasto real</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="gastoReal" data-ls="gasto-real-${it.id}" value="${realSafe}" placeholder="R$..."></div>
+            <div class="exp-field"><label>Quem pagou</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="quemPagou" data-ls="gasto-quem-${it.id}" value="${quemSafe}"></div>
+            <div class="exp-field"><label>Deve alguém?</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="deveAlguem" data-ls="gasto-deve-${it.id}" value="${deveSafe}"></div>
           </div>
         </div>`;
       }
@@ -993,10 +986,14 @@ var checkTags={
   outro:{label:'Outro',color:'#666'},
 };
 
+function newCheckId(){ return 'chk-'+Date.now().toString(36)+Math.random().toString(36).slice(2); }
 function getChecklist(){
   var saved=lsGet('checklist-data','');
-  if(saved) return JSON.parse(saved);
-  return defaultChecklist.map(function(it){return{text:it.text,tag:it.tag,checked:false};});
+  var items=saved?JSON.parse(saved):defaultChecklist.map(function(it){return{text:it.text,tag:it.tag,checked:false};});
+  var changed=false;
+  items.forEach(function(it){ if(!it.id){ it.id=newCheckId(); changed=true; } });
+  if(changed) saveChecklist(items);
+  return items;
 }
 function saveChecklist(items){
   lsSet('checklist-data',JSON.stringify(items));
@@ -1020,7 +1017,7 @@ function buildDiaDia(){
     day.periods.forEach(p=>{
       if(p.t) h+=`<div class="period"><div class="period-label">${p.l}</div><div class="period-text">${p.t}</div></div>`;
     });
-    const gastoVal=lsGet('day-gasto-'+i,'');
+    const gastoVal=escapeHtml(lsGet('day-gasto-'+i,''));
     h+=`<div class="day-gasto"><label><i class="ti ti-cash"></i> Gasto do dia</label><input type="text" data-ls="day-gasto-${i}" value="${gastoVal}" placeholder="R$..."></div>`;
     h+='</div></div>';
   });
@@ -1035,38 +1032,41 @@ function toggleDay(i){
   chev.classList.toggle('open',isOpen);
   lsSet('day-open-'+i,isOpen);
 }
-var editingIdx=-1;
+var editingCheckId=null;
 
-function startEdit(i){
-  editingIdx=i;buildLista();
+function startEdit(id){
+  editingCheckId=id;buildLista();
 }
-function saveEdit(i){
+function saveEdit(id){
   var items=getChecklist();
-  var text=document.getElementById('edit-text-'+i).value.trim();
-  var tag=document.getElementById('edit-tag-'+i).value;
-  if(text) items[i].text=text;
-  items[i].tag=tag;
+  var it=items.find(function(x){return x.id===id;});
+  if(!it)return;
+  var text=document.getElementById('edit-text-'+id).value.trim();
+  var tag=document.getElementById('edit-tag-'+id).value;
+  if(text) it.text=text;
+  it.tag=tag;
   saveChecklist(items);
-  editingIdx=-1;buildLista();
+  editingCheckId=null;buildLista();
 }
 
-function toggleCheck(i){
-  var items=getChecklist();items[i].checked=!items[i].checked;
+function toggleCheck(id){
+  var items=getChecklist();
+  var it=items.find(function(x){return x.id===id;});
+  if(it) it.checked=!it.checked;
   saveChecklist(items);buildLista();
 }
 
-function removeCheck(i){
-  var items=getChecklist();items.splice(i,1);
-  saveChecklist(items);buildLista();
+function removeCheck(id){
+  saveChecklist(getChecklist().filter(function(x){return x.id!==id;}));
+  buildLista();
 }
 function addCheckItem(){
   var inp=document.getElementById('check-new-input');
   var tag=document.getElementById('check-new-tag');
   var text=inp.value.trim();if(!text)return;
   var items=getChecklist();
-  items.push({text:text,tag:tag.value,checked:false});
+  items.push({id:newCheckId(),text:text,tag:tag.value,checked:false});
   saveChecklist(items);buildLista();
-  lsSet('checklist-open',true);
 }
 
 // MARÉS
@@ -1120,26 +1120,26 @@ function buildLista(){
   h+='<button onclick="addCheckItem()" style="background:var(--ocean);color:#fff;border:none;border-radius:8px;padding:0 14px;font-size:1.1rem;cursor:pointer;min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-plus"></i></button>';
   h+='</div>';
   // items
-  var filtered=items.map(function(it,i){return{it:it,idx:i};}).filter(function(x){return checkFilter==='all'||x.it.tag===checkFilter;});
-  filtered.forEach(function(x){
-    var it=x.it,i=x.idx,t=checkTags[it.tag]||checkTags.outro;
-    var editing=editingIdx===i;
+  var filtered=items.filter(function(it){return checkFilter==='all'||it.tag===checkFilter;});
+  filtered.forEach(function(it){
+    var t=checkTags[it.tag]||checkTags.outro;
+    var editing=editingCheckId===it.id;
     h+='<div style="background:var(--white);border-radius:8px;padding:10px 12px;margin-bottom:6px;box-shadow:var(--shadow);'+(it.checked?'opacity:.5;':'')+'border-left:3px solid '+t.color+';">';
     h+='<div style="display:flex;align-items:center;gap:8px;">';
-    h+='<input type="checkbox" '+(it.checked?'checked':'')+' onchange="toggleCheck('+i+')" style="width:20px;height:20px;accent-color:var(--green);flex-shrink:0;">';
-    h+='<span style="flex:1;font-size:.9rem;'+(it.checked?'text-decoration:line-through;color:var(--text-light);':'')+'">'+it.text+'</span>';
+    h+='<input type="checkbox" '+(it.checked?'checked':'')+' onchange="toggleCheck(\''+it.id+'\')" style="width:20px;height:20px;accent-color:var(--green);flex-shrink:0;">';
+    h+='<span style="flex:1;font-size:.9rem;'+(it.checked?'text-decoration:line-through;color:var(--text-light);':'')+'">'+escapeHtml(it.text)+'</span>';
     h+='<span style="font-size:.65rem;color:'+t.color+';font-weight:600;text-transform:uppercase;padding:2px 6px;background:'+t.color+'15;border-radius:4px;">'+t.label+'</span>';
-    h+='<button onclick="startEdit('+i+')" style="background:none;border:none;color:var(--ocean);font-size:.95rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-pencil"></i></button>';
-    h+='<button onclick="removeCheck('+i+')" style="background:none;border:none;color:var(--coral);font-size:.95rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-trash"></i></button>';
+    h+='<button onclick="startEdit(\''+it.id+'\')" style="background:none;border:none;color:var(--ocean);font-size:.95rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-pencil"></i></button>';
+    h+='<button onclick="removeCheck(\''+it.id+'\')" style="background:none;border:none;color:var(--coral);font-size:.95rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-trash"></i></button>';
     h+='</div>';
     if(editing){
       h+='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--sand);display:flex;gap:6px;flex-wrap:wrap;">';
-      h+='<input type="text" id="edit-text-'+i+'" value="'+it.text.replace(/"/g,'&quot;')+'" style="flex:1;min-width:150px;border:1px solid var(--sand-dark);border-radius:8px;padding:8px 10px;font-size:.85rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
-      h+='<select id="edit-tag-'+i+'" style="border:1px solid var(--sand-dark);border-radius:8px;padding:4px 8px;font-size:.8rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
+      h+='<input type="text" id="edit-text-'+it.id+'" value="'+escapeHtml(it.text)+'" style="flex:1;min-width:150px;border:1px solid var(--sand-dark);border-radius:8px;padding:8px 10px;font-size:.85rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
+      h+='<select id="edit-tag-'+it.id+'" style="border:1px solid var(--sand-dark);border-radius:8px;padding:4px 8px;font-size:.8rem;font-family:\'DM Sans\',sans-serif;background:var(--sand);min-height:40px;">';
       Object.keys(checkTags).forEach(function(k){h+='<option value="'+k+'"'+(it.tag===k?' selected':'')+'>'+checkTags[k].label+'</option>';});
       h+='</select>';
-      h+='<button onclick="saveEdit('+i+')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:0 12px;font-size:.85rem;cursor:pointer;min-height:40px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-check"></i> Salvar</button>';
-      h+='<button onclick="editingIdx=-1;buildLista();" style="background:none;border:1px solid var(--sand-dark);border-radius:8px;padding:0 12px;font-size:.85rem;cursor:pointer;min-height:40px;color:var(--text-light);-webkit-tap-highlight-color:transparent;">Cancelar</button>';
+      h+='<button onclick="saveEdit(\''+it.id+'\')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:0 12px;font-size:.85rem;cursor:pointer;min-height:40px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-check"></i> Salvar</button>';
+      h+='<button onclick="editingCheckId=null;buildLista();" style="background:none;border:1px solid var(--sand-dark);border-radius:8px;padding:0 12px;font-size:.85rem;cursor:pointer;min-height:40px;color:var(--text-light);-webkit-tap-highlight-color:transparent;">Cancelar</button>';
       h+='</div>';
     }
     h+='</div>';
@@ -1439,7 +1439,7 @@ document.addEventListener('change',e=>{});
 function calcular(){
   let leticiaOwes=0, camilaOwes=0;
   const details=[];
-  expenses.forEach(cat=>{
+  getRenderExpenses().forEach(cat=>{
     cat.items.forEach(it=>{
       const val=lsGet('gasto-deve-'+it.id,it.deve);
       if(!val)return;
@@ -1488,29 +1488,6 @@ function calcular(){
 }
 
 // FIREBASE SYNC — pull on load, rebuild UI
-function pushDefaults(){
-  var gastosObj={};
-  expenses.forEach(cat=>{
-    cat.items.forEach(it=>{
-      gastosObj[it.id]={
-        gastoReal:lsGet('gasto-real-'+it.id,''),
-        quemPagou:lsGet('gasto-quem-'+it.id,it.quem),
-        deveAlguem:lsGet('gasto-deve-'+it.id,it.deve),
-        pago:lsGet('gasto-pago-'+it.id,'Não')
-      };
-    });
-  });
-  fbWrite('gastos',gastosObj);
-  var compras=JSON.parse(lsGet('lista-compras','[]'));
-  var resolver=JSON.parse(lsGet('lista-resolver','[]'));
-  if(compras.length) fbWrite('compras',compras);
-  if(resolver.length) fbWrite('resolver',resolver);
-  localStorage.setItem(LS+'fb-push-v1','done');
-}
-
-if(localStorage.getItem(LS+'fb-push-v1')!=='done'){
-  pushDefaults();
-}
 pullFromFirebase().then(()=>{
   document.getElementById('gastos').innerHTML='';
   buildGastos();
