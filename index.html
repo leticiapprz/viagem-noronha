@@ -812,7 +812,7 @@ function calcSaldo(){
       if(lsGet('gasto-pago-'+it.id,'Não')==='Sim')pagos++;
       var val=lsGet('gasto-deve-'+it.id,it.deve);
       if(!val)return;
-      var match=val.match(/(leticia|camila)\s+deve\s+r?\$?([\d.,]+)/i);
+      var match=val.match(/(leticia|camila)\s+deve\s+r?\$?\s*([\d.,]+)/i);
       if(match){
         var amt=parseFloat(match[2].replace('.','').replace(',','.'));
         if(!isNaN(amt)){
@@ -1443,7 +1443,7 @@ function calcular(){
     cat.items.forEach(it=>{
       const val=lsGet('gasto-deve-'+it.id,it.deve);
       if(!val)return;
-      const match=val.match(/(leticia|camila)\s+deve\s+r?\$?([\d.,]+)/i);
+      const match=val.match(/(leticia|camila)\s+deve\s+r?\$?\s*([\d.,]+)/i);
       if(match){
         const who=match[1].toLowerCase();
         const amt=parseFloat(match[2].replace('.','').replace(',','.'));
