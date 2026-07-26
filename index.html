@@ -624,8 +624,9 @@ function fbPatch(path,data){
     .catch(()=>showSync('error'));
 }
 
+var GASTO_FIELD_LS_KEY={gastoReal:'real',quemPagou:'quem',deveAlguem:'deve',pago:'pago'};
 function syncGasto(id,field,value){
-  lsSet('gasto-'+field+'-'+id,value);
+  lsSet('gasto-'+(GASTO_FIELD_LS_KEY[field]||field)+'-'+id,value);
   var key=id+'-'+field;
   clearTimeout(syncTimers[key]);
   syncTimers[key]=setTimeout(function(){
@@ -793,6 +794,12 @@ function togglePago(btn){
   buildGastos();
 }
 
+var editingExpenseId=null;
+function toggleEditExpense(id){
+  editingExpenseId=editingExpenseId===id?null:id;
+  buildGastos();
+}
+
 function calcSaldo(){
   var leticiaOwes=0,camilaOwes=0,totalPrev=0,totalReal=0,pagos=0,totalItens=0;
   getRenderExpenses().forEach(cat=>{
@@ -867,17 +874,24 @@ function buildGastos(){
       const isCustom=it.id.indexOf('custom-')===0;
       const removeBtn=isCustom?`<button class="pago-btn" onclick="removeCustomExpense('${it.id}')" style="color:var(--coral);border-color:var(--coral);padding:4px 10px;"><i class="ti ti-trash"></i></button>`:'';
       if(isPago){
+        const isEditing=editingExpenseId===it.id;
         h+=`<div class="expense-card pago" style="padding:10px 14px;">
           <div style="display:flex;align-items:center;gap:8px;">
             <button class="pago-btn active" data-pago-id="${it.id}" onclick="togglePago(this)" style="padding:4px 10px;font-size:.75rem;"><i class="ti ti-check"></i> Pago</button>
             <span class="exp-name" style="font-size:.85rem;margin:0;">${it.name}</span>
             <span style="margin-left:auto;font-size:.8rem;color:var(--text-light);">${realVal||it.prev}</span>
+            <button onclick="toggleEditExpense('${it.id}')" style="background:none;border:none;color:var(--ocean);font-size:.95rem;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;"><i class="ti ti-pencil"></i></button>
             ${removeBtn}
           </div>
           <div style="font-size:.7rem;color:var(--text-light);margin-top:4px;display:flex;gap:12px;">
             <span>${quemVal?'Pagou: '+quemVal:''}</span>
             <span>${deveVal}</span>
           </div>
+          ${isEditing?`<div class="exp-fields" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--sand);">
+            <div class="exp-field"><label>Gasto real</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="gastoReal" data-ls="gasto-real-${it.id}" value="${realVal}" placeholder="R$..."></div>
+            <div class="exp-field"><label>Quem pagou</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="quemPagou" data-ls="gasto-quem-${it.id}" value="${quemVal}"></div>
+            <div class="exp-field"><label>Deve alguém?</label><input type="text" data-gasto-id="${it.id}" data-gasto-field="deveAlguem" data-ls="gasto-deve-${it.id}" value="${deveVal}"></div>
+          </div>`:''}
         </div>`;
       } else {
         h+=`<div class="expense-card">
