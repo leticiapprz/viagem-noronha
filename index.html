@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Nordeste 2026</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦈</text></svg>">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1A5F7A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Noronha">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -625,21 +632,32 @@ function showSync(state){
   if(state==='syncing'){el.innerHTML='<i class="ti ti-cloud"></i> Salvando...';el.style.color='var(--coral)';}
   else if(state==='ok'){el.innerHTML='<i class="ti ti-cloud"></i> Sincronizado';el.style.color='var(--green)';}
   else if(state==='error'){el.innerHTML='<i class="ti ti-alert-triangle"></i> Erro';el.style.color='var(--coral)';}
+  else if(state==='offline'){el.innerHTML='<i class="ti ti-cloud-off"></i> Sem internet — salvo só aqui';el.style.color='var(--text-light)';}
   else{el.textContent='';}
+}
+
+// timeout curto pra não deixar "Salvando..." travado quando o sinal tá ruim
+// (comum na ilha) — falha rápido e volta pro fluxo local em vez de ficar pendurado
+const FB_TIMEOUT_MS=8000;
+function fbFetch(path,options){
+  return fetch(FB+'/'+path+'.json',Object.assign({signal:AbortSignal.timeout(FB_TIMEOUT_MS)},options));
+}
+function fbFail(){
+  showSync(navigator.onLine?'error':'offline');
 }
 
 function fbWrite(path,data){
   showSync('syncing');
-  fetch(FB+'/'+path+'.json',{method:'PUT',body:JSON.stringify(data)})
+  fbFetch(path,{method:'PUT',body:JSON.stringify(data)})
     .then(()=>{showSync('ok');setTimeout(()=>showSync(''),2000);})
-    .catch(()=>showSync('error'));
+    .catch(fbFail);
 }
 
 function fbPatch(path,data){
   showSync('syncing');
-  fetch(FB+'/'+path+'.json',{method:'PATCH',body:JSON.stringify(data)})
+  fbFetch(path,{method:'PATCH',body:JSON.stringify(data)})
     .then(()=>{showSync('ok');setTimeout(()=>showSync(''),2000);})
-    .catch(()=>showSync('error'));
+    .catch(fbFail);
 }
 
 var GASTO_FIELD_LS_KEY={gastoReal:'real',quemPagou:'quem',deveAlguem:'deve',pago:'pago'};
@@ -697,7 +715,7 @@ function toggleDayPeriodDone(dayIdx,periodIdx){
 
 
 function pullFromFirebase(){
-  return fetch(FB+'/.json')
+  return fbFetch('')
     .then(r=>r.json())
     .then(data=>{
       if(!data)return;
@@ -739,7 +757,7 @@ function pullFromFirebase(){
       }
       showSync('ok');setTimeout(()=>showSync(''),2000);
     })
-    .catch(()=>showSync('error'));
+    .catch(fbFail);
 }
 
 // DIA A DIA (dados) — precisa vir antes do roteamento de abas: o load inicial pode
@@ -1381,6 +1399,10 @@ function calcDayStats(spots){
 function buildMapa(){
   var el=document.getElementById('map-container');
   if(!el||el.offsetHeight===0)return;
+  if(typeof L==='undefined'){
+    el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:20px;text-align:center;color:var(--text-light);font-size:.9rem;"><span><i class="ti ti-cloud-off" style="font-size:1.5rem;"></i><br><br>Mapa precisa de internet pra carregar (o mapa em si e as rotas vêm de fora). As outras abas continuam funcionando offline.</span></div>';
+    return;
+  }
   if(!tripMap){
     tripMap=L.map('map-container',{zoomControl:true}).setView([-3.854,-32.425],14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'OpenStreetMap'}).addTo(tripMap);
@@ -1745,13 +1767,24 @@ function calcular(){
 }
 
 // FIREBASE SYNC — pull on load, rebuild UI
-pullFromFirebase().then(()=>{
+function rebuildAll(){
   document.getElementById('gastos').innerHTML='';
   buildGastos();
   document.getElementById('diadia').innerHTML='';
   buildDiaDia();
   buildLista();
-});
+}
+pullFromFirebase().then(rebuildAll);
+
+// sinal voltou (comum entrando/saindo de área sem cobertura na ilha):
+// busca o que o outro dispositivo salvou enquanto a gente tava offline
+window.addEventListener('online',()=>{ pullFromFirebase().then(rebuildAll); });
+
+// service worker: deixa o app abrir mesmo sem internet (cacheia só os
+// arquivos do próprio site — Firebase/CDN continuam precisando de rede)
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
 </script>
 </body>
 </html>
