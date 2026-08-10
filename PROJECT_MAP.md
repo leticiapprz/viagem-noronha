@@ -37,7 +37,7 @@ Fundo aleatório entre `foto1.jpg`, `foto2.png`, `foto3.jpg`. Contador regressiv
 - `fbWrite(path, data)` / `fbPatch(path, data)` — grava no Firebase (`PUT` substitui o nó inteiro, `PATCH` atualiza campos).
 - `syncGasto(id, field, value)` — salva local na hora e manda pro Firebase com debounce de 1s (evita 1 request por tecla digitada). O debounce é **por `id`+`field`** (`syncTimers[id+'-'+field]`) — não usar um único timer global aqui: já foi bug (marcar "Pago" em vários itens rápido cancelava o envio dos anteriores, e ao dar F5 o `pullFromFirebase` sobrescrevia com o que sobrou no Firebase, "desmarcando" tudo que não chegou lá a tempo).
 - `syncDiaDia(dia, gasto)` — mesma ideia pro campo "gasto do dia" de cada dia do roteiro.
-- `pullFromFirebase()` — na carga da página, busca o banco inteiro (`FB + '/.json'`) e sobrescreve o `localStorage` com o que vier de `gastos`, `diadia`, `checklist-v2`, `gastosCustom`, `mapDaysCustom`, `compras` e `resolver`. É a **única** fonte de carga inicial de dados — não existe mais nenhum "push" automático de defaults (ver bug crítico abaixo).
+- `pullFromFirebase()` — na carga da página, busca o banco inteiro (`FB + '/.json'`) e sobrescreve o `localStorage` com o que vier de `gastos`, `diadia`, `checklist-v2`, `gastosCustom`, `mapDaysCustom`, `roteiroCustom`, `compras` e `resolver`. É a **única** fonte de carga inicial de dados — não existe mais nenhum "push" automático de defaults (ver bug crítico abaixo).
 - **Nota de dado morto:** `compras` e `resolver` ainda são lidos aqui, mas desde a unificação da lista em um checklist único com tags (ver seção 2.10) nada mais **exibe** esses dois nós — ficam por inércia, sem efeito visível. Se for fazer limpeza, são candidatos a remover.
 - **Bug crítico corrigido (26/07/2026) — risco de perda de dados:** existia uma função `pushDefaults()` chamada automaticamente sempre que `localStorage.getItem(LS+'fb-push-v1')!=='done'` — ou seja, em **qualquer navegador/dispositivo que nunca tivesse aberto o site antes** (celular novo, aba anônima, cache limpo). Ela fazia `fbWrite('gastos', ...)` — um `PUT` que **substitui o nó `/gastos` inteiro no Firebase** — montado a partir do `localStorage` (vazio, nesse cenário) + os valores default do array `expenses`. Como isso rodava em paralelo com o `pullFromFirebase()` (duas requisições assíncronas, sem ordem garantida), havia risco real de o `PUT` "vencer a corrida" e apagar todo o histórico real (pago, quem pagou, deve alguém, gasto real) editado por outros dispositivos. Era um mecanismo de migração único (da época da troca de Google Sheets pro Firebase) que já tinha cumprido sua função — **removido por completo** (função e chamada). Não recriar esse padrão: nunca fazer `PUT`/substituição total de um nó do Firebase a partir de dados que podem estar vazios só porque é a primeira vez que *aquele dispositivo* carrega a página.
 
@@ -64,10 +64,15 @@ Fundo aleatório entre `foto1.jpg`, `foto2.png`, `foto3.jpg`. Contador regressiv
 ### 2.7 Aba Calculadora (linhas ~1369–1419)
 `calcular()` — mesma lógica de `calcSaldo()`, mas mostra o detalhamento por item de quem deve quanto pra quem. **Bug corrigido (26/07/2026):** usava `expenses.forEach` (a lista fixa) em vez de `getRenderExpenses()`, então ignorava qualquer gasto adicionado pela UI — o saldo da aba Gastos e o da Calculadora podiam mostrar números diferentes. Corrigido pra usar `getRenderExpenses()` igual `calcSaldo()`. **Se mudar uma dessas duas funções, mudar a outra também** — elas têm que ler exatamente a mesma fonte de dados.
 
-### 2.8 Aba Dia a dia (linhas ~849–968)
-- `days` (array, linha ~850) — roteiro dia a dia (9 dias), cada um com período (Manhã/Tarde/Noite) e texto livre. **Editar o roteiro textual do dia é aqui.**
+### 2.8 Aba Dia a dia (linhas ~849–968, edição ~1059–1112)
+- `days` (array, linha ~850) — roteiro **de fábrica**, dia a dia (9 dias), cada um com período (Manhã/Tarde/Noite) e texto livre. Igual ao padrão do `mapDays` (seção 2.11): depois que um dia é editado pela UI, esse array deixa de ser a fonte usada pra aquele dia.
 - `buildDiaDia()` — monta os cards expansíveis (accordion) por dia, com campo de "gasto do dia".
 - `toggleDay(i)` — abre/fecha um dia, lembra o estado no localStorage.
+- **Roteiro editável pela própria Leticia:** botão de lápis no cabeçalho de cada dia (`toggleEditDay(i)`, variável `editingDayId`) troca o card pro modo de edição — um `<textarea>` por período (Manhã/Tarde/Noite, inclusive os vazios, pra dar pra preencher). Mesmo padrão do `getMapSpots`/`saveMapSpots` (seção 2.11): override **isolado por dia**, nunca mexe nos outros.
+  - `getDayPeriods(dayIdx)` — retorna os períodos atuais daquele dia: se existe override salvo (localStorage `roteiro-day-<i>` / Firebase `roteiroCustom/<i>`), usa ele; senão, copia `days[i].periods`. **Toda leitura de períodos deve passar por aqui**, nunca ler `day.periods` direto (exceção: dentro do próprio `getDayPeriods`).
+  - `syncDayPeriod(dayIdx,periodIdx,value)` — atualiza o texto de um período, salva local na hora e sincroniza com Firebase com debounce de 1s. O debounce é **por dia** (`syncTimers['day-period-'+dayIdx]`), não por período — como cada edição relê `getDayPeriods` (que já reflete o save local síncrono anterior) antes de gravar, editar dois períodos do mesmo dia rapidinho não perde nenhum dos dois na escrita final pro Firebase.
+  - `resetDayPeriods(dayIdx)` — remove o override (local + `fbWrite('roteiroCustom/'+dayIdx, null)`) e volta pro roteiro de fábrica daquele dia, com confirmação.
+  - O `<textarea>` usa `data-day-idx`/`data-period-idx` e é pego pelo listener global de auto-save (seção 2.12).
 
 ### 2.9 Aba Marés (linhas ~1003–1028)
 `tides` (array) com a tábua de marés por dia (horário e altura), com `best:true` marcando os dias de maré mais baixa (melhores pra passeios que dependem disso). Só leitura, sem sincronização — dado fixo, editar o array direto se as marés mudarem.
@@ -102,7 +107,7 @@ A parte mais complexa do arquivo. Usa **Leaflet** (mapa) + tiles do OpenStreetMa
 - Gráfico de elevação (`elevChart`) — barra por parada, cor conforme o tipo do local.
 
 ### 2.12 Auto-save global (linhas ~1355–1367)
-Um único listener de `input` no `document` cobre todos os campos de texto da aba Gastos e do "gasto do dia": salva no localStorage e dispara a sincronização com Firebase automaticamente, sem precisar de botão salvar em cada campo.
+Um único listener de `input` no `document` cobre todos os campos de texto da aba Gastos, do "gasto do dia" e dos períodos editáveis do dia a dia (seção 2.8): salva no localStorage e dispara a sincronização com Firebase automaticamente, sem precisar de botão salvar em cada campo.
 
 ---
 

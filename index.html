@@ -191,6 +191,21 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   background:var(--sand); margin-top:4px; min-height:44px;
 }
 .day-gasto input:focus { outline:none; border-color:var(--ocean); background:var(--white); }
+.day-edit-btn {
+  background:none; border:none; color:var(--ocean); font-size:.95rem;
+  cursor:pointer; padding:4px; -webkit-tap-highlight-color:transparent;
+}
+.period-edit { margin-bottom:12px; }
+.period-edit textarea {
+  width:100%; border:1px solid var(--sand-dark); border-radius:8px;
+  padding:10px 12px; font-size:.9rem; font-family:'DM Sans',sans-serif;
+  background:var(--sand); margin-top:4px; resize:vertical; min-height:60px;
+}
+.period-edit textarea:focus { outline:none; border-color:var(--ocean); background:var(--white); }
+.day-restore-btn {
+  background:none; border:none; color:var(--text-light); font-size:.75rem;
+  cursor:pointer; padding:6px 0; text-decoration:underline;
+}
 
 /* CHECKLIST */
 .check-item {
@@ -634,6 +649,35 @@ function syncDiaDia(dia,gasto){
   fbWrite('diadia/'+dia,{gasto:gasto});
 }
 
+// roteiro (periodos do dia a dia) editável pela UI — mesmo padrão do mapDaysCustom:
+// override isolado por dia, fbWrite substitui só o nó daquele dia, nunca afeta os outros.
+function getDayPeriods(dayIdx){
+  var raw=lsGet('roteiro-day-'+dayIdx,null);
+  if(raw){
+    try{return JSON.parse(raw);}catch(e){}
+  }
+  return days[dayIdx].periods.map(function(p){return {l:p.l,t:p.t};});
+}
+function saveDayPeriodsLocal(dayIdx,periods){
+  lsSet('roteiro-day-'+dayIdx,JSON.stringify(periods));
+}
+function syncDayPeriod(dayIdx,periodIdx,value){
+  var periods=getDayPeriods(dayIdx);
+  periods[periodIdx].t=value;
+  saveDayPeriodsLocal(dayIdx,periods);
+  var key='day-period-'+dayIdx;
+  clearTimeout(syncTimers[key]);
+  syncTimers[key]=setTimeout(function(){
+    fbWrite('roteiroCustom/'+dayIdx,periods);
+  },1000);
+}
+function resetDayPeriods(dayIdx){
+  if(!confirm('Restaurar o roteiro original deste dia? Isso apaga as edições feitas por aqui.'))return;
+  localStorage.removeItem(LS+'roteiro-day-'+dayIdx);
+  fbWrite('roteiroCustom/'+dayIdx,null);
+  buildDiaDia();
+}
+
 
 
 function pullFromFirebase(){
@@ -664,6 +708,11 @@ function pullFromFirebase(){
       if(data.mapDaysCustom){
         Object.keys(data.mapDaysCustom).forEach(function(d){
           localStorage.setItem(LS+'map-day-'+d,JSON.stringify(data.mapDaysCustom[d]));
+        });
+      }
+      if(data.roteiroCustom){
+        Object.keys(data.roteiroCustom).forEach(function(d){
+          localStorage.setItem(LS+'roteiro-day-'+d,JSON.stringify(data.roteiroCustom[d]));
         });
       }
       if(data.compras){
@@ -1010,21 +1059,36 @@ function saveChecklist(items){
 
 var checkFilter='all';
 
+var editingDayId=null;
+
 function buildDiaDia(){
   const c=document.getElementById('diadia');
   let h='<h2>Dia a dia · Noronha</h2>';
   // days
   days.forEach((day,i)=>{
     const isOpen=lsBool('day-open-'+i,i===0);
+    const periods=getDayPeriods(i);
+    const isEditing=editingDayId===i;
     h+=`<div class="day-card">
       <div class="day-header" onclick="toggleDay(${i})">
         <span>${day.star?'<i class="ti ti-star"></i> ':''}${day.d}</span>
-        <span class="chevron${isOpen?' open':''}" id="chev-${i}">▼</span>
+        <span style="display:flex;align-items:center;gap:10px;">
+          <button class="day-edit-btn" onclick="event.stopPropagation();toggleEditDay(${i})"><i class="ti ti-pencil"></i></button>
+          <span class="chevron${isOpen?' open':''}" id="chev-${i}">▼</span>
+        </span>
       </div>
       <div class="day-body${isOpen?' open':''}" id="day-body-${i}">`;
-    day.periods.forEach(p=>{
-      if(p.t) h+=`<div class="period"><div class="period-label">${p.l}</div><div class="period-text">${p.t}</div></div>`;
-    });
+    if(isEditing){
+      periods.forEach((p,idx)=>{
+        const textSafe=escapeHtml(p.t);
+        h+=`<div class="period-edit"><label class="period-label">${p.l}</label><textarea data-day-idx="${i}" data-period-idx="${idx}" placeholder="Sem plano definido">${textSafe}</textarea></div>`;
+      });
+      h+=`<button class="day-restore-btn" onclick="resetDayPeriods(${i})">Restaurar roteiro original deste dia</button>`;
+    } else {
+      periods.forEach(p=>{
+        if(p.t) h+=`<div class="period"><div class="period-label">${p.l}</div><div class="period-text">${escapeHtml(p.t)}</div></div>`;
+      });
+    }
     const gastoVal=escapeHtml(lsGet('day-gasto-'+i,''));
     h+=`<div class="day-gasto"><label><i class="ti ti-cash"></i> Gasto do dia</label><input type="text" data-ls="day-gasto-${i}" value="${gastoVal}" placeholder="R$..."></div>`;
     h+='</div></div>';
@@ -1039,6 +1103,12 @@ function toggleDay(i){
   const isOpen=body.classList.toggle('open');
   chev.classList.toggle('open',isOpen);
   lsSet('day-open-'+i,isOpen);
+}
+
+function toggleEditDay(i){
+  editingDayId=editingDayId===i?null:i;
+  if(editingDayId===i) lsSet('day-open-'+i,true);
+  buildDiaDia();
 }
 var editingCheckId=null;
 
@@ -1570,6 +1640,8 @@ function startAddPoint(){
 document.addEventListener('input',e=>{
   if(e.target.dataset.gastoId){
     syncGasto(e.target.dataset.gastoId, e.target.dataset.gastoField, e.target.value);
+  } else if(e.target.dataset.dayIdx!==undefined){
+    syncDayPeriod(Number(e.target.dataset.dayIdx), Number(e.target.dataset.periodIdx), e.target.value);
   } else if(e.target.dataset.ls){
     lsSet(e.target.dataset.ls,e.target.value);
     if(e.target.dataset.ls.startsWith('day-gasto-')){
