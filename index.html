@@ -73,6 +73,56 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 .nav-btn.active { color: var(--ocean); font-weight:600; }
 .sidebar-logo, .sidebar-section { display:none; }
 
+/* FAB (gasto rápido / info importante) */
+.fab-group {
+  position:fixed; right:16px; z-index:140;
+  bottom:calc(64px + env(safe-area-inset-bottom,0px) + 16px);
+  display:flex; flex-direction:column; gap:10px;
+}
+@media(min-width:768px){ .fab-group { bottom:16px; } }
+.fab-btn {
+  width:50px; height:50px; border-radius:50%; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-size:20px;
+  box-shadow:0 4px 14px rgba(0,0,0,.25); color:#fff;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
+.fab-gasto { background:var(--coral); }
+.fab-info { background:var(--ocean); }
+
+/* MODAL */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:200;
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.modal-card {
+  background:var(--white); border-radius:var(--radius); padding:20px;
+  max-width:420px; width:100%; max-height:85vh; overflow-y:auto;
+}
+.modal-card textarea, .modal-card input[type=text] {
+  width:100%; border:1px solid var(--sand-dark); border-radius:8px;
+  padding:10px; font-family:'DM Sans',sans-serif; font-size:.9rem;
+  background:var(--sand); min-height:44px;
+}
+.modal-card textarea { resize:vertical; }
+.modal-actions { display:flex; gap:8px; margin-top:12px; }
+.modal-actions button {
+  flex:1; padding:10px; border-radius:8px; font-size:.9rem; font-weight:600;
+  cursor:pointer; border:1px solid var(--sand-dark); background:var(--white);
+  min-height:44px; -webkit-tap-highlight-color:transparent;
+}
+.modal-actions button.primary { background:var(--ocean); color:#fff; border-color:var(--ocean); }
+
+/* TOAST */
+.toast {
+  position:fixed; left:50%; z-index:300; bottom:calc(64px + env(safe-area-inset-bottom,0px) + 16px);
+  transform:translate(-50%,20px); background:var(--text); color:#fff;
+  padding:10px 18px; border-radius:24px; font-size:.85rem;
+  opacity:0; transition:opacity .25s, transform .25s; box-shadow:0 4px 14px rgba(0,0,0,.25);
+  pointer-events:none; max-width:80vw; text-align:center;
+}
+.toast.show { opacity:1; transform:translate(-50%,0); }
+@media(min-width:768px){ .toast { bottom:16px; } }
+
 /* TAB CONTENT */
 .tab-content { display:none; padding:16px; max-width:800px; margin:0 auto; }
 .tab-content.active { display:block; }
@@ -197,6 +247,44 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 .period-check input { width:17px; height:17px; accent-color:var(--coral); cursor:pointer; flex-shrink:0; }
 .period.done .period-label { color:var(--text-light); }
 .period.done .period-text { text-decoration:line-through; color:var(--text-light); opacity:.75; }
+.tide-inline {
+  display:flex; align-items:center; gap:6px; font-size:.78rem; color:var(--text-light);
+  background:var(--sand); border-radius:8px; padding:6px 10px; margin-bottom:12px;
+}
+.tide-inline.best { background:#fff5f0; color:var(--coral); font-weight:600; }
+.period-now { background:#fff5f0; border-left:3px solid var(--coral); border-radius:6px; padding:8px 10px 8px 8px; margin-left:-2px; }
+.now-badge {
+  background:var(--ocean); color:#fff; font-size:.6rem; font-weight:700;
+  padding:1px 6px; border-radius:20px; letter-spacing:.5px; margin-left:6px; vertical-align:middle;
+}
+.lugares-section { margin-top:10px; padding-top:10px; border-top:1px solid var(--sand); }
+.lugares-title { font-size:.8rem; font-weight:700; color:var(--ocean); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.lugar-item { background:var(--sand); border-radius:8px; padding:8px 10px; margin-bottom:8px; }
+.lugar-item-top { display:flex; align-items:center; gap:8px; }
+.lugar-nome { font-weight:600; font-size:.85rem; flex:1; }
+.lugar-stars { color:var(--coral); font-size:.8rem; letter-spacing:1px; white-space:nowrap; }
+.lugar-comentario { font-size:.8rem; color:var(--text-light); margin-top:4px; }
+.lugar-edit-btn {
+  background:none; border:none; color:var(--ocean); cursor:pointer; padding:4px;
+  font-size:.9rem; -webkit-tap-highlight-color:transparent;
+}
+.lugar-add { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+.lugar-add input[type=text], .lugar-add textarea, .lugar-add select,
+.lugar-editing input[type=text], .lugar-editing textarea, .lugar-editing select {
+  border:1px solid var(--sand-dark); border-radius:8px; padding:8px 10px;
+  font-size:.85rem; font-family:'DM Sans',sans-serif; background:var(--white); min-height:40px;
+}
+.lugar-add textarea, .lugar-editing textarea { min-height:50px; resize:vertical; }
+.lugar-add-btn {
+  background:var(--ocean); color:#fff; border:none; border-radius:8px; padding:9px;
+  font-size:.85rem; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; min-height:40px;
+}
+.lugar-edit-actions { display:flex; gap:6px; margin-top:2px; }
+.lugar-edit-actions button {
+  flex:1; padding:8px; border-radius:8px; font-size:.8rem; cursor:pointer;
+  border:1px solid var(--sand-dark); background:var(--white); min-height:36px;
+  -webkit-tap-highlight-color:transparent;
+}
 .day-gasto {
   margin-top:8px; padding-top:8px; border-top:1px solid var(--sand);
 }
@@ -436,6 +524,12 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 </div>
 
 <div id="sync-indicator" style="position:fixed;top:8px;right:12px;z-index:150;font-size:11px;font-weight:600;"></div>
+
+<div class="fab-group">
+  <button class="fab-btn fab-gasto" onclick="openGastoRapidoModal()" title="Registrar gasto rápido"><i class="ti ti-cash-banknote"></i></button>
+  <button class="fab-btn fab-info" onclick="openInfoImportanteModal()" title="Info importante"><i class="ti ti-info-circle"></i></button>
+</div>
+<div id="modal-root"></div>
 
 <nav class="bottom-nav">
   <div class="sidebar-logo"><i class="ti ti-fish logo-icon"></i> Nordeste 2026</div>
@@ -712,6 +806,55 @@ function toggleDayPeriodDone(dayIdx,periodIdx){
   buildDiaDia();
 }
 
+// avaliação de lugares por dia — override isolado por dia (avaliacoesLugares/<dia>),
+// mesmo padrão do roteiroCustom/mapDaysCustom.
+function newLugarId(){ return 'lug-'+Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function getLugaresAvaliados(dayIdx){
+  var raw=lsGet('lugares-dia-'+dayIdx,null);
+  if(raw){ try{return JSON.parse(raw);}catch(e){} }
+  return [];
+}
+function saveLugaresAvaliados(dayIdx,items){
+  lsSet('lugares-dia-'+dayIdx,JSON.stringify(items));
+  fbWrite('avaliacoesLugares/'+dayIdx,items);
+}
+var editingLugarId=null;
+function addLugarAvaliado(dayIdx){
+  var nomeInp=document.getElementById('lugar-nome-'+dayIdx);
+  var notaInp=document.getElementById('lugar-nota-'+dayIdx);
+  var comentInp=document.getElementById('lugar-comentario-'+dayIdx);
+  var nome=nomeInp.value.trim();
+  if(!nome)return;
+  var items=getLugaresAvaliados(dayIdx);
+  items.push({id:newLugarId(),nome:nome,nota:Number(notaInp.value),comentario:comentInp.value.trim(),criadoEm:Date.now()});
+  saveLugaresAvaliados(dayIdx,items);
+  buildDiaDia();
+}
+function removeLugarAvaliado(dayIdx,id){
+  saveLugaresAvaliados(dayIdx,getLugaresAvaliados(dayIdx).filter(function(it){return it.id!==id;}));
+  buildDiaDia();
+}
+function startEditLugar(id){
+  editingLugarId=id;
+  buildDiaDia();
+}
+function cancelEditLugar(){
+  editingLugarId=null;
+  buildDiaDia();
+}
+function saveEditLugar(dayIdx,id){
+  var items=getLugaresAvaliados(dayIdx);
+  var it=items.find(function(x){return x.id===id;});
+  if(!it)return;
+  var nome=document.getElementById('edit-lugar-nome-'+id).value.trim();
+  if(nome)it.nome=nome;
+  it.nota=Number(document.getElementById('edit-lugar-nota-'+id).value);
+  it.comentario=document.getElementById('edit-lugar-comentario-'+id).value.trim();
+  saveLugaresAvaliados(dayIdx,items);
+  editingLugarId=null;
+  buildDiaDia();
+}
+
 
 
 function pullFromFirebase(){
@@ -748,6 +891,14 @@ function pullFromFirebase(){
         Object.keys(data.roteiroCustom).forEach(function(d){
           localStorage.setItem(LS+'roteiro-day-'+d,JSON.stringify(data.roteiroCustom[d]));
         });
+      }
+      if(data.avaliacoesLugares){
+        Object.keys(data.avaliacoesLugares).forEach(function(d){
+          localStorage.setItem(LS+'lugares-dia-'+d,JSON.stringify(data.avaliacoesLugares[d]));
+        });
+      }
+      if(data.infoImportante&&data.infoImportante.texto){
+        localStorage.setItem(LS+'info-importante',data.infoImportante.texto);
       }
       if(data.compras){
         localStorage.setItem(LS+'lista-compras',JSON.stringify(data.compras));
@@ -817,6 +968,27 @@ function getTodayISO(){
 function getTodayDayIndex(){
   return days.findIndex(function(d){return d.date===getTodayISO();});
 }
+// 0=Manhã, 1=Tarde, 2=Noite — mesma ordem dos períodos em `days[i].periods`
+function getCurrentPeriodIndex(){
+  var hour=parseInt(new Intl.DateTimeFormat('en-GB',{timeZone:'America/Sao_Paulo',hour:'2-digit',hour12:false}).format(new Date()),10);
+  if(hour<12)return 0;
+  if(hour<18)return 1;
+  return 2;
+}
+
+// MARÉS (dados) — precisa vir antes de switchTab pelo mesmo motivo de `days`:
+// buildDiaDia() usa `tides[i]` e pode rodar cedo na carga da página.
+const tides=[
+  {d:'10/ago · dom',info:'Baixa 09:19 (0.32m) · Alta 02:55 (2.16m) · Alta 15:34 (2.11m) · Baixa 21:38 (0.40m)',best:false},
+  {d:'11/ago · seg',info:'Baixa 10:14 (0.16m) · Baixa 22:25 (0.27m)',best:false},
+  {d:'12/ago · ter',info:'<i class="ti ti-star"></i> Baixa 11:01 (0.06m) — melhor maré da viagem!',best:true},
+  {d:'13/ago · qua',info:'<i class="ti ti-star"></i> Baixa 11:44 (0.03m) — maré baixíssima!',best:true},
+  {d:'14/ago · qui',info:'Baixa 12:25 (0.07m)',best:false},
+  {d:'15/ago · sex',info:'Baixa 13:04 (0.17m)',best:false},
+  {d:'16/ago · sáb',info:'Baixa 13:42 (0.31m)',best:false},
+  {d:'17/ago · dom',info:'Baixa 14:16 (0.46m)',best:false},
+  {d:'18/ago · seg',info:'Baixa 14:57 (0.62m)',best:false},
+];
 
 // TABS with hash routing
 function switchTab(tabId){
@@ -916,15 +1088,19 @@ function getRenderExpenses(){
   });
   return copy;
 }
-function addCustomExpense(){
-  var nameInp=document.getElementById('new-exp-name');
-  var prevInp=document.getElementById('new-exp-prev');
-  var name=nameInp.value.trim();
-  if(!name)return;
-  var prev=prevInp.value.trim()||'R$0';
+function createCustomExpense(name,prev){
+  name=(name||'').trim();
+  if(!name)return false;
+  prev=(prev||'').trim()||'R$0';
   var custom=getCustomExpenses();
   custom.push({id:'custom-'+Date.now(),name:name,prev:prev,quem:'',deve:''});
   saveCustomExpenses(custom);
+  return true;
+}
+function addCustomExpense(){
+  var nameInp=document.getElementById('new-exp-name');
+  var prevInp=document.getElementById('new-exp-prev');
+  createCustomExpense(nameInp.value,prevInp.value);
   buildGastos();
 }
 function removeCustomExpense(id){
@@ -1121,6 +1297,8 @@ function buildDiaDia(){
     const isOpen=lsBool('day-open-'+i,i===(todayIdx>=0?todayIdx:0));
     const periods=getDayPeriods(i);
     const isEditing=editingDayId===i;
+    const tide=tides[i];
+    const nowPeriodIdx=isToday?getCurrentPeriodIndex():-1;
     h+=`<div class="day-card${isToday?' day-card-today':''}" id="day-card-${i}">
       <div class="day-header" onclick="toggleDay(${i})">
         <span>${day.star?'<i class="ti ti-star"></i> ':''}${day.d}${isToday?' <span class="today-badge">HOJE</span>':''}</span>
@@ -1130,6 +1308,9 @@ function buildDiaDia(){
         </span>
       </div>
       <div class="day-body${isOpen?' open':''}" id="day-body-${i}">`;
+    if(tide){
+      h+=`<div class="tide-inline${tide.best?' best':''}"><i class="ti ti-ripple"></i> ${tide.info}</div>`;
+    }
     if(isEditing){
       periods.forEach((p,idx)=>{
         const textSafe=escapeHtml(p.t);
@@ -1139,9 +1320,11 @@ function buildDiaDia(){
     } else {
       periods.forEach((p,idx)=>{
         if(!p.t)return;
-        h+=`<div class="period${p.done?' done':''}">
+        const isNow=idx===nowPeriodIdx;
+        h+=`<div class="period${p.done?' done':''}${isNow?' period-now':''}">
           <div class="period-label">
             <label class="period-check"><input type="checkbox" ${p.done?'checked':''} onchange="toggleDayPeriodDone(${i},${idx})"> ${p.l}</label>
+            ${isNow?'<span class="now-badge">AGORA</span>':''}
           </div>
           <div class="period-text">${escapeHtml(p.t)}</div>
         </div>`;
@@ -1149,9 +1332,54 @@ function buildDiaDia(){
     }
     const gastoVal=escapeHtml(lsGet('day-gasto-'+i,''));
     h+=`<div class="day-gasto"><label><i class="ti ti-cash"></i> Gasto do dia</label><input type="text" data-ls="day-gasto-${i}" value="${gastoVal}" placeholder="R$..."></div>`;
+    h+=buildLugaresSection(i);
     h+='</div></div>';
   });
   c.innerHTML=h;
+}
+function buildLugaresSection(i){
+  const lugares=getLugaresAvaliados(i);
+  const stars=(n)=>'★'.repeat(n)+'☆'.repeat(5-n);
+  let h='<div class="lugares-section"><div class="lugares-title"><i class="ti ti-map-pin-star"></i> Lugares avaliados</div>';
+  lugares.forEach(it=>{
+    if(editingLugarId===it.id){
+      h+=`<div class="lugar-item lugar-editing">
+        <input type="text" id="edit-lugar-nome-${it.id}" value="${escapeHtml(it.nome)}" placeholder="Nome do lugar">
+        <select id="edit-lugar-nota-${it.id}">
+          ${[5,4,3,2,1].map(n=>`<option value="${n}"${it.nota===n?' selected':''}>${stars(n)}</option>`).join('')}
+        </select>
+        <textarea id="edit-lugar-comentario-${it.id}" placeholder="Comentário (opcional)">${escapeHtml(it.comentario)}</textarea>
+        <div class="lugar-edit-actions">
+          <button onclick="cancelEditLugar()">Cancelar</button>
+          <button onclick="saveEditLugar(${i},'${it.id}')">Salvar</button>
+        </div>
+      </div>`;
+    } else {
+      h+=`<div class="lugar-item">
+        <div class="lugar-item-top">
+          <span class="lugar-nome">${escapeHtml(it.nome)}</span>
+          <span class="lugar-stars">${stars(it.nota)}</span>
+          <button class="lugar-edit-btn" onclick="startEditLugar('${it.id}')"><i class="ti ti-pencil"></i></button>
+          <button class="lugar-edit-btn" onclick="removeLugarAvaliado(${i},'${it.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+        ${it.comentario?`<div class="lugar-comentario">${escapeHtml(it.comentario)}</div>`:''}
+      </div>`;
+    }
+  });
+  h+=`<div class="lugar-add">
+    <input type="text" id="lugar-nome-${i}" placeholder="Nome do lugar">
+    <select id="lugar-nota-${i}">
+      <option value="5">★★★★★</option>
+      <option value="4">★★★★☆</option>
+      <option value="3" selected>★★★☆☆</option>
+      <option value="2">★★☆☆☆</option>
+      <option value="1">★☆☆☆☆</option>
+    </select>
+    <textarea id="lugar-comentario-${i}" placeholder="Comentário (opcional)"></textarea>
+    <button class="lugar-add-btn" onclick="addLugarAvaliado(${i})"><i class="ti ti-plus"></i> Adicionar</button>
+  </div>`;
+  h+='</div>';
+  return h;
 }
 buildDiaDia();
 
@@ -1204,19 +1432,6 @@ function addCheckItem(){
   items.push({id:newCheckId(),text:text,tag:tag.value,checked:false});
   saveChecklist(items);buildLista();
 }
-
-// MARÉS
-const tides=[
-  {d:'10/ago · dom',info:'Baixa 09:19 (0.32m) · Alta 02:55 (2.16m) · Alta 15:34 (2.11m) · Baixa 21:38 (0.40m)',best:false},
-  {d:'11/ago · seg',info:'Baixa 10:14 (0.16m) · Baixa 22:25 (0.27m)',best:false},
-  {d:'12/ago · ter',info:'<i class="ti ti-star"></i> Baixa 11:01 (0.06m) — melhor maré da viagem!',best:true},
-  {d:'13/ago · qua',info:'<i class="ti ti-star"></i> Baixa 11:44 (0.03m) — maré baixíssima!',best:true},
-  {d:'14/ago · qui',info:'Baixa 12:25 (0.07m)',best:false},
-  {d:'15/ago · sex',info:'Baixa 13:04 (0.17m)',best:false},
-  {d:'16/ago · sáb',info:'Baixa 13:42 (0.31m)',best:false},
-  {d:'17/ago · dom',info:'Baixa 14:16 (0.46m)',best:false},
-  {d:'18/ago · seg',info:'Baixa 14:57 (0.62m)',best:false},
-];
 
 function buildMares(){
   const c=document.getElementById('mares');
@@ -1697,6 +1912,82 @@ function startAddPoint(){
 }
 
 // map init is handled inside switchTab
+
+// FAB: modal genérico + toast
+function closeModal(){
+  document.getElementById('modal-root').innerHTML='';
+}
+function showToast(msg){
+  var t=document.createElement('div');
+  t.className='toast';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.classList.add('show');},10);
+  setTimeout(function(){
+    t.classList.remove('show');
+    setTimeout(function(){t.remove();},300);
+  },2200);
+}
+
+// FAB: gasto rápido (mesma lógica de "+ Adicionar gasto" da aba Gastos,
+// só que acessível de qualquer aba)
+function openGastoRapidoModal(){
+  document.getElementById('modal-root').innerHTML=`
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal-card">
+        <div class="card-header"><i class="ti ti-cash-banknote"></i> Gasto rápido</div>
+        <div class="exp-fields" style="margin-bottom:10px;">
+          <div class="exp-field"><label>Nome do gasto</label><input type="text" id="fab-exp-name" placeholder="Ex: Táxi" onkeydown="if(event.key==='Enter')submitGastoRapido()"></div>
+          <div class="exp-field"><label>Valor</label><input type="text" id="fab-exp-prev" placeholder="R$..." onkeydown="if(event.key==='Enter')submitGastoRapido()"></div>
+        </div>
+        <div class="modal-actions">
+          <button onclick="closeModal()">Cancelar</button>
+          <button class="primary" onclick="submitGastoRapido()">Adicionar</button>
+        </div>
+      </div>
+    </div>`;
+  setTimeout(function(){
+    var el=document.getElementById('fab-exp-name');
+    if(el)el.focus();
+  },50);
+}
+function submitGastoRapido(){
+  var nameInp=document.getElementById('fab-exp-name');
+  var prevInp=document.getElementById('fab-exp-prev');
+  if(createCustomExpense(nameInp.value,prevInp.value)){
+    buildGastos();
+    closeModal();
+    showToast('Gasto adicionado! Ele está na aba Gastos, em Extras.');
+  }
+}
+
+// FAB: info importante — painel de texto livre editável (endereço, telefone,
+// contato de emergência), sem dado pré-preenchido: quem sabe a informação
+// real é a Leticia/Camila, não faz sentido inventar aqui.
+function getInfoImportante(){
+  return lsGet('info-importante','');
+}
+function syncInfoImportante(value){
+  lsSet('info-importante',value);
+  clearTimeout(syncTimers['info-importante']);
+  syncTimers['info-importante']=setTimeout(function(){
+    fbWrite('infoImportante',{texto:value});
+  },800);
+}
+function openInfoImportanteModal(){
+  var val=escapeHtml(getInfoImportante());
+  document.getElementById('modal-root').innerHTML=`
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal-card">
+        <div class="card-header"><i class="ti ti-info-circle"></i> Info importante</div>
+        <p style="font-size:.8rem;color:var(--text-light);margin-bottom:8px;">Endereço e telefone da pousada, contato de emergência — o que for útil ter à mão rápido, tipo pra mostrar num táxi. Editável pelas duas, salva sozinho.</p>
+        <textarea id="info-importante-text" oninput="syncInfoImportante(this.value)" placeholder="Ex: Pousada Alvorada, Alameda das Amendoeiras, Floresta Nova, Fernando de Noronha - PE. Tel: (81) 9XXXX-XXXX" style="min-height:160px;">${val}</textarea>
+        <div class="modal-actions">
+          <button class="primary" onclick="closeModal()" style="flex:1;">Fechar</button>
+        </div>
+      </div>
+    </div>`;
+}
 
 // AUTO-SAVE all inputs
 document.addEventListener('input',e=>{
