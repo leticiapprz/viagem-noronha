@@ -197,6 +197,16 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 .period-check input { width:17px; height:17px; accent-color:var(--coral); cursor:pointer; flex-shrink:0; }
 .period.done .period-label { color:var(--text-light); }
 .period.done .period-text { text-decoration:line-through; color:var(--text-light); opacity:.75; }
+.tide-inline {
+  display:flex; align-items:center; gap:6px; font-size:.78rem; color:var(--text-light);
+  background:var(--sand); border-radius:8px; padding:6px 10px; margin-bottom:12px;
+}
+.tide-inline.best { background:#fff5f0; color:var(--coral); font-weight:600; }
+.period-now { background:#fff5f0; border-left:3px solid var(--coral); border-radius:6px; padding:8px 10px 8px 8px; margin-left:-2px; }
+.now-badge {
+  background:var(--ocean); color:#fff; font-size:.6rem; font-weight:700;
+  padding:1px 6px; border-radius:20px; letter-spacing:.5px; margin-left:6px; vertical-align:middle;
+}
 .day-gasto {
   margin-top:8px; padding-top:8px; border-top:1px solid var(--sand);
 }
@@ -817,6 +827,27 @@ function getTodayISO(){
 function getTodayDayIndex(){
   return days.findIndex(function(d){return d.date===getTodayISO();});
 }
+// 0=Manhã, 1=Tarde, 2=Noite — mesma ordem dos períodos em `days[i].periods`
+function getCurrentPeriodIndex(){
+  var hour=parseInt(new Intl.DateTimeFormat('en-GB',{timeZone:'America/Sao_Paulo',hour:'2-digit',hour12:false}).format(new Date()),10);
+  if(hour<12)return 0;
+  if(hour<18)return 1;
+  return 2;
+}
+
+// MARÉS (dados) — precisa vir antes de switchTab pelo mesmo motivo de `days`:
+// buildDiaDia() usa `tides[i]` e pode rodar cedo na carga da página.
+const tides=[
+  {d:'10/ago · dom',info:'Baixa 09:19 (0.32m) · Alta 02:55 (2.16m) · Alta 15:34 (2.11m) · Baixa 21:38 (0.40m)',best:false},
+  {d:'11/ago · seg',info:'Baixa 10:14 (0.16m) · Baixa 22:25 (0.27m)',best:false},
+  {d:'12/ago · ter',info:'<i class="ti ti-star"></i> Baixa 11:01 (0.06m) — melhor maré da viagem!',best:true},
+  {d:'13/ago · qua',info:'<i class="ti ti-star"></i> Baixa 11:44 (0.03m) — maré baixíssima!',best:true},
+  {d:'14/ago · qui',info:'Baixa 12:25 (0.07m)',best:false},
+  {d:'15/ago · sex',info:'Baixa 13:04 (0.17m)',best:false},
+  {d:'16/ago · sáb',info:'Baixa 13:42 (0.31m)',best:false},
+  {d:'17/ago · dom',info:'Baixa 14:16 (0.46m)',best:false},
+  {d:'18/ago · seg',info:'Baixa 14:57 (0.62m)',best:false},
+];
 
 // TABS with hash routing
 function switchTab(tabId){
@@ -1121,6 +1152,8 @@ function buildDiaDia(){
     const isOpen=lsBool('day-open-'+i,i===(todayIdx>=0?todayIdx:0));
     const periods=getDayPeriods(i);
     const isEditing=editingDayId===i;
+    const tide=tides[i];
+    const nowPeriodIdx=isToday?getCurrentPeriodIndex():-1;
     h+=`<div class="day-card${isToday?' day-card-today':''}" id="day-card-${i}">
       <div class="day-header" onclick="toggleDay(${i})">
         <span>${day.star?'<i class="ti ti-star"></i> ':''}${day.d}${isToday?' <span class="today-badge">HOJE</span>':''}</span>
@@ -1130,6 +1163,9 @@ function buildDiaDia(){
         </span>
       </div>
       <div class="day-body${isOpen?' open':''}" id="day-body-${i}">`;
+    if(tide){
+      h+=`<div class="tide-inline${tide.best?' best':''}"><i class="ti ti-ripple"></i> ${tide.info}</div>`;
+    }
     if(isEditing){
       periods.forEach((p,idx)=>{
         const textSafe=escapeHtml(p.t);
@@ -1139,9 +1175,11 @@ function buildDiaDia(){
     } else {
       periods.forEach((p,idx)=>{
         if(!p.t)return;
-        h+=`<div class="period${p.done?' done':''}">
+        const isNow=idx===nowPeriodIdx;
+        h+=`<div class="period${p.done?' done':''}${isNow?' period-now':''}">
           <div class="period-label">
             <label class="period-check"><input type="checkbox" ${p.done?'checked':''} onchange="toggleDayPeriodDone(${i},${idx})"> ${p.l}</label>
+            ${isNow?'<span class="now-badge">AGORA</span>':''}
           </div>
           <div class="period-text">${escapeHtml(p.t)}</div>
         </div>`;
@@ -1204,19 +1242,6 @@ function addCheckItem(){
   items.push({id:newCheckId(),text:text,tag:tag.value,checked:false});
   saveChecklist(items);buildLista();
 }
-
-// MARÉS
-const tides=[
-  {d:'10/ago · dom',info:'Baixa 09:19 (0.32m) · Alta 02:55 (2.16m) · Alta 15:34 (2.11m) · Baixa 21:38 (0.40m)',best:false},
-  {d:'11/ago · seg',info:'Baixa 10:14 (0.16m) · Baixa 22:25 (0.27m)',best:false},
-  {d:'12/ago · ter',info:'<i class="ti ti-star"></i> Baixa 11:01 (0.06m) — melhor maré da viagem!',best:true},
-  {d:'13/ago · qua',info:'<i class="ti ti-star"></i> Baixa 11:44 (0.03m) — maré baixíssima!',best:true},
-  {d:'14/ago · qui',info:'Baixa 12:25 (0.07m)',best:false},
-  {d:'15/ago · sex',info:'Baixa 13:04 (0.17m)',best:false},
-  {d:'16/ago · sáb',info:'Baixa 13:42 (0.31m)',best:false},
-  {d:'17/ago · dom',info:'Baixa 14:16 (0.46m)',best:false},
-  {d:'18/ago · seg',info:'Baixa 14:57 (0.62m)',best:false},
-];
 
 function buildMares(){
   const c=document.getElementById('mares');
