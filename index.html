@@ -207,6 +207,34 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   background:var(--ocean); color:#fff; font-size:.6rem; font-weight:700;
   padding:1px 6px; border-radius:20px; letter-spacing:.5px; margin-left:6px; vertical-align:middle;
 }
+.lugares-section { margin-top:10px; padding-top:10px; border-top:1px solid var(--sand); }
+.lugares-title { font-size:.8rem; font-weight:700; color:var(--ocean); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.lugar-item { background:var(--sand); border-radius:8px; padding:8px 10px; margin-bottom:8px; }
+.lugar-item-top { display:flex; align-items:center; gap:8px; }
+.lugar-nome { font-weight:600; font-size:.85rem; flex:1; }
+.lugar-stars { color:var(--coral); font-size:.8rem; letter-spacing:1px; white-space:nowrap; }
+.lugar-comentario { font-size:.8rem; color:var(--text-light); margin-top:4px; }
+.lugar-edit-btn {
+  background:none; border:none; color:var(--ocean); cursor:pointer; padding:4px;
+  font-size:.9rem; -webkit-tap-highlight-color:transparent;
+}
+.lugar-add { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+.lugar-add input[type=text], .lugar-add textarea, .lugar-add select,
+.lugar-editing input[type=text], .lugar-editing textarea, .lugar-editing select {
+  border:1px solid var(--sand-dark); border-radius:8px; padding:8px 10px;
+  font-size:.85rem; font-family:'DM Sans',sans-serif; background:var(--white); min-height:40px;
+}
+.lugar-add textarea, .lugar-editing textarea { min-height:50px; resize:vertical; }
+.lugar-add-btn {
+  background:var(--ocean); color:#fff; border:none; border-radius:8px; padding:9px;
+  font-size:.85rem; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; min-height:40px;
+}
+.lugar-edit-actions { display:flex; gap:6px; margin-top:2px; }
+.lugar-edit-actions button {
+  flex:1; padding:8px; border-radius:8px; font-size:.8rem; cursor:pointer;
+  border:1px solid var(--sand-dark); background:var(--white); min-height:36px;
+  -webkit-tap-highlight-color:transparent;
+}
 .day-gasto {
   margin-top:8px; padding-top:8px; border-top:1px solid var(--sand);
 }
@@ -722,6 +750,55 @@ function toggleDayPeriodDone(dayIdx,periodIdx){
   buildDiaDia();
 }
 
+// avaliação de lugares por dia — override isolado por dia (avaliacoesLugares/<dia>),
+// mesmo padrão do roteiroCustom/mapDaysCustom.
+function newLugarId(){ return 'lug-'+Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function getLugaresAvaliados(dayIdx){
+  var raw=lsGet('lugares-dia-'+dayIdx,null);
+  if(raw){ try{return JSON.parse(raw);}catch(e){} }
+  return [];
+}
+function saveLugaresAvaliados(dayIdx,items){
+  lsSet('lugares-dia-'+dayIdx,JSON.stringify(items));
+  fbWrite('avaliacoesLugares/'+dayIdx,items);
+}
+var editingLugarId=null;
+function addLugarAvaliado(dayIdx){
+  var nomeInp=document.getElementById('lugar-nome-'+dayIdx);
+  var notaInp=document.getElementById('lugar-nota-'+dayIdx);
+  var comentInp=document.getElementById('lugar-comentario-'+dayIdx);
+  var nome=nomeInp.value.trim();
+  if(!nome)return;
+  var items=getLugaresAvaliados(dayIdx);
+  items.push({id:newLugarId(),nome:nome,nota:Number(notaInp.value),comentario:comentInp.value.trim(),criadoEm:Date.now()});
+  saveLugaresAvaliados(dayIdx,items);
+  buildDiaDia();
+}
+function removeLugarAvaliado(dayIdx,id){
+  saveLugaresAvaliados(dayIdx,getLugaresAvaliados(dayIdx).filter(function(it){return it.id!==id;}));
+  buildDiaDia();
+}
+function startEditLugar(id){
+  editingLugarId=id;
+  buildDiaDia();
+}
+function cancelEditLugar(){
+  editingLugarId=null;
+  buildDiaDia();
+}
+function saveEditLugar(dayIdx,id){
+  var items=getLugaresAvaliados(dayIdx);
+  var it=items.find(function(x){return x.id===id;});
+  if(!it)return;
+  var nome=document.getElementById('edit-lugar-nome-'+id).value.trim();
+  if(nome)it.nome=nome;
+  it.nota=Number(document.getElementById('edit-lugar-nota-'+id).value);
+  it.comentario=document.getElementById('edit-lugar-comentario-'+id).value.trim();
+  saveLugaresAvaliados(dayIdx,items);
+  editingLugarId=null;
+  buildDiaDia();
+}
+
 
 
 function pullFromFirebase(){
@@ -757,6 +834,11 @@ function pullFromFirebase(){
       if(data.roteiroCustom){
         Object.keys(data.roteiroCustom).forEach(function(d){
           localStorage.setItem(LS+'roteiro-day-'+d,JSON.stringify(data.roteiroCustom[d]));
+        });
+      }
+      if(data.avaliacoesLugares){
+        Object.keys(data.avaliacoesLugares).forEach(function(d){
+          localStorage.setItem(LS+'lugares-dia-'+d,JSON.stringify(data.avaliacoesLugares[d]));
         });
       }
       if(data.compras){
@@ -1187,9 +1269,54 @@ function buildDiaDia(){
     }
     const gastoVal=escapeHtml(lsGet('day-gasto-'+i,''));
     h+=`<div class="day-gasto"><label><i class="ti ti-cash"></i> Gasto do dia</label><input type="text" data-ls="day-gasto-${i}" value="${gastoVal}" placeholder="R$..."></div>`;
+    h+=buildLugaresSection(i);
     h+='</div></div>';
   });
   c.innerHTML=h;
+}
+function buildLugaresSection(i){
+  const lugares=getLugaresAvaliados(i);
+  const stars=(n)=>'★'.repeat(n)+'☆'.repeat(5-n);
+  let h='<div class="lugares-section"><div class="lugares-title"><i class="ti ti-map-pin-star"></i> Lugares avaliados</div>';
+  lugares.forEach(it=>{
+    if(editingLugarId===it.id){
+      h+=`<div class="lugar-item lugar-editing">
+        <input type="text" id="edit-lugar-nome-${it.id}" value="${escapeHtml(it.nome)}" placeholder="Nome do lugar">
+        <select id="edit-lugar-nota-${it.id}">
+          ${[5,4,3,2,1].map(n=>`<option value="${n}"${it.nota===n?' selected':''}>${stars(n)}</option>`).join('')}
+        </select>
+        <textarea id="edit-lugar-comentario-${it.id}" placeholder="Comentário (opcional)">${escapeHtml(it.comentario)}</textarea>
+        <div class="lugar-edit-actions">
+          <button onclick="cancelEditLugar()">Cancelar</button>
+          <button onclick="saveEditLugar(${i},'${it.id}')">Salvar</button>
+        </div>
+      </div>`;
+    } else {
+      h+=`<div class="lugar-item">
+        <div class="lugar-item-top">
+          <span class="lugar-nome">${escapeHtml(it.nome)}</span>
+          <span class="lugar-stars">${stars(it.nota)}</span>
+          <button class="lugar-edit-btn" onclick="startEditLugar('${it.id}')"><i class="ti ti-pencil"></i></button>
+          <button class="lugar-edit-btn" onclick="removeLugarAvaliado(${i},'${it.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+        ${it.comentario?`<div class="lugar-comentario">${escapeHtml(it.comentario)}</div>`:''}
+      </div>`;
+    }
+  });
+  h+=`<div class="lugar-add">
+    <input type="text" id="lugar-nome-${i}" placeholder="Nome do lugar">
+    <select id="lugar-nota-${i}">
+      <option value="5">★★★★★</option>
+      <option value="4">★★★★☆</option>
+      <option value="3" selected>★★★☆☆</option>
+      <option value="2">★★☆☆☆</option>
+      <option value="1">★☆☆☆☆</option>
+    </select>
+    <textarea id="lugar-comentario-${i}" placeholder="Comentário (opcional)"></textarea>
+    <button class="lugar-add-btn" onclick="addLugarAvaliado(${i})"><i class="ti ti-plus"></i> Adicionar</button>
+  </div>`;
+  h+='</div>';
+  return h;
 }
 buildDiaDia();
 
