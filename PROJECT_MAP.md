@@ -25,7 +25,7 @@ Arquivo de ~1450 linhas dividido em 3 blocos:
 - **`<script>` (linhas ~546–1452)** — toda a lógica. Descrita seção por seção abaixo.
 
 ### 2.1 Login (linhas ~548–569)
-Senha fixa verificada por hash SHA-256 (`PWD_HASH`) calculado no próprio navegador (`crypto.subtle.digest`). Se bater, salva `sessionStorage['viagem-auth']='1'` e libera a tela. **Isso não é segurança de verdade** — qualquer pessoa que abrir o "ver código-fonte" da página vê a lógica e pode tentar forçar o hash offline. Serve só pra afastar acesso casual, não protege dados sensíveis.
+Senha fixa verificada por hash SHA-256 (`PWD_HASH`) calculado no próprio navegador (`crypto.subtle.digest`). Se bater, salva `localStorage['viagem-auth']='1'` e libera a tela. **Isso não é segurança de verdade** — qualquer pessoa que abrir o "ver código-fonte" da página vê a lógica e pode tentar forçar o hash offline. Serve só pra afastar acesso casual, não protege dados sensíveis. **Usa `localStorage`, não `sessionStorage` (10/08/2026)** — de propósito, pra logar só uma vez por aparelho; login persiste até alguém limpar os dados do site/desinstalar o PWA. Se algum dia isso precisar expirar (ex: trocar a senha e forçar login de novo em todo mundo), teria que gravar um valor versionado (ex: `hash da senha atual`) em vez do simples `'1'`, pra comparar contra o `PWD_HASH` vigente.
 
 ### 2.2 Splash / contagem regressiva (linhas ~571–594)
 Fundo aleatório entre `foto1.jpg`, `foto2.png`, `foto3.jpg`. Contador regressivo até `TRIP_DATE` (10/ago/2026 07:40, horário de Brasília), atualizado a cada segundo. Carrossel de fotos (`nos1.jpg` … `nos9.png`) rodando em loop CSS. Botão "Abrir planner" chama `enterPlanner()` e esconde o splash.
