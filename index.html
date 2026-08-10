@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Nordeste 2026</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦈</text></svg>">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1A5F7A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Noronha">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -164,7 +171,12 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 /* DIA A DIA */
 .day-card {
   background:var(--white); border-radius:var(--radius); margin-bottom:10px;
-  box-shadow:var(--shadow); overflow:hidden;
+  box-shadow:var(--shadow); overflow:hidden; border-left:3px solid transparent;
+}
+.day-card-today { border-left-color:var(--coral); }
+.today-badge {
+  background:var(--coral); color:#fff; font-size:.65rem; font-weight:700;
+  padding:2px 7px; border-radius:20px; letter-spacing:.5px; vertical-align:middle;
 }
 .day-header {
   padding:14px 16px; cursor:pointer; display:flex; justify-content:space-between;
@@ -181,6 +193,10 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   color:var(--coral); letter-spacing:.5px; margin-bottom:4px;
 }
 .period-text { font-size:.9rem; line-height:1.6; }
+.period-check { display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent; }
+.period-check input { width:17px; height:17px; accent-color:var(--coral); cursor:pointer; flex-shrink:0; }
+.period.done .period-label { color:var(--text-light); }
+.period.done .period-text { text-decoration:line-through; color:var(--text-light); opacity:.75; }
 .day-gasto {
   margin-top:8px; padding-top:8px; border-top:1px solid var(--sand);
 }
@@ -616,21 +632,32 @@ function showSync(state){
   if(state==='syncing'){el.innerHTML='<i class="ti ti-cloud"></i> Salvando...';el.style.color='var(--coral)';}
   else if(state==='ok'){el.innerHTML='<i class="ti ti-cloud"></i> Sincronizado';el.style.color='var(--green)';}
   else if(state==='error'){el.innerHTML='<i class="ti ti-alert-triangle"></i> Erro';el.style.color='var(--coral)';}
+  else if(state==='offline'){el.innerHTML='<i class="ti ti-cloud-off"></i> Sem internet — salvo só aqui';el.style.color='var(--text-light)';}
   else{el.textContent='';}
+}
+
+// timeout curto pra não deixar "Salvando..." travado quando o sinal tá ruim
+// (comum na ilha) — falha rápido e volta pro fluxo local em vez de ficar pendurado
+const FB_TIMEOUT_MS=8000;
+function fbFetch(path,options){
+  return fetch(FB+'/'+path+'.json',Object.assign({signal:AbortSignal.timeout(FB_TIMEOUT_MS)},options));
+}
+function fbFail(){
+  showSync(navigator.onLine?'error':'offline');
 }
 
 function fbWrite(path,data){
   showSync('syncing');
-  fetch(FB+'/'+path+'.json',{method:'PUT',body:JSON.stringify(data)})
+  fbFetch(path,{method:'PUT',body:JSON.stringify(data)})
     .then(()=>{showSync('ok');setTimeout(()=>showSync(''),2000);})
-    .catch(()=>showSync('error'));
+    .catch(fbFail);
 }
 
 function fbPatch(path,data){
   showSync('syncing');
-  fetch(FB+'/'+path+'.json',{method:'PATCH',body:JSON.stringify(data)})
+  fbFetch(path,{method:'PATCH',body:JSON.stringify(data)})
     .then(()=>{showSync('ok');setTimeout(()=>showSync(''),2000);})
-    .catch(()=>showSync('error'));
+    .catch(fbFail);
 }
 
 var GASTO_FIELD_LS_KEY={gastoReal:'real',quemPagou:'quem',deveAlguem:'deve',pago:'pago'};
@@ -677,11 +704,18 @@ function resetDayPeriods(dayIdx){
   fbWrite('roteiroCustom/'+dayIdx,null);
   buildDiaDia();
 }
+function toggleDayPeriodDone(dayIdx,periodIdx){
+  var periods=getDayPeriods(dayIdx);
+  periods[periodIdx].done=!periods[periodIdx].done;
+  saveDayPeriodsLocal(dayIdx,periods);
+  fbWrite('roteiroCustom/'+dayIdx,periods);
+  buildDiaDia();
+}
 
 
 
 function pullFromFirebase(){
-  return fetch(FB+'/.json')
+  return fbFetch('')
     .then(r=>r.json())
     .then(data=>{
       if(!data)return;
@@ -723,7 +757,65 @@ function pullFromFirebase(){
       }
       showSync('ok');setTimeout(()=>showSync(''),2000);
     })
-    .catch(()=>showSync('error'));
+    .catch(fbFail);
+}
+
+// DIA A DIA (dados) — precisa vir antes do roteamento de abas: o load inicial pode
+// cair direto na aba #diadia via hash, e switchTab() chama getTodayDayIndex().
+const days=[
+  {d:'Dia 1 · seg 10/ago',date:'2026-08-10',star:false,periods:[
+    {l:'Manhã',t:'Voo LATAM LA3828 · 07:40 GRU'},
+    {l:'Tarde',t:'Chegada 12:35. Transfer Pousada Alvorada. Almoço Praça Flamboyant. Mercado para compras básicas.'},
+    {l:'Noite',t:'Pôr do sol + jantar Bar do Cachorro.'},
+  ]},
+  {d:'Dia 2 · ter 11/ago',date:'2026-08-11',star:false,periods:[
+    {l:'Manhã',t:'Praia da Conceição.'},
+    {l:'Tarde',t:'Continua Conceição + 16h30 Trilha do Piquinho.'},
+    {l:'Noite',t:'Pôr do sol do Piquinho.'},
+  ]},
+  {d:'Dia 3 · qua 12/ago',date:'2026-08-12',star:true,periods:[
+    {l:'Manhã',t:'Cacimba do Padre + ~11h Baía dos Porcos (depende maré — baixa 0.06 <i class="ti ti-star"></i>).'},
+    {l:'Tarde',t:'Almoço Varanda. Capela São Pedro. Museu Tubarões. Mirante Francês.'},
+    {l:'Noite',t:'Pôr do sol Mirante Boldró + Jantar Zé Maria.'},
+  ]},
+  {d:'Dia 4 · qui 13/ago',date:'2026-08-13',star:true,periods:[
+    {l:'Manhã',t:'Praia do Porto + mergulho. <i class="ti ti-star"></i> Maré baixíssima (0.03).'},
+    {l:'Tarde',t:'Almoço Mergulhão. Passeio de barco.'},
+    {l:'Noite',t:'Restaurante do Vale.'},
+  ]},
+  {d:'Dia 5 · sex 14/ago',date:'2026-08-14',star:false,periods:[
+    {l:'Manhã',t:'Mirante Golfinhos + Baía do Sancho.'},
+    {l:'Tarde',t:'Barraquinhas Praia do Cachorro + Mirante do Forte.'},
+    {l:'Noite',t:'Restaurante Paiol.'},
+  ]},
+  {d:'Dia 6 · sáb 15/ago',date:'2026-08-15',star:false,periods:[
+    {l:'Manhã',t:'Trilha Pontinha Caieira.'},
+    {l:'Tarde',t:'~13h Baía do Sueste + tartarugas.'},
+    {l:'Noite',t:'Tiatê ou Varanda.'},
+  ]},
+  {d:'Dia 7 · dom 16/ago',date:'2026-08-16',star:false,periods:[
+    {l:'Manhã',t:'Trilha Capim Açu.'},
+    {l:'Tarde',t:'Bar do Meio + descanso.'},
+    {l:'Noite',t:'Livre.'},
+  ]},
+  {d:'Dia 8 · seg 17/ago',date:'2026-08-17',star:false,periods:[
+    {l:'Manhã',t:'Travessia Morro Dois Irmãos.'},
+    {l:'Tarde',t:'Souvenirs Vila dos Remédios.'},
+    {l:'Noite',t:'Jantar de despedida.'},
+  ]},
+  {d:'Dia 9 · ter 18/ago',date:'2026-08-18',star:false,periods:[
+    {l:'Manhã',t:'Última praia favorita.'},
+    {l:'Tarde',t:'Almoço despedida. Check-out. Preparar mala. Amanhã: voo 19/ago 15:30 FEN→REC Azul QIJ5YV.'},
+    {l:'Noite',t:''},
+  ]},
+];
+
+// data de hoje no horário de Brasília (funciona mesmo se quem abrir o site estiver em outro fuso)
+function getTodayISO(){
+  return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+}
+function getTodayDayIndex(){
+  return days.findIndex(function(d){return d.date===getTodayISO();});
 }
 
 // TABS with hash routing
@@ -735,6 +827,13 @@ function switchTab(tabId){
   window.scrollTo(0,0);
   history.replaceState(null,null,'#'+tabId);
   if(tabId==='mapa')setTimeout(function(){if(typeof buildMapa==='function')buildMapa();},150);
+  if(tabId==='diadia'){
+    const idx=getTodayDayIndex();
+    if(idx>=0)setTimeout(function(){
+      const el=document.getElementById('day-card-'+idx);
+      if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+    },200);
+  }
 }
 document.querySelectorAll('.nav-btn').forEach(btn=>{
   btn.addEventListener('click',function(e){e.preventDefault();switchTab(this.dataset.tab);});
@@ -965,55 +1064,6 @@ function buildGastos(){
 }
 buildGastos();
 
-// DIA A DIA
-const days=[
-  {d:'Dia 1 · seg 10/ago',star:false,periods:[
-    {l:'Manhã',t:'Voo LATAM LA3828 · 07:40 GRU'},
-    {l:'Tarde',t:'Chegada 12:35. Transfer Pousada Alvorada. Almoço Praça Flamboyant. Mercado para compras básicas.'},
-    {l:'Noite',t:'Pôr do sol + jantar Bar do Cachorro.'},
-  ]},
-  {d:'Dia 2 · ter 11/ago',star:false,periods:[
-    {l:'Manhã',t:'Praia da Conceição.'},
-    {l:'Tarde',t:'Continua Conceição + 16h30 Trilha do Piquinho.'},
-    {l:'Noite',t:'Pôr do sol do Piquinho.'},
-  ]},
-  {d:'Dia 3 · qua 12/ago',star:true,periods:[
-    {l:'Manhã',t:'Cacimba do Padre + ~11h Baía dos Porcos (depende maré — baixa 0.06 <i class="ti ti-star"></i>).'},
-    {l:'Tarde',t:'Almoço Varanda. Capela São Pedro. Museu Tubarões. Mirante Francês.'},
-    {l:'Noite',t:'Pôr do sol Mirante Boldró + Jantar Zé Maria.'},
-  ]},
-  {d:'Dia 4 · qui 13/ago',star:true,periods:[
-    {l:'Manhã',t:'Praia do Porto + mergulho. <i class="ti ti-star"></i> Maré baixíssima (0.03).'},
-    {l:'Tarde',t:'Almoço Mergulhão. Passeio de barco.'},
-    {l:'Noite',t:'Restaurante do Vale.'},
-  ]},
-  {d:'Dia 5 · sex 14/ago',star:false,periods:[
-    {l:'Manhã',t:'Mirante Golfinhos + Baía do Sancho.'},
-    {l:'Tarde',t:'Barraquinhas Praia do Cachorro + Mirante do Forte.'},
-    {l:'Noite',t:'Restaurante Paiol.'},
-  ]},
-  {d:'Dia 6 · sáb 15/ago',star:false,periods:[
-    {l:'Manhã',t:'Trilha Pontinha Caieira.'},
-    {l:'Tarde',t:'~13h Baía do Sueste + tartarugas.'},
-    {l:'Noite',t:'Tiatê ou Varanda.'},
-  ]},
-  {d:'Dia 7 · dom 16/ago',star:false,periods:[
-    {l:'Manhã',t:'Trilha Capim Açu.'},
-    {l:'Tarde',t:'Bar do Meio + descanso.'},
-    {l:'Noite',t:'Livre.'},
-  ]},
-  {d:'Dia 8 · seg 17/ago',star:false,periods:[
-    {l:'Manhã',t:'Travessia Morro Dois Irmãos.'},
-    {l:'Tarde',t:'Souvenirs Vila dos Remédios.'},
-    {l:'Noite',t:'Jantar de despedida.'},
-  ]},
-  {d:'Dia 9 · ter 18/ago',star:false,periods:[
-    {l:'Manhã',t:'Última praia favorita.'},
-    {l:'Tarde',t:'Almoço despedida. Check-out. Preparar mala. Amanhã: voo 19/ago 15:30 FEN→REC Azul QIJ5YV.'},
-    {l:'Noite',t:''},
-  ]},
-];
-
 var defaultChecklist=[
   {text:'Protetor solar eco-friendly',tag:'higiene'},
   {text:'Repelente',tag:'higiene'},
@@ -1063,15 +1113,17 @@ var editingDayId=null;
 
 function buildDiaDia(){
   const c=document.getElementById('diadia');
+  const todayIdx=getTodayDayIndex();
   let h='<h2>Dia a dia · Noronha</h2>';
   // days
   days.forEach((day,i)=>{
-    const isOpen=lsBool('day-open-'+i,i===0);
+    const isToday=i===todayIdx;
+    const isOpen=lsBool('day-open-'+i,i===(todayIdx>=0?todayIdx:0));
     const periods=getDayPeriods(i);
     const isEditing=editingDayId===i;
-    h+=`<div class="day-card">
+    h+=`<div class="day-card${isToday?' day-card-today':''}" id="day-card-${i}">
       <div class="day-header" onclick="toggleDay(${i})">
-        <span>${day.star?'<i class="ti ti-star"></i> ':''}${day.d}</span>
+        <span>${day.star?'<i class="ti ti-star"></i> ':''}${day.d}${isToday?' <span class="today-badge">HOJE</span>':''}</span>
         <span style="display:flex;align-items:center;gap:10px;">
           <button class="day-edit-btn" onclick="event.stopPropagation();toggleEditDay(${i})"><i class="ti ti-pencil"></i></button>
           <span class="chevron${isOpen?' open':''}" id="chev-${i}">▼</span>
@@ -1085,8 +1137,14 @@ function buildDiaDia(){
       });
       h+=`<button class="day-restore-btn" onclick="resetDayPeriods(${i})">Restaurar roteiro original deste dia</button>`;
     } else {
-      periods.forEach(p=>{
-        if(p.t) h+=`<div class="period"><div class="period-label">${p.l}</div><div class="period-text">${escapeHtml(p.t)}</div></div>`;
+      periods.forEach((p,idx)=>{
+        if(!p.t)return;
+        h+=`<div class="period${p.done?' done':''}">
+          <div class="period-label">
+            <label class="period-check"><input type="checkbox" ${p.done?'checked':''} onchange="toggleDayPeriodDone(${i},${idx})"> ${p.l}</label>
+          </div>
+          <div class="period-text">${escapeHtml(p.t)}</div>
+        </div>`;
       });
     }
     const gastoVal=escapeHtml(lsGet('day-gasto-'+i,''));
@@ -1341,6 +1399,10 @@ function calcDayStats(spots){
 function buildMapa(){
   var el=document.getElementById('map-container');
   if(!el||el.offsetHeight===0)return;
+  if(typeof L==='undefined'){
+    el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:20px;text-align:center;color:var(--text-light);font-size:.9rem;"><span><i class="ti ti-cloud-off" style="font-size:1.5rem;"></i><br><br>Mapa precisa de internet pra carregar (o mapa em si e as rotas vêm de fora). As outras abas continuam funcionando offline.</span></div>';
+    return;
+  }
   if(!tripMap){
     tripMap=L.map('map-container',{zoomControl:true}).setView([-3.854,-32.425],14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'OpenStreetMap'}).addTo(tripMap);
@@ -1705,13 +1767,24 @@ function calcular(){
 }
 
 // FIREBASE SYNC — pull on load, rebuild UI
-pullFromFirebase().then(()=>{
+function rebuildAll(){
   document.getElementById('gastos').innerHTML='';
   buildGastos();
   document.getElementById('diadia').innerHTML='';
   buildDiaDia();
   buildLista();
-});
+}
+pullFromFirebase().then(rebuildAll);
+
+// sinal voltou (comum entrando/saindo de área sem cobertura na ilha):
+// busca o que o outro dispositivo salvou enquanto a gente tava offline
+window.addEventListener('online',()=>{ pullFromFirebase().then(rebuildAll); });
+
+// service worker: deixa o app abrir mesmo sem internet (cacheia só os
+// arquivos do próprio site — Firebase/CDN continuam precisando de rede)
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
 </script>
 </body>
 </html>
