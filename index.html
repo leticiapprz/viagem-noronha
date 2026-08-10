@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
 :root {
@@ -81,11 +81,13 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 }
 @media(min-width:768px){ .fab-group { bottom:16px; } }
 .fab-btn {
-  width:50px; height:50px; border-radius:50%; border:none; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; font-size:20px;
-  box-shadow:0 4px 14px rgba(0,0,0,.25); color:#fff;
+  width:46px; height:46px; border-radius:50%; border:3px solid var(--sand); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-size:19px;
+  box-shadow:0 4px 14px rgba(0,0,0,.28); color:#fff;
   -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+  transition:transform .15s;
 }
+.fab-btn:active { transform:scale(.92); }
 .fab-gasto { background:var(--coral); }
 .fab-info { background:var(--ocean); }
 
@@ -233,16 +235,21 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   align-items:center; font-family:'DM Sans',sans-serif; font-weight:700; color:var(--ocean);
   font-size:1.05rem; user-select:none;
 }
-.day-header .chevron { transition:transform .2s; font-size:1.2rem; }
+.day-header .chevron { transition:transform .25s; font-size:1.2rem; }
 .day-header .chevron.open { transform:rotate(180deg); }
-.day-body { padding:0 16px 16px; display:none; }
-.day-body.open { display:block; }
+.day-body {
+  max-height:0; overflow:hidden; padding:0 16px;
+  transition:max-height .3s ease, padding-bottom .3s ease;
+}
+.day-body.open { max-height:3000px; padding-bottom:16px; }
 .period { margin-bottom:12px; }
 .period-label {
   font-weight:700; font-size:.8rem; text-transform:uppercase;
   color:var(--coral); letter-spacing:.5px; margin-bottom:4px;
+  display:flex; align-items:center; gap:5px;
 }
-.period-text { font-size:.9rem; line-height:1.6; }
+.period-label .ti { font-size:.95rem; }
+.period-text { font-size:.9rem; line-height:1.6; margin-left:21px; }
 .period-check { display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent; }
 .period-check input { width:17px; height:17px; accent-color:var(--coral); cursor:pointer; flex-shrink:0; }
 .period.done .period-label { color:var(--text-light); }
@@ -257,20 +264,25 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   background:var(--ocean); color:#fff; font-size:.6rem; font-weight:700;
   padding:1px 6px; border-radius:20px; letter-spacing:.5px; margin-left:6px; vertical-align:middle;
 }
-.lugares-section { margin-top:10px; padding-top:10px; border-top:1px solid var(--sand); }
-.lugares-title { font-size:.8rem; font-weight:700; color:var(--ocean); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
-.lugar-item { background:var(--sand); border-radius:8px; padding:8px 10px; margin-bottom:8px; }
+.lugares-section { margin-top:14px; padding-top:14px; border-top:1px solid var(--sand); }
+.lugares-title { font-size:.8rem; font-weight:700; color:var(--ocean); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.lugares-empty { font-size:.8rem; color:var(--text-light); font-style:italic; margin-bottom:10px; }
+.lugar-item { background:var(--sand); border-radius:10px; padding:10px 12px; margin-bottom:8px; transition:background .15s; }
 .lugar-item-top { display:flex; align-items:center; gap:8px; }
 .lugar-nome { font-weight:600; font-size:.85rem; flex:1; }
-.lugar-stars { color:var(--coral); font-size:.8rem; letter-spacing:1px; white-space:nowrap; }
-.lugar-comentario { font-size:.8rem; color:var(--text-light); margin-top:4px; }
+.lugar-stars { color:var(--coral); font-size:.8rem; letter-spacing:1px; white-space:nowrap; display:flex; }
+.lugar-comentario { font-size:.8rem; color:var(--text-light); margin-top:5px; line-height:1.5; }
 .lugar-edit-btn {
   background:none; border:none; color:var(--ocean); cursor:pointer; padding:4px;
-  font-size:.9rem; -webkit-tap-highlight-color:transparent;
+  font-size:.9rem; -webkit-tap-highlight-color:transparent; border-radius:6px;
 }
-.lugar-add { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
-.lugar-add input[type=text], .lugar-add textarea, .lugar-add select,
-.lugar-editing input[type=text], .lugar-editing textarea, .lugar-editing select {
+.lugar-edit-btn:active { background:rgba(0,0,0,.06); }
+.lugar-add {
+  display:flex; flex-direction:column; gap:8px; margin-top:8px;
+  background:var(--sand); border-radius:10px; padding:12px;
+}
+.lugar-add input[type=text], .lugar-add textarea,
+.lugar-editing input[type=text], .lugar-editing textarea {
   border:1px solid var(--sand-dark); border-radius:8px; padding:8px 10px;
   font-size:.85rem; font-family:'DM Sans',sans-serif; background:var(--white); min-height:40px;
 }
@@ -284,6 +296,12 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
   flex:1; padding:8px; border-radius:8px; font-size:.8rem; cursor:pointer;
   border:1px solid var(--sand-dark); background:var(--white); min-height:36px;
   -webkit-tap-highlight-color:transparent;
+}
+.lugar-edit-actions button.primary { background:var(--ocean); color:#fff; border-color:var(--ocean); font-weight:600; }
+.star-picker { display:flex; gap:5px; padding:2px 0; }
+.star-pick {
+  font-size:1.35rem; color:var(--coral); cursor:pointer; -webkit-tap-highlight-color:transparent;
+  display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px;
 }
 .day-gasto {
   margin-top:8px; padding-top:8px; border-top:1px solid var(--sand);
@@ -809,6 +827,23 @@ function toggleDayPeriodDone(dayIdx,periodIdx){
 // avaliação de lugares por dia — override isolado por dia (avaliacoesLugares/<dia>),
 // mesmo padrão do roteiroCustom/mapDaysCustom.
 function newLugarId(){ return 'lug-'+Date.now().toString(36)+Math.random().toString(36).slice(2); }
+// seletor de estrelas clicável (substitui um <select> por 5 ícones); guarda o
+// valor num input hidden com o mesmo id que o resto do código já espera.
+function starPickerHtml(targetId,value){
+  var stars='';
+  for(var n=1;n<=5;n++){
+    stars+=`<i class="ti ${n<=value?'ti-star-filled':'ti-star'} star-pick" data-n="${n}" onclick="setStarPick('${targetId}',${n})"></i>`;
+  }
+  return `<div class="star-picker" data-target="${targetId}"><input type="hidden" id="${targetId}" value="${value}">${stars}</div>`;
+}
+function setStarPick(targetId,n){
+  document.getElementById(targetId).value=n;
+  document.querySelectorAll('.star-picker[data-target="'+targetId+'"] .star-pick').forEach(function(el){
+    var starN=Number(el.dataset.n);
+    el.classList.toggle('ti-star-filled',starN<=n);
+    el.classList.toggle('ti-star',starN>n);
+  });
+}
 function getLugaresAvaliados(dayIdx){
   var raw=lsGet('lugares-dia-'+dayIdx,null);
   if(raw){ try{return JSON.parse(raw);}catch(e){} }
@@ -1287,6 +1322,7 @@ function saveChecklist(items){
 var checkFilter='all';
 
 var editingDayId=null;
+var PERIOD_ICONS={'Manhã':'ti-sunrise','Tarde':'ti-sun','Noite':'ti-moon-stars'};
 
 function buildDiaDia(){
   const c=document.getElementById('diadia');
@@ -1315,16 +1351,18 @@ function buildDiaDia(){
     if(isEditing){
       periods.forEach((p,idx)=>{
         const textSafe=escapeHtml(p.t);
-        h+=`<div class="period-edit"><label class="period-label">${p.l}</label><textarea data-day-idx="${i}" data-period-idx="${idx}" placeholder="Sem plano definido">${textSafe}</textarea></div>`;
+        const icon=PERIOD_ICONS[p.l]||'ti-clock';
+        h+=`<div class="period-edit"><label class="period-label"><i class="ti ${icon}"></i> ${p.l}</label><textarea data-day-idx="${i}" data-period-idx="${idx}" placeholder="Sem plano definido">${textSafe}</textarea></div>`;
       });
       h+=`<button class="day-restore-btn" onclick="resetDayPeriods(${i})">Restaurar roteiro original deste dia</button>`;
     } else {
       periods.forEach((p,idx)=>{
         if(!p.t)return;
         const isNow=idx===nowPeriodIdx;
+        const icon=PERIOD_ICONS[p.l]||'ti-clock';
         h+=`<div class="period${p.done?' done':''}${isNow?' period-now':''}">
           <div class="period-label">
-            <label class="period-check"><input type="checkbox" ${p.done?'checked':''} onchange="toggleDayPeriodDone(${i},${idx})"> ${p.l}</label>
+            <label class="period-check"><input type="checkbox" ${p.done?'checked':''} onchange="toggleDayPeriodDone(${i},${idx})"><i class="ti ${icon}"></i> ${p.l}</label>
             ${isNow?'<span class="now-badge">AGORA</span>':''}
           </div>
           <div class="period-text">${escapeHtml(p.t)}</div>
@@ -1340,26 +1378,31 @@ function buildDiaDia(){
 }
 function buildLugaresSection(i){
   const lugares=getLugaresAvaliados(i);
-  const stars=(n)=>'★'.repeat(n)+'☆'.repeat(5-n);
+  const starsDisplay=(n)=>{
+    var s='';
+    for(var k=1;k<=5;k++)s+=`<i class="ti ${k<=n?'ti-star-filled':'ti-star'}"></i>`;
+    return s;
+  };
   let h='<div class="lugares-section"><div class="lugares-title"><i class="ti ti-map-pin-star"></i> Lugares avaliados</div>';
+  if(!lugares.length){
+    h+='<p class="lugares-empty">Nenhum lugar avaliado ainda — adicione um aí embaixo.</p>';
+  }
   lugares.forEach(it=>{
     if(editingLugarId===it.id){
       h+=`<div class="lugar-item lugar-editing">
         <input type="text" id="edit-lugar-nome-${it.id}" value="${escapeHtml(it.nome)}" placeholder="Nome do lugar">
-        <select id="edit-lugar-nota-${it.id}">
-          ${[5,4,3,2,1].map(n=>`<option value="${n}"${it.nota===n?' selected':''}>${stars(n)}</option>`).join('')}
-        </select>
+        ${starPickerHtml('edit-lugar-nota-'+it.id,it.nota)}
         <textarea id="edit-lugar-comentario-${it.id}" placeholder="Comentário (opcional)">${escapeHtml(it.comentario)}</textarea>
         <div class="lugar-edit-actions">
           <button onclick="cancelEditLugar()">Cancelar</button>
-          <button onclick="saveEditLugar(${i},'${it.id}')">Salvar</button>
+          <button class="primary" onclick="saveEditLugar(${i},'${it.id}')">Salvar</button>
         </div>
       </div>`;
     } else {
       h+=`<div class="lugar-item">
         <div class="lugar-item-top">
           <span class="lugar-nome">${escapeHtml(it.nome)}</span>
-          <span class="lugar-stars">${stars(it.nota)}</span>
+          <span class="lugar-stars">${starsDisplay(it.nota)}</span>
           <button class="lugar-edit-btn" onclick="startEditLugar('${it.id}')"><i class="ti ti-pencil"></i></button>
           <button class="lugar-edit-btn" onclick="removeLugarAvaliado(${i},'${it.id}')"><i class="ti ti-trash"></i></button>
         </div>
@@ -1369,13 +1412,7 @@ function buildLugaresSection(i){
   });
   h+=`<div class="lugar-add">
     <input type="text" id="lugar-nome-${i}" placeholder="Nome do lugar">
-    <select id="lugar-nota-${i}">
-      <option value="5">★★★★★</option>
-      <option value="4">★★★★☆</option>
-      <option value="3" selected>★★★☆☆</option>
-      <option value="2">★★☆☆☆</option>
-      <option value="1">★☆☆☆☆</option>
-    </select>
+    ${starPickerHtml('lugar-nota-'+i,3)}
     <textarea id="lugar-comentario-${i}" placeholder="Comentário (opcional)"></textarea>
     <button class="lugar-add-btn" onclick="addLugarAvaliado(${i})"><i class="ti ti-plus"></i> Adicionar</button>
   </div>`;
@@ -1612,10 +1649,18 @@ function calcDayStats(spots){
   return {totalKm:totalKm,walkKm:walkKm,buggyKm:buggyKm,elevGain:elevGain};
 }
 
-function buildMapa(){
+function buildMapa(retriesLeft){
   var el=document.getElementById('map-container');
   if(!el||el.offsetHeight===0)return;
   if(typeof L==='undefined'){
+    // Leaflet/Chart.js carregam com "defer" (não bloqueiam o resto da página) —
+    // se ainda não chegaram, espera um pouco antes de assumir que é falta de
+    // internet mesmo (evita mensagem de "sem internet" falsa por pura demora de rede).
+    if(retriesLeft===undefined)retriesLeft=6;
+    if(retriesLeft>0){
+      setTimeout(function(){buildMapa(retriesLeft-1);},250);
+      return;
+    }
     el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:20px;text-align:center;color:var(--text-light);font-size:.9rem;"><span><i class="ti ti-cloud-off" style="font-size:1.5rem;"></i><br><br>Mapa precisa de internet pra carregar (o mapa em si e as rotas vêm de fora). As outras abas continuam funcionando offline.</span></div>';
     return;
   }
