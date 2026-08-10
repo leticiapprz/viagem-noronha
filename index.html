@@ -671,7 +671,7 @@ async function tryLogin(){
   const pwd=document.getElementById('login-input').value;
   const hash=await sha256(pwd);
   if(hash===PWD_HASH){
-    sessionStorage.setItem('viagem-auth','1');
+    localStorage.setItem('viagem-auth','1');
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('splash').style.display='';
   } else {
@@ -680,7 +680,7 @@ async function tryLogin(){
   }
 }
 document.getElementById('login-input').addEventListener('keydown',function(e){if(e.key==='Enter')tryLogin();});
-if(sessionStorage.getItem('viagem-auth')==='1'){
+if(localStorage.getItem('viagem-auth')==='1'){
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('splash').style.display='';
 }
