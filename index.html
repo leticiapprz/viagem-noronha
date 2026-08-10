@@ -534,11 +534,11 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <nav class="bottom-nav">
   <div class="sidebar-logo"><i class="ti ti-fish logo-icon"></i> Nordeste 2026</div>
   <span class="sidebar-section">Planejamento</span>
-  <button class="nav-btn active" data-tab="roteiro"><span class="icon"><i class="ti ti-map-2"></i></span>Roteiro</button>
+  <button class="nav-btn" data-tab="roteiro"><span class="icon"><i class="ti ti-map-2"></i></span>Roteiro</button>
   <button class="nav-btn" data-tab="gastos"><span class="icon"><i class="ti ti-wallet"></i></span>Gastos</button>
   <button class="nav-btn" data-tab="calc"><span class="icon"><i class="ti ti-calculator"></i></span>Calculadora</button>
   <span class="sidebar-section">Na viagem</span>
-  <button class="nav-btn" data-tab="diadia"><span class="icon"><i class="ti ti-sun"></i></span>Dia a dia</button>
+  <button class="nav-btn active" data-tab="diadia"><span class="icon"><i class="ti ti-sun"></i></span>Dia a dia</button>
   <button class="nav-btn" data-tab="mares"><span class="icon"><i class="ti ti-ripple"></i></span>Marés</button>
   <button class="nav-btn" data-tab="mapa"><span class="icon"><i class="ti ti-map-pin"></i></span>Mapa</button>
   <span class="sidebar-section">Organização</span>
@@ -546,7 +546,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 </nav>
 
 <!-- TAB 1: ROTEIRO -->
-<div id="roteiro" class="tab-content active">
+<div id="roteiro" class="tab-content">
   <div class="hero">
     <h1>Nordeste agosto 2026</h1>
     <p>Leticia + Camila · 2 passageiros</p>
@@ -636,7 +636,7 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 </div>
 
 <!-- TAB 4: DIA A DIA -->
-<div id="diadia" class="tab-content"></div>
+<div id="diadia" class="tab-content active"></div>
 
 <!-- TAB 5: MARÉS -->
 <div id="mares" class="tab-content"></div>
@@ -1016,11 +1016,12 @@ window.addEventListener('hashchange',()=>{
   if(tab && document.getElementById(tab)) switchTab(tab);
 });
 
-// Restore tab from hash or default
-const initTab=location.hash.replace('#','')||'roteiro';
+// Restore tab from hash or default (Dia a dia é a aba padrão — é o que se usa
+// de verdade durante a viagem; Roteiro só importa antes de embarcar)
+const initTab=location.hash.replace('#','')||'diadia';
 if(document.getElementById(initTab)) switchTab(initTab);
 // Skip splash if deep-linking to a tab
-if(location.hash && location.hash!=='#roteiro'){
+if(location.hash && location.hash!=='#diadia'){
   document.getElementById('splash').style.display='none';
 }
 
