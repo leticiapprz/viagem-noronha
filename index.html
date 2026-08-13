@@ -843,7 +843,13 @@ function syncDiaDia(dia,gasto){
 function getDayPeriods(dayIdx){
   var raw=lsGet('roteiro-day-'+dayIdx,null);
   if(raw){
-    try{return JSON.parse(raw);}catch(e){}
+    try{
+      var parsed=JSON.parse(raw);
+      // guarda contra override corrompido/nulo (ex: "null" salvo como string) —
+      // sem isso, um dado ruim aqui quebra a aba inteira com "periods.forEach
+      // não é uma função". Trata como se não tivesse override, igual dado ausente.
+      if(Array.isArray(parsed))return parsed;
+    }catch(e){}
   }
   return days[dayIdx].periods.map(function(p){return {l:p.l,t:p.t};});
 }
@@ -896,7 +902,12 @@ function setStarPick(targetId,n){
 }
 function getLugaresAvaliados(dayIdx){
   var raw=lsGet('lugares-dia-'+dayIdx,null);
-  if(raw){ try{return JSON.parse(raw);}catch(e){} }
+  if(raw){
+    try{
+      var parsed=JSON.parse(raw);
+      if(Array.isArray(parsed))return parsed;
+    }catch(e){}
+  }
   return [];
 }
 function saveLugaresAvaliados(dayIdx,items){
@@ -969,17 +980,20 @@ function pullFromFirebase(){
       }
       if(data.mapDaysCustom){
         Object.keys(data.mapDaysCustom).forEach(function(d){
-          localStorage.setItem(LS+'map-day-'+d,JSON.stringify(data.mapDaysCustom[d]));
+          if(data.mapDaysCustom[d])localStorage.setItem(LS+'map-day-'+d,JSON.stringify(data.mapDaysCustom[d]));
         });
       }
       if(data.roteiroCustom){
         Object.keys(data.roteiroCustom).forEach(function(d){
-          localStorage.setItem(LS+'roteiro-day-'+d,JSON.stringify(data.roteiroCustom[d]));
+          // Firebase às vezes devolve a chave presente com valor null em vez de
+          // simplesmente omitir a chave (achado 13/08/2026 — quebrava buildDiaDia
+          // com "periods.forEach não é função"). Nunca gravar null como override.
+          if(data.roteiroCustom[d])localStorage.setItem(LS+'roteiro-day-'+d,JSON.stringify(data.roteiroCustom[d]));
         });
       }
       if(data.avaliacoesLugares){
         Object.keys(data.avaliacoesLugares).forEach(function(d){
-          localStorage.setItem(LS+'lugares-dia-'+d,JSON.stringify(data.avaliacoesLugares[d]));
+          if(data.avaliacoesLugares[d])localStorage.setItem(LS+'lugares-dia-'+d,JSON.stringify(data.avaliacoesLugares[d]));
         });
       }
       if(data.infoImportante&&data.infoImportante.texto){
@@ -1657,7 +1671,9 @@ var mapEditMode=false,mapAddingPoint=false,mapMovingSpotId=null,editingSpotId=nu
 function newSpotId(){ return 'sp-'+Date.now().toString(36)+Math.random().toString(36).slice(2); }
 function getMapSpots(dayNum){
   var saved=lsGet('map-day-'+dayNum,'');
-  var spots=saved?JSON.parse(saved):mapDays[dayNum].spots.map(function(s){return Object.assign({},s);});
+  var parsed=null;
+  if(saved){ try{parsed=JSON.parse(saved);}catch(e){} }
+  var spots=Array.isArray(parsed)?parsed:mapDays[dayNum].spots.map(function(s){return Object.assign({},s);});
   var changed=false;
   spots.forEach(function(s){ if(!s.id){ s.id=newSpotId(); changed=true; } });
   if(changed) saveMapSpots(dayNum,spots);
