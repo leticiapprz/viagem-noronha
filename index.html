@@ -543,6 +543,13 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 
 <div id="sync-indicator" style="position:fixed;top:8px;right:12px;z-index:150;font-size:11px;font-weight:600;"></div>
 
+<div id="error-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:500;background:#c0392b;color:#fff;padding:10px 14px;font-size:.75rem;line-height:1.4;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+    <span>⚠️ Achei um erro — tira um print disso e manda pro Claude:<br><span id="error-banner-text" style="font-family:monospace;word-break:break-word;"></span></span>
+    <button onclick="document.getElementById('error-banner').style.display='none'" style="background:none;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:6px;padding:2px 8px;flex-shrink:0;cursor:pointer;">Fechar</button>
+  </div>
+</div>
+
 <div class="fab-group">
   <button class="fab-btn fab-gasto" onclick="openGastoRapidoModal()" title="Registrar gasto rápido"><i class="ti ti-cash-banknote"></i></button>
   <button class="fab-btn fab-info" onclick="openInfoImportanteModal()" title="Info importante"><i class="ti ti-info-circle"></i></button>
@@ -679,6 +686,27 @@ h3 { font-size: 1.1rem; margin-bottom: 8px; }
 <div id="lista" class="tab-content"></div>
 
 <script>
+// DIAGNÓSTICO: mostra qualquer erro não tratado na tela (banner vermelho no
+// topo), em vez de só no console (que ninguém consegue ver no celular). Fica
+// registrado o mais cedo possível no script pra pegar erros mesmo bem no
+// início do carregamento.
+function showErrorBanner(msg){
+  var el=document.getElementById('error-banner');
+  var textEl=document.getElementById('error-banner-text');
+  if(!el||!textEl)return;
+  textEl.textContent=msg;
+  el.style.display='block';
+}
+window.addEventListener('error',function(e){
+  var msg=(e.error&&e.error.message)||e.message||'erro desconhecido';
+  var loc=e.filename?(' ('+e.filename.split('/').pop()+':'+e.lineno+')'):'';
+  showErrorBanner('Erro: '+msg+loc);
+});
+window.addEventListener('unhandledrejection',function(e){
+  var reason=e.reason&&e.reason.message?e.reason.message:String(e.reason);
+  showErrorBanner('Erro (promise): '+reason);
+});
+
 // LOGIN
 const PWD_HASH='b74ab0fe3e4c8a0012c02cb7b9e8878e1f58d7291294fecac2aa5719342f4e85';
 async function sha256(str){
@@ -740,10 +768,12 @@ function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c
 
 // Se alguma aba falhar ao montar (ex: dado corrompido, carregamento incompleto
 // numa conexão ruim), mostra isso em vez de deixar a tela em branco sem explicação.
-function showBuildError(containerId,label){
+function showBuildError(containerId,label,err){
   var c=document.getElementById(containerId);
-  if(!c)return;
-  c.innerHTML='<div style="padding:40px 20px;text-align:center;color:var(--text-light);"><i class="ti ti-alert-triangle" style="font-size:1.6rem;"></i><p style="margin-top:10px;">Não consegui carregar '+label+' agora. Se o sinal tiver fraco, isso pode ter sido um carregamento incompleto.</p><button onclick="location.reload()" style="margin-top:14px;padding:10px 20px;border-radius:8px;border:none;background:var(--ocean);color:#fff;font-weight:600;cursor:pointer;min-height:44px;">Recarregar</button></div>';
+  if(c){
+    c.innerHTML='<div style="padding:40px 20px;text-align:center;color:var(--text-light);"><i class="ti ti-alert-triangle" style="font-size:1.6rem;"></i><p style="margin-top:10px;">Não consegui carregar '+label+' agora. Se o sinal tiver fraco, isso pode ter sido um carregamento incompleto.</p><button onclick="location.reload()" style="margin-top:14px;padding:10px 20px;border-radius:8px;border:none;background:var(--ocean);color:#fff;font-weight:600;cursor:pointer;min-height:44px;">Recarregar</button></div>';
+  }
+  if(err)showErrorBanner('Erro montando '+label+': '+(err.message||err));
 }
 
 function showSync(state){
@@ -759,8 +789,20 @@ function showSync(state){
 // timeout curto pra não deixar "Salvando..." travado quando o sinal tá ruim
 // (comum na ilha) — falha rápido e volta pro fluxo local em vez de ficar pendurado
 const FB_TIMEOUT_MS=8000;
+// AbortSignal.timeout() é relativamente novo (não existe em navegadores mais
+// antigos) — sem esse fallback, chamar direto quebra fbFetch inteiro num
+// aparelho que não suporte, e ninguém vê o motivo (só "não sincroniza").
+function timeoutSignal(ms){
+  if(typeof AbortSignal!=='undefined'&&AbortSignal.timeout)return AbortSignal.timeout(ms);
+  if(typeof AbortController!=='undefined'){
+    var ctrl=new AbortController();
+    setTimeout(function(){ctrl.abort();},ms);
+    return ctrl.signal;
+  }
+  return undefined;
+}
 function fbFetch(path,options){
-  return fetch(FB+'/'+path+'.json',Object.assign({signal:AbortSignal.timeout(FB_TIMEOUT_MS)},options));
+  return fetch(FB+'/'+path+'.json',Object.assign({signal:timeoutSignal(FB_TIMEOUT_MS)},options));
 }
 function fbFail(){
   showSync(navigator.onLine?'error':'offline');
@@ -1240,7 +1282,7 @@ function calcSaldo(){
 
 function buildGastos(){
   try{ _buildGastosImpl(); }
-  catch(e){ console.error('[buildGastos]',e); showBuildError('gastos','os Gastos'); }
+  catch(e){ console.error('[buildGastos]',e); showBuildError('gastos','os Gastos',e); }
 }
 function _buildGastosImpl(){
   const c=document.getElementById('gastos');
@@ -1383,7 +1425,7 @@ var PERIOD_ICONS={'Manhã':'ti-sunrise','Tarde':'ti-sun','Noite':'ti-moon-stars'
 
 function buildDiaDia(){
   try{ _buildDiaDiaImpl(); }
-  catch(e){ console.error('[buildDiaDia]',e); showBuildError('diadia','o Dia a dia'); }
+  catch(e){ console.error('[buildDiaDia]',e); showBuildError('diadia','o Dia a dia',e); }
 }
 function _buildDiaDiaImpl(){
   const c=document.getElementById('diadia');
@@ -1534,7 +1576,7 @@ function addCheckItem(){
 
 function buildMares(){
   try{ _buildMaresImpl(); }
-  catch(e){ console.error('[buildMares]',e); showBuildError('mares','as Marés'); }
+  catch(e){ console.error('[buildMares]',e); showBuildError('mares','as Marés',e); }
 }
 function _buildMaresImpl(){
   const c=document.getElementById('mares');
@@ -1553,7 +1595,7 @@ buildMares();
 // LISTA DE COMPRAS
 function buildLista(){
   try{ _buildListaImpl(); }
-  catch(e){ console.error('[buildLista]',e); showBuildError('lista','a Lista'); }
+  catch(e){ console.error('[buildLista]',e); showBuildError('lista','a Lista',e); }
 }
 function _buildListaImpl(){
   var c=document.getElementById('lista');
