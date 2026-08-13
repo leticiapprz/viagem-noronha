@@ -2,7 +2,7 @@
 // Firebase, fontes, Leaflet, Chart.js, tiles do OSM ficam de fora (não dá
 // pra promissoravelmente cachear tudo isso às cegas; o index.html já
 // degrada bem sem eles, ver PROJECT_MAP.md).
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = 'noronha-shell-' + CACHE_VERSION;
 const PRECACHE_URLS = [
   './',
@@ -56,8 +56,14 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          // só guarda em cache se a resposta parecer completa/válida — com
+          // sinal ruim (comum na ilha) uma conexão pode cair no meio do
+          // download; cachear isso "poison"aria o cache com uma página
+          // quebrada que passaria a ser servida offline dali pra frente.
+          if (isCompleteHtmlResponse(res)) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          }
           return res;
         })
         .catch(() => caches.match(req).then((res) => res || caches.match('./index.html')))
@@ -68,9 +74,20 @@ self.addEventListener('fetch', (event) => {
   // cache-first pros assets estáticos próprios (ícones, fotos)
   event.respondWith(
     caches.match(req).then((cached) => cached || fetch(req).then((res) => {
-      const copy = res.clone();
-      caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+      if (res.ok) {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+      }
       return res;
     }))
   );
 });
+
+function isCompleteHtmlResponse(res) {
+  if (!res.ok) return false;
+  const len = res.headers.get('content-length');
+  // index.html tem dezenas de KB; qualquer coisa bem menor que isso quase
+  // certamente é um download cortado no meio, não a página de verdade.
+  if (len && Number(len) < 20000) return false;
+  return true;
+}

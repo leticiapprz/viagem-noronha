@@ -738,6 +738,14 @@ function lsBool(k,d){const v=localStorage.getItem(LS+k);return v!==null?v==='tru
 const HTML_ESCAPE_MAP={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
 function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return HTML_ESCAPE_MAP[c];});}
 
+// Se alguma aba falhar ao montar (ex: dado corrompido, carregamento incompleto
+// numa conexão ruim), mostra isso em vez de deixar a tela em branco sem explicação.
+function showBuildError(containerId,label){
+  var c=document.getElementById(containerId);
+  if(!c)return;
+  c.innerHTML='<div style="padding:40px 20px;text-align:center;color:var(--text-light);"><i class="ti ti-alert-triangle" style="font-size:1.6rem;"></i><p style="margin-top:10px;">Não consegui carregar '+label+' agora. Se o sinal tiver fraco, isso pode ter sido um carregamento incompleto.</p><button onclick="location.reload()" style="margin-top:14px;padding:10px 20px;border-radius:8px;border:none;background:var(--ocean);color:#fff;font-weight:600;cursor:pointer;min-height:44px;">Recarregar</button></div>';
+}
+
 function showSync(state){
   const el=document.getElementById('sync-indicator');
   if(!el)return;
@@ -1231,6 +1239,10 @@ function calcSaldo(){
 }
 
 function buildGastos(){
+  try{ _buildGastosImpl(); }
+  catch(e){ console.error('[buildGastos]',e); showBuildError('gastos','os Gastos'); }
+}
+function _buildGastosImpl(){
   const c=document.getElementById('gastos');
   var s=calcSaldo();
   var saldoMsg,saldoColor;
@@ -1370,6 +1382,10 @@ var editingDayId=null;
 var PERIOD_ICONS={'Manhã':'ti-sunrise','Tarde':'ti-sun','Noite':'ti-moon-stars'};
 
 function buildDiaDia(){
+  try{ _buildDiaDiaImpl(); }
+  catch(e){ console.error('[buildDiaDia]',e); showBuildError('diadia','o Dia a dia'); }
+}
+function _buildDiaDiaImpl(){
   const c=document.getElementById('diadia');
   const todayIdx=getTodayDayIndex();
   let h='<h2>Dia a dia · Noronha</h2>';
@@ -1517,6 +1533,10 @@ function addCheckItem(){
 }
 
 function buildMares(){
+  try{ _buildMaresImpl(); }
+  catch(e){ console.error('[buildMares]',e); showBuildError('mares','as Marés'); }
+}
+function _buildMaresImpl(){
   const c=document.getElementById('mares');
   let h='<h2>Tábua de marés · Noronha</h2>';
   h+='<div class="tide-legend"><i class="ti ti-ripple"></i> depende de maré &nbsp; 〰 melhor na baixa &nbsp; <i class="ti ti-check"></i> livre</div>';
@@ -1532,6 +1552,10 @@ buildMares();
 
 // LISTA DE COMPRAS
 function buildLista(){
+  try{ _buildListaImpl(); }
+  catch(e){ console.error('[buildLista]',e); showBuildError('lista','a Lista'); }
+}
+function _buildListaImpl(){
   var c=document.getElementById('lista');
   var items=getChecklist();
   var done=items.filter(function(x){return x.checked;}).length;
