@@ -83,7 +83,7 @@ input,select,textarea{font-family:inherit;font-size:15px;}
 .app{
   max-width:720px;
   margin:0 auto;
-  padding:16px 16px 96px;
+  padding:calc(16px + env(safe-area-inset-top)) 16px 96px;
 }
 header.topbar{
   display:flex;
@@ -122,10 +122,29 @@ header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
 .stat-card{
   background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
   padding:14px 10px;text-align:center;
+  appearance:none;-webkit-appearance:none;color:inherit;cursor:pointer;
+  transition:transform .1s, background .15s;
 }
+.stat-card:active{transform:scale(.97);background:var(--green-light);}
 .stat-card .n{font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-0.01em;color:var(--green-dark);font-variant-numeric:tabular-nums;}
 .stat-card .l{font-size:11px;color:var(--muted);margin-top:2px;}
 .stat-card.warn .n{color:var(--coral);}
+
+/* atalhos de adicionar rápido */
+.quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.quick-action{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 8px;cursor:pointer;color:var(--ink);font-size:12px;font-weight:600;
+  appearance:none;-webkit-appearance:none;font-family:inherit;
+  transition:transform .1s;
+}
+.quick-action:active{transform:scale(.97);}
+.quick-action .icon-circle{
+  width:38px;height:38px;border-radius:50%;background:var(--green-light);color:var(--green-dark);
+  display:flex;align-items:center;justify-content:center;
+}
+.quick-action .icon-circle .icon{width:18px;height:18px;margin:0;vertical-align:0;}
 
 .alert-list .alert-item{
   display:flex;align-items:flex-start;gap:10px;
@@ -255,7 +274,7 @@ form.entry-form{
 
 /* sync indicator */
 .sync-indicator{
-  position:fixed;top:10px;right:12px;z-index:60;
+  position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:60;
   font-size:11px;font-weight:600;padding:5px 10px;border-radius:20px;
   background:var(--card);border:1px solid var(--border);color:var(--muted);
   display:flex;align-items:center;gap:5px;opacity:0;pointer-events:none;transition:opacity .2s;
@@ -337,9 +356,15 @@ form.entry-form{
   <!-- ===== INÍCIO ===== -->
   <div id="tab-inicio" class="tab-content active">
     <div class="stat-grid">
-      <div class="stat-card" id="stat-exames"><div class="n">0</div><div class="l">Exames</div></div>
-      <div class="stat-card" id="stat-vacinas"><div class="n">0</div><div class="l">Vacinas</div></div>
-      <div class="stat-card" id="stat-remedios"><div class="n">0</div><div class="l">Remédios ativos</div></div>
+      <button class="stat-card" id="stat-exames" onclick="switchTab('exames')"><div class="n">0</div><div class="l">Exames</div></button>
+      <button class="stat-card" id="stat-vacinas" onclick="switchTab('vacinas')"><div class="n">0</div><div class="l">Vacinas</div></button>
+      <button class="stat-card" id="stat-remedios" onclick="switchTab('remedios')"><div class="n">0</div><div class="l">Remédios ativos</div></button>
+    </div>
+
+    <div class="quick-actions">
+      <button class="quick-action" onclick="quickAdd('exame')"><span class="icon-circle"><svg class="icon"><use href="#i-flask"/></svg></span>Exame</button>
+      <button class="quick-action" onclick="quickAdd('vacina')"><span class="icon-circle"><svg class="icon"><use href="#i-shield"/></svg></span>Vacina</button>
+      <button class="quick-action" onclick="quickAdd('remedio')"><span class="icon-circle"><svg class="icon"><use href="#i-capsule"/></svg></span>Remédio</button>
     </div>
 
     <div class="card">
@@ -737,16 +762,31 @@ if(['inicio','exames','vacinas','remedios','ajustes'].includes(initTab)){
 }
 
 /* ===== FORM TOGGLE ===== */
+function openForm(kind){
+  const form = document.getElementById('form-'+kind);
+  form.style.display = 'block';
+  form.reset();
+  document.getElementById(kind+'-id').value = '';
+  const perfilInput = document.getElementById(kind+'-perfil');
+  if(perfilInput) perfilInput.value = activeProfile[kind] || 'caique';
+}
+function closeForm(kind){
+  document.getElementById('form-'+kind).style.display = 'none';
+}
 function toggleForm(kind){
   const form = document.getElementById('form-'+kind);
   const isOpen = form.style.display !== 'none';
-  form.style.display = isOpen ? 'none' : 'block';
-  if(!isOpen){
-    form.reset();
-    document.getElementById(kind+'-id').value = '';
-    const perfilInput = document.getElementById(kind+'-perfil');
-    if(perfilInput) perfilInput.value = activeProfile[kind] || 'caique';
-  }
+  if(isOpen) closeForm(kind); else openForm(kind);
+}
+
+/* Atalho "adicionar rápido" da tela Início: pula direto pra aba certa com o
+   formulário já aberto, em vez de exigir trocar de aba e clicar em Adicionar. */
+function quickAdd(kind){
+  const tabByKind = {exame:'exames', vacina:'vacinas', remedio:'remedios'};
+  switchTab(tabByKind[kind]);
+  openForm(kind);
+  const form = document.getElementById('form-'+kind);
+  setTimeout(()=>form.scrollIntoView({behavior:'smooth', block:'start'}), 50);
 }
 
 /* ===== EXAMES ===== */
