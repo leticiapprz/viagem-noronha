@@ -1,0 +1,9 @@
+{
+  "name": "caique-saude-notify",
+  "private": true,
+  "type": "module",
+  "description": "Script standalone rodado só pelo GitHub Actions (.github/workflows/caique-saude-notify.yml) — não faz parte do site, que continua sem build. Ver PROJECT_MAP.md seção 6.",
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
+}

@@ -1,6 +1,6 @@
 # PROJECT_MAP.md — Mapa do projeto Viagem Noronha
 
-Referência obrigatória. **Leia este arquivo antes de qualquer mudança.** Depois de criar, remover ou alterar a função de um arquivo — ou de mudar como os dados são sincronizados, os dias do roteiro, as abas, etc. — atualize a seção correspondente aqui antes de considerar a tarefa concluída (ver seção 8).
+Referência obrigatória. **Leia este arquivo antes de qualquer mudança.** Depois de criar, remover ou alterar a função de um arquivo — ou de mudar como os dados são sincronizados, os dias do roteiro, as abas, etc. — atualize a seção correspondente aqui antes de considerar a tarefa concluída (ver seção 9).
 
 ---
 
@@ -13,6 +13,8 @@ Não há pipeline de build ou deploy configurado no repositório (sem CI, sem `p
 O site tem um **service worker** (`sw.js`, ver seção 2.13) que cacheia o app-shell pra funcionar offline. Isso significa que, depois da primeira visita, quem abrir o site pode estar vendo uma versão em cache — não é só "editou o arquivo, recarregou, viu a mudança" como num site estático puro. Ver seção 2.13 antes de mexer em `sw.js` ou na lista de arquivos pré-cacheados.
 
 Repositório: `leticiapprz/viagem-noronha` (branch `main`).
+
+**Este repositório hospeda mais de um site estático independente.** Além do planner de viagem descrito neste documento (raiz do repo), há também `caique-saude/` (app de controle de saúde do Caique — exames, vacinas, remédios; ver seção 15). São projetos **sem nenhuma relação** — não compartilham dados, Firebase, service worker, CSS ou JS. Se for mexer num, não presuma nada sobre o outro.
 
 ---
 
@@ -163,7 +165,7 @@ O site pode ser "instalado" (Adicionar à tela de início, no celular) e continu
 - **Ícones** (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`, raiz do repo) — gerados a partir de `icon.svg` (não versionado, só o PNG final) via screenshot headless (Playwright/Chromium), já que não há ImageMagick/PIL disponível no ambiente. Design: gradiente `--ocean`→`--green` com o emoji 🦈 (mesmo do favicon) sobre uma onda. Fundo em **full-bleed quadrado, sem cantos arredondados manualmente** — o SO aplica a própria máscara (Android/iOS); arredondar os dois juntos deixava uma borda branca feia. Pra regenerar/trocar o ícone: editar o SVG e re-rodar o screenshot nos 3 tamanhos.
 - **`sw.js`** (raiz do repo, registrado no fim do `<script>` via `navigator.serviceWorker.register('sw.js')`) — cacheia só requisições **do próprio domínio** (`self.location.origin`): o `index.html` (estratégia network-first, com fallback pro cache se a rede falhar — garante que quem tem internet sempre vê a versão mais nova, e quem não tem ainda consegue abrir o app) e os arquivos estáticos próprios (`manifest.json`, ícones, fotos do splash — estratégia cache-first). **Não cacheia nada de fora** (Firebase, Google Fonts, Leaflet/Chart.js/tabler-icons via CDN, tiles do OSRM/OpenStreetMap) — isso é proposital, não uma limitação a corrigir de leve: cachear um webfont de terceiros às cegas (múltiplos arquivos de fonte referenciados de dentro do CSS, caminhos não óbvios) tem alto risco de cache quebrado por pouco ganho. Efeito prático offline: dados (gastos/roteiro/checklist) funcionam 100% (vêm do `localStorage`, seção 2.3), a aba Mapa mostra a mensagem de fallback (seção 2.11), ícones (`ti ti-*`) e a fonte DM Sans não aparecem (cai no fallback do sistema) — cosmético, não quebra nada.
 - **Versionamento do cache:** `CACHE_VERSION`/`CACHE_NAME` no topo do `sw.js`. Ao adicionar/remover um arquivo da lista `PRECACHE_URLS`, **bump o `CACHE_VERSION`** (ex. `'v1'`→`'v2'`) — isso força um cache novo e o `activate` apaga o antigo. Sem isso, navegadores que já instalaram o SW anterior podem não pegar os arquivos novos até o cache antigo expirar/ser limpo manualmente.
-- **Testar isso exige HTTP, não `file://`:** service workers não registram em páginas abertas via `file://` (não é contexto seguro o suficiente pro browser). Pra testar mudanças no `sw.js`/manifest, suba um servidor local (`python3 -m http.server` na raiz do repo) e abra via `http://localhost:PORT/index.html` — abrir o arquivo direto no navegador (double-click, ver seção 7) não vai registrar o service worker, mas o resto do site funciona normalmente do mesmo jeito.
+- **Testar isso exige HTTP, não `file://`:** service workers não registram em páginas abertas via `file://` (não é contexto seguro o suficiente pro browser). Pra testar mudanças no `sw.js`/manifest, suba um servidor local (`python3 -m http.server` na raiz do repo) e abra via `http://localhost:PORT/index.html` — abrir o arquivo direto no navegador (double-click, ver seção 8) não vai registrar o service worker, mas o resto do site funciona normalmente do mesmo jeito.
 
 ### 2.14 FAB flutuante: gasto rápido / info importante (10/08/2026)
 Dois botões redondos fixos (`.fab-group`, HTML estático no `<body>`, antes da `<nav>`) visíveis em **qualquer aba** — não fazem parte de nenhuma `tab-content`, então sobrevivem a troca de aba sem re-render. Ficam acima da bottom-nav no mobile, canto inferior direito no desktop (sidebar não usa essa área).
@@ -203,7 +205,56 @@ Referenciados pelo `index.html`:
 
 ---
 
-## 6. Histórico relevante (não repetir aqui, só contexto pra não redescobrir via git log)
+## 6. `caique-saude/` — app de saúde do Caique (projeto separado)
+
+App estático independente, **sem nenhuma relação com os dados do planner de viagem** — mora numa pasta própria. Um único arquivo `caique-saude/index.html` (HTML+CSS+JS inline, mesmo padrão "sem build" do resto do repo), mais um punhado de arquivos de apoio (manifest, service worker, ícones, e um script Node que roda só no GitHub Actions — ver 6.4). CSS/JS de `index.html` são totalmente duplicados e independentes, não compartilham nada com o `index.html` da raiz.
+
+6 telas (nav inferior/lateral, mesmo padrão responsivo `@media(min-width:768px)` da seção 2.4): **Início** (dashboard — contadores, checklist de remédios de hoje, alertas de exames próximos/vacinas atrasadas/pendentes), **Exames**, **Vacinas**, **Remédios**, **Ajustes** (perfil do pet, notificações, backup).
+
+### 6.1 Perfis (Caique / pet)
+
+Desde 09/2026 o app cobre dois "perfis": **Caique** (humano, default) e **pet** (ex: um cachorro). Cada registro de exame/vacina/remédio tem um campo `perfil` (`'caique'` ou `'pet'`); registros antigos sem esse campo são tratados como `'caique'` (`x.perfil||'caique'`, nunca assumir que o campo existe). As abas Exames/Vacinas/Remédios têm um seletor de pílulas no topo (`buildProfileRow(kind)`, `activeProfile.{exame,vacina,remedio}`, cada aba filtra independente — dá pra estar em "Pet" nos Exames e "Caique" nos Remédios ao mesmo tempo) que filtra a lista por perfil. O nome exibido do pet vem de `getPet().nome` (fallback `'Pet'` se ainda não preenchido) — `profileLabel(id)` centraliza isso, usar sempre essa função em vez de comparar `'pet'`/`'caique'` direto quando for exibir texto pro usuário.
+
+- **Perfil do pet** (nome, espécie, raça, nascimento aproximado) fica na aba Ajustes (`getPet()`/`savePet()`/`savePetField()`), objeto único salvo em `pet` (não é array).
+- **Sugestões de vacina pra cachorro** (`DOG_VACCINE_SUGGESTIONS`, aba Vacinas, só aparece com perfil=pet e espécie=cachorro): cartão com vacinas anuais comuns (V8/V10, antirrábica, gripe canina, giárdia) e botão de adicionar rápido (`addSuggestedVacina`) — cria o registro com nome preenchido mas **data vazia de propósito** (`obs:'Preencha a data quando aplicar.'`), pra não inventar datas que não existem. **Isso é só um ponto de partida genérico, não orientação veterinária** — se for atualizar a lista, não tratar como definitivo, o protocolo real varia por região/vet.
+
+### 6.2 Sincronização — Firebase Realtime Database (mesmo projeto da viagem)
+
+Decisão consciente (09/2026): **reaproveita o mesmo projeto Firebase do planner de viagem** (`viagem-noronha-default-rtdb.firebaseio.com`), só que num **nó separado, `/caique-saude`** — não tem nenhuma relação com `/gastos`, `/checklist-v2` etc. da viagem, é só o mesmo banco físico por conveniência (evita criar/manter um projeto Firebase novo). As regras públicas de leitura/escrita do banco (seção 5, expiram 31/12/2026) valem pro banco inteiro, então isso já funciona sem nenhuma mudança de configuração no Firebase — só reaproveita a mesma URL.
+
+- `FB = 'https://viagem-noronha-default-rtdb.firebaseio.com/caique-saude'` — todas as chamadas (`fbFetch`/`fbWrite`/`pullFromFirebase`) já incluem esse prefixo.
+- Padrão de escrita é **mais simples que o do planner de viagem**: aqui não tem edição campo-a-campo em tempo real (é tudo formulário com "Salvar"), então cada `saveExame`/`saveVacina`/`saveRemedio`/`removeExame`/etc. já monta a lista completa localmente e manda um `fbWrite('exames', list)` (PUT do array inteiro) logo em seguida — não tem debounce por campo como `syncGasto` da seção 2.3, porque não tem série de teclas rápidas pra debouncar (só um clique de "Salvar" por vez).
+- `pullFromFirebase()` roda no carregamento da página (depois de já ter chamado `renderAll()` uma vez com o cache local, pra UI aparecer instantânea mesmo offline) e de novo no evento `online` — mesmo padrão da seção 2.3, sobrescreve `localStorage` com o que vier de `exames`/`vacinas`/`remedios`/`pet`.
+- `showSync(state)` atualiza um indicador fixo no canto superior direito (`#sync-indicator`) — "Salvando…"/"Sincronizado"/"Erro ao sincronizar" (ou "Sem internet" se `navigator.onLine` for falso), mesmo padrão visual da seção 2.3.
+- **Risco do `PUT` de nó inteiro (mesmo alerta da seção 2.3, bug crítico já corrigido lá):** como aqui cada save já faz `PUT` do array completo (não só o campo editado), **nunca chamar `fbWrite('exames', ...)` com uma lista que pode estar incompleta/vazia por engano** (ex: um bug que zera `getExames()` antes de montar a lista) — isso apagaria o nó inteiro no Firebase pra todo mundo. Como toda escrita parte de `getExames()` (que já reflete o que `pullFromFirebase` trouxe) + uma edição pontual, o risco na prática é baixo, mas é o mesmo padrão de cuidado.
+- `pushSubscriptions` (objeto, chave = um id aleatório gerado no primeiro `enableNotifications()` e guardado em `localStorage['caique-saude-push-sub-id']`) e `notified` (objeto, ver 6.4) também moram nesse nó, mas só são escritos/lidos pelo fluxo de notificação — não fazem parte do "sync de dados" normal.
+
+### 6.3 Notificações — Web Push (não é Firebase Cloud Messaging)
+
+iPhone só recebe push de site se ele estiver **instalado na Tela de Início** (iOS 16.4+) — `isStandalonePwa()` checa isso (`display-mode:standalone` ou `navigator.standalone`) antes de deixar ativar. O fluxo (botão "Ativar notificações" na aba Ajustes, `enableNotifications()`) é: registra `sw.js` → pede permissão (`Notification.requestPermission()`) → `pushManager.subscribe()` com a chave pública VAPID → grava a inscrição em `pushSubscriptions/<id>` no Firebase.
+
+- Usa o **protocolo Web Push padrão (VAPID)**, não Firebase Cloud Messaging — não precisa habilitar nada no console do Firebase pra isso, é independente do banco (só usa o Firebase RTDB como lugar de guardar as inscrições, poderia ser qualquer outro). Safari em PWA instalada suporta isso nativamente desde iOS 16.4.
+- Par de chaves VAPID gerado uma vez (09/2026) com `openssl ecparam` + conversão manual pro formato base64url que o `pushManager.subscribe`/`web-push` esperam. **A pública** (`VAPID_PUBLIC_KEY`) está hardcoded em `index.html` — não é segredo, roda no navegador. **A privada só existe como secret do GitHub Actions** (`CAIQUE_SAUDE_VAPID_PRIVATE_KEY`), nunca commitada. Se precisar trocar as chaves (rotação, ou perdeu a privada), tem que gerar um par novo E atualizar os dois lugares — os dispositivos já inscritos com a chave pública antiga vão parar de receber push até reinstalar/reativar.
+- `sw.js` (próprio de `caique-saude/`, isolado do `sw.js` da raiz — ver seção 2.13, não reusar) trata `push` (mostra a notificação, `showNotification`) e `notificationclick` (foca a aba já aberta ou abre uma nova). Também faz cache de app-shell básico (mesmo padrão network-first da seção 2.13, versão bem mais simples).
+
+### 6.4 Envio automático — GitHub Actions + `scripts/send-reminders.mjs`
+
+Como o app não tem backend próprio, quem efetivamente **dispara** os pushes é um workflow do GitHub Actions (`.github/workflows/caique-saude-notify.yml`, cron diário `0 11 * * *` UTC = 8h em Brasília, mais `workflow_dispatch` pra rodar manual/testar) que roda `caique-saude/scripts/send-reminders.mjs`.
+
+- Esse script é a **única exceção ao "sem build"** do projeto — tem seu próprio `caique-saude/scripts/package.json` (só a dependência `web-push`) e roda `npm install` dentro do job do Actions. Isso não afeta o site em si (continua sem build, abre `index.html` direto) — é tooling isolado, só existe pra esse cron job.
+- Lê o banco inteiro (`GET /caique-saude/.json`), recalcula as mesmas condições de alerta que a aba Início calcula no navegador (exame nos próximos 7 dias, resultado aguardando, vacina nos próximos 14 dias, vacina atrasada, remédios ativos hoje) — **lógica duplicada de propósito** (é um script Node isolado, não tem como importar o JS do `index.html` diretamente); se mudar as regras de alerta de uma aba Início, revisar se o script também precisa mudar.
+- **Idempotência via `notified`** (objeto no mesmo nó `/caique-saude`): cada aviso tem uma chave estável (ex: `exame:<id>:soon`, `vacina:<id>:overdue:<semana>`, `remedios:hoje:<data-ISO>`) — só manda push se a chave ainda não estiver em `notified`, e grava a chave com `PATCH` depois de mandar. Vacina atrasada é a única categoria que **repete** (uma vez por semana enquanto atrasada, via `<semana>` no fim da chave) — as outras mandam uma vez só. Se a idempotência falhar/for removida sem cuidado, o risco é notificar a mesma coisa todo dia.
+- Inscrições que retornam 404/410 (expiradas — usuário desinstalou o PWA, limpou dados, etc.) são removidas de `pushSubscriptions` automaticamente.
+- **Setup necessário fora deste repo** (não dá pra automatizar por aqui): 1) adicionar o secret `CAIQUE_SAUDE_VAPID_PRIVATE_KEY` nas configurações do repositório no GitHub (Settings → Secrets and variables → Actions); 2) no iPhone, abrir o site em Safari → Compartilhar → Adicionar à Tela de Início → abrir pelo ícone → aba Ajustes → "Ativar notificações". Sem isso o workflow roda normalmente todo dia, só não tem pra quem mandar (`subIds.length===0`, não dá erro).
+- **Como esse hosting é servido** ainda não está documentado (mesma observação da seção 1 pro site da viagem) — o manifest/ícones/service worker precisam estar publicados no mesmo lugar que serve `caique-saude/index.html` pra instalação como PWA funcionar.
+
+### 6.5 Testar localmente
+
+`python3 -m http.server` dentro de `caique-saude/` (ou na raiz do repo) + abrir via `http://localhost:PORTA/caique-saude/index.html` — service worker exige HTTP(S), não `file://` (mesma restrição da seção 2.13/8). Sem internet, o sync com Firebase falha silenciosamente (indicador mostra "Sem internet — salvo só aqui", cai pro `localStorage`) — pra testar de verdade a sincronização entre "dispositivos", precisa de internet de verdade (o Firebase real). Push notification não dá pra testar neste tipo de sandbox (precisa HTTPS real + iPhone físico com o PWA instalado); o `send-reminders.mjs` dá pra rodar manualmente (`workflow_dispatch` no Actions, ou local com `VAPID_PRIVATE_KEY=... node send-reminders.mjs` dentro de `caique-saude/scripts` depois de `npm install`) pra conferir os logs sem depender do cron.
+
+---
+
+## 7. Histórico relevante (não repetir aqui, só contexto pra não redescobrir via git log)
 
 - Migração de Google Sheets → Firebase Realtime Database para sync entre dispositivos.
 - Lista de compras + lista de "resolver" foram unificadas num checklist único com tags editáveis (ver seção 2.10 e a nota de dado morto na seção 2.3).
@@ -211,7 +262,7 @@ Referenciados pelo `index.html`:
 
 ---
 
-## 7. Como testar uma mudança
+## 8. Como testar uma mudança
 
 Não há servidor/build — basta abrir `index.html` direto no navegador (duplo-clique ou `open index.html`) para ver o resultado. Mudanças em dados sincronizados (gastos, checklist) só refletem entre "dispositivos" diferentes através do Firebase — testar localmente basta olhar a própria aba, já que o localStorage funciona igual sem internet (só a sincronização entre abas/dispositivos depende do Firebase estar acessível).
 
@@ -219,7 +270,7 @@ Exceção: mudanças no service worker/manifest (seção 2.13) só são testáve
 
 ---
 
-## 8. Como manter este arquivo
+## 9. Como manter este arquivo
 
 Sempre que:
 - adicionar/remover uma aba, uma seção de código, ou um arquivo no repo;

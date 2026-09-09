@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Saúde do Caique</title>
+<meta name="theme-color" content="#4a6b3f">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Saúde Caique">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --green:#4a6b3f;
+  --green-dark:#33492b;
+  --green-light:#e7ede0;
+  --coral:#b85f3f;
+  --coral-bg:#f4e8e0;
+  --amber:#93711c;
+  --amber-bg:#f2ecd9;
+  --ink:#181c14;
+  --muted:#6c7364;
+  --bg:#f4f5ef;
+  --card:#ffffff;
+  --border:#e1e4d8;
+  --shadow:0 1px 2px rgba(24,28,20,.05);
+  --radius:14px;
+  --font-display:"Bricolage Grotesque","Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --font-body:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --accent-solid:#3f5a35;
+  --on-accent:#fbfcf8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --green:#a3c98c;
+    --green-dark:#cbe6ae;
+    --green-light:#26301e;
+    --coral:#e2a184;
+    --coral-bg:#3c2a1f;
+    --amber:#e2c583;
+    --amber-bg:#3a3018;
+    --ink:#eef1e7;
+    --muted:#9aa48c;
+    --bg:#11150d;
+    --card:#191f13;
+    --border:#2a3320;
+    --shadow:0 1px 2px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --green:#a3c98c;
+  --green-dark:#cbe6ae;
+  --green-light:#26301e;
+  --coral:#e2a184;
+  --coral-bg:#3c2a1f;
+  --amber:#e2c583;
+  --amber-bg:#3a3018;
+  --ink:#eef1e7;
+  --muted:#9aa48c;
+  --bg:#11150d;
+  --card:#191f13;
+  --border:#2a3320;
+  --shadow:0 1px 2px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+body{margin:0;}
+html,body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;}
+button{font-family:inherit;}
+input,select,textarea{font-family:inherit;font-size:15px;}
+.icon{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;vertical-align:-4px;}
+
+.app{
+  max-width:720px;
+  margin:0 auto;
+  padding:16px 16px 96px;
+}
+header.topbar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:18px 4px 10px;
+}
+header.topbar .avatar{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,#5c7d4e,#33492b);
+  display:flex;align-items:center;justify-content:center;
+  color:#fdfefe;font-weight:700;font-size:18px;flex-shrink:0;
+  font-family:var(--font-display);
+}
+header.topbar h1{font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;margin:0;line-height:1.15;text-wrap:balance;}
+header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  margin-bottom:14px;
+}
+.section-title{
+  font-size:13px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  color:var(--muted);
+  margin:0 0 10px 2px;
+}
+
+/* dashboard stat grid */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 10px;text-align:center;
+}
+.stat-card .n{font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-0.01em;color:var(--green-dark);font-variant-numeric:tabular-nums;}
+.stat-card .l{font-size:11px;color:var(--muted);margin-top:2px;}
+.stat-card.warn .n{color:var(--coral);}
+
+.alert-list .alert-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 0;border-bottom:1px solid var(--border);
+}
+.alert-list .alert-item:last-child{border-bottom:none;}
+.alert-item .ic{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--coral-bg);color:var(--coral);
+}
+.alert-item .ic .icon{margin:0;vertical-align:0;}
+.alert-item.info .ic{background:var(--green-light);color:var(--green-dark);}
+.alert-item .txt strong{display:block;font-size:14px;font-family:var(--font-display);font-weight:600;}
+.alert-item .txt span{font-size:12.5px;color:var(--muted);}
+.empty-state{
+  text-align:center;color:var(--muted);font-size:13.5px;padding:18px 8px;
+}
+.empty-state .icon{width:26px;height:26px;display:block;margin:0 auto 6px;color:var(--green);vertical-align:0;}
+
+/* nav */
+.bottom-nav{
+  position:fixed;left:0;right:0;bottom:0;
+  background:var(--card);border-top:1px solid var(--border);
+  display:flex;justify-content:space-around;
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  z-index:50;
+}
+.nav-btn{
+  background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;
+  color:var(--muted);font-size:10.5px;padding:6px 10px;border-radius:10px;cursor:pointer;
+}
+.nav-btn .icon{width:20px;height:20px;vertical-align:0;}
+.nav-btn.active{color:var(--green-dark);}
+@media(min-width:768px){
+  .bottom-nav{
+    top:0;bottom:0;left:0;right:auto;width:96px;flex-direction:column;justify-content:flex-start;
+    padding:24px 8px;border-top:none;border-right:1px solid var(--border);gap:8px;
+  }
+  .app{max-width:640px;margin-left:96px;}
+  .nav-btn{width:100%;}
+}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* list items */
+.item-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px;margin-bottom:10px;
+}
+.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.item-head h3{margin:0;font-size:16px;font-family:var(--font-display);font-weight:600;}
+.item-meta{font-size:12.5px;color:var(--muted);margin-top:3px;}
+.item-actions{display:flex;gap:6px;flex-shrink:0;}
+.icon-btn{
+  border:none;background:var(--green-light);color:var(--green-dark);
+  width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+.icon-btn .icon{margin:0;vertical-align:0;}
+.icon-btn.danger{background:var(--coral-bg);color:var(--coral);}
+.badge{
+  display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;
+  background:var(--green-light);color:var(--green-dark);margin-top:6px;
+}
+.badge.warn{background:var(--coral-bg);color:var(--coral);}
+.badge.pending{background:var(--amber-bg);color:var(--amber);}
+.item-notes{font-size:13px;color:var(--ink);margin-top:8px;white-space:pre-wrap;}
+
+.filter-row{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;}
+.chip{
+  border:1px solid var(--border);background:var(--card);color:var(--muted);
+  padding:6px 12px;border-radius:20px;font-size:12.5px;white-space:nowrap;cursor:pointer;
+}
+.chip.active{background:var(--accent-solid);border-color:var(--accent-solid);color:var(--on-accent);}
+
+.add-btn{
+  width:100%;border:1.5px dashed var(--green);background:var(--green-light);color:var(--green-dark);
+  border-radius:var(--radius);padding:12px;font-size:14px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:14px;
+}
+
+form.entry-form{
+  background:var(--green-light);border-radius:var(--radius);padding:14px;margin-bottom:14px;
+}
+.field{margin-bottom:10px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--green-dark);margin-bottom:4px;}
+.field input,.field select,.field textarea{
+  width:100%;padding:9px 10px;border-radius:9px;border:1px solid var(--border);background:var(--card);color:var(--ink);
+}
+.field textarea{resize:vertical;min-height:56px;}
+.field-row{display:flex;gap:8px;}
+.field-row .field{flex:1;}
+.form-actions{display:flex;gap:8px;margin-top:4px;}
+.btn{
+  border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn.primary{background:var(--accent-solid);color:var(--on-accent);}
+.btn.ghost{background:var(--card);color:var(--muted);border:1px solid var(--border);}
+
+.med-today-item{
+  display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);
+}
+.med-today-item:last-child{border-bottom:none;}
+.med-today-item input[type=checkbox]{width:20px;height:20px;accent-color:var(--green);flex-shrink:0;}
+.med-today-item.done .txt{text-decoration:line-through;color:var(--muted);}
+.med-today-item .txt strong{display:block;font-size:14px;}
+.med-today-item .txt span{font-size:12px;color:var(--muted);}
+
+.settings-row{
+  display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);
+}
+.settings-row:last-child{border-bottom:none;}
+.settings-row span{font-size:13.5px;}
+
+/* seletor de perfil (Caique / Pet) */
+.profile-row{display:flex;gap:6px;margin-bottom:12px;}
+.profile-pill{
+  flex:1;border:1px solid var(--border);background:var(--card);color:var(--muted);
+  padding:9px 10px;border-radius:11px;font-size:13.5px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.profile-pill .icon{width:16px;height:16px;vertical-align:0;}
+.profile-pill.active{background:var(--green-light);border-color:var(--green);color:var(--green-dark);}
+
+/* sync indicator */
+.sync-indicator{
+  position:fixed;top:10px;right:12px;z-index:60;
+  font-size:11px;font-weight:600;padding:5px 10px;border-radius:20px;
+  background:var(--card);border:1px solid var(--border);color:var(--muted);
+  display:flex;align-items:center;gap:5px;opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.sync-indicator.show{opacity:1;}
+.sync-indicator .dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.sync-indicator.ok .dot{background:var(--green);}
+.sync-indicator.err .dot{background:var(--coral);}
+.sync-indicator.busy .dot{background:var(--amber);}
+
+/* sugestões de vacina (pet) */
+.suggest-card{
+  background:var(--green-light);border:1px dashed var(--green);border-radius:var(--radius);
+  padding:14px;margin-bottom:14px;
+}
+.suggest-card .section-title{margin-bottom:8px;}
+.suggest-item{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:8px 0;border-bottom:1px solid rgba(0,0,0,.06);
+}
+.suggest-item:last-child{border-bottom:none;}
+.suggest-item .txt strong{display:block;font-size:13.5px;}
+.suggest-item .txt span{font-size:11.5px;color:var(--muted);}
+.suggest-add{
+  border:none;background:var(--accent-solid);color:var(--on-accent);
+  width:28px;height:28px;border-radius:8px;flex-shrink:0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.suggest-add .icon{width:16px;height:16px;margin:0;vertical-align:0;}
+.suggest-add[disabled]{opacity:.4;cursor:default;}
+
+/* perfil do pet */
+.pet-profile-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.pet-profile-fields .field.full{grid-column:1/-1;}
+
+.status-pill{
+  display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+  padding:5px 10px;border-radius:20px;background:var(--green-light);color:var(--green-dark);
+}
+.status-pill.warn{background:var(--coral-bg);color:var(--coral);}
+.status-pill .icon{width:14px;height:14px;margin:0;vertical-align:0;}
+
+:focus-visible{outline:2px solid var(--green);outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;transition-duration:.001ms !important;}
+}
+</style>
+</head>
+<body>
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10.5V20h12v-9.5"/><path d="M10 20v-6h4v6"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6"/><path d="M10 3v6.2L4.7 18a2 2 0 0 0 1.7 3h11.2a2 2 0 0 0 1.7-3L14 9.2V3"/><path d="M7.5 15h9"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.2 19 6v6c0 5-3 7.8-7 8.8-4-1-7-3.8-7-8.8V6l7-2.8Z"/><path d="M12 9v6"/><path d="M9 12h6"/></symbol>
+  <symbol id="i-capsule" viewBox="0 0 24 24"><path d="M4.5 12.5 12.5 4.5a5 5 0 1 1 7 7l-8 8a5 5 0 0 1-7-7Z"/><path d="M9 8l7 7"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9"/><path d="M17 7h3"/><circle cx="14" cy="7" r="2"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="8" cy="12" r="2"/><path d="M4 17h12"/><path d="M20 17h0"/><circle cx="18" cy="17" r="2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M4 10h16"/><path d="M8 3.5v3"/><path d="M16 3.5v3"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M15.5 4.5 19.5 8.5 8 20H4v-4Z"/><path d="M13.5 6.5l4 4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M7 7l1 13h8l1-13"/></symbol>
+  <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M6 3h12"/><path d="M6 21h12"/><path d="M7 3c0 5 4 6.5 5 8-1 1.5-5 3-5 8"/><path d="M17 3c0 5-4 6.5-5 8 1 1.5 5 3 5 8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 11 12 15.5 16.5 11"/><path d="M4.5 18.5h15"/></symbol>
+  <symbol id="i-paw" viewBox="0 0 24 24"><circle cx="7" cy="9" r="1.8"/><circle cx="12" cy="6.5" r="1.8"/><circle cx="17" cy="9" r="1.8"/><path d="M8.5 14.5c0-2 1.5-3 3.5-3s3.5 1 3.5 3-1.6 3.2-3.5 3.2-3.5-1.2-3.5-3.2Z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 10a6 6 0 0 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10Z"/><path d="M10 19a2 2 0 0 0 4 0"/></symbol>
+</svg>
+<div class="sync-indicator" id="sync-indicator"><span class="dot"></span><span id="sync-text">Sincronizado</span></div>
+<div class="app">
+
+  <header class="topbar">
+    <div class="avatar">C</div>
+    <div>
+      <h1>Saúde do Caique</h1>
+      <p>Exames, vacinas e remédios em um só lugar</p>
+    </div>
+  </header>
+
+  <!-- ===== INÍCIO ===== -->
+  <div id="tab-inicio" class="tab-content active">
+    <div class="stat-grid">
+      <div class="stat-card" id="stat-exames"><div class="n">0</div><div class="l">Exames</div></div>
+      <div class="stat-card" id="stat-vacinas"><div class="n">0</div><div class="l">Vacinas</div></div>
+      <div class="stat-card" id="stat-remedios"><div class="n">0</div><div class="l">Remédios ativos</div></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Remédios de hoje</div>
+      <div id="meds-today"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Alertas</div>
+      <div id="alerts" class="alert-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== EXAMES ===== -->
+  <div id="tab-exames" class="tab-content">
+    <div class="profile-row" id="exame-profile-row"></div>
+    <button class="add-btn" onclick="toggleForm('exame')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar exame</button>
+    <form class="entry-form" id="form-exame" style="display:none" onsubmit="return saveExame(event)">
+      <input type="hidden" id="exame-id">
+      <input type="hidden" id="exame-perfil">
+      <div class="field"><label>Nome do exame</label><input id="exame-nome" required placeholder="Ex: Hemograma completo"></div>
+      <div class="field-row">
+        <div class="field"><label>Data</label><input type="date" id="exame-data" required></div>
+        <div class="field"><label>Status</label>
+          <select id="exame-status">
+            <option value="agendado">Agendado</option>
+            <option value="realizado">Realizado</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Resultado</label>
+        <select id="exame-resultado">
+          <option value="aguardando">Aguardando resultado</option>
+          <option value="normal">Normal</option>
+          <option value="alterado">Alterado</option>
+          <option value="na">Não se aplica</option>
+        </select>
+      </div>
+      <div class="field"><label>Observações</label><textarea id="exame-obs" placeholder="Médico solicitante, local, anotações..."></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">Salvar</button>
+        <button type="button" class="btn ghost" onclick="toggleForm('exame')">Cancelar</button>
+      </div>
+    </form>
+
+    <div class="filter-row" id="exame-filters"></div>
+    <div id="exames-list"></div>
+  </div>
+
+  <!-- ===== VACINAS ===== -->
+  <div id="tab-vacinas" class="tab-content">
+    <div class="profile-row" id="vacina-profile-row"></div>
+    <div id="vacina-suggestions"></div>
+    <button class="add-btn" onclick="toggleForm('vacina')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar vacina</button>
+    <form class="entry-form" id="form-vacina" style="display:none" onsubmit="return saveVacina(event)">
+      <input type="hidden" id="vacina-id">
+      <input type="hidden" id="vacina-perfil">
+      <div class="field"><label>Nome da vacina</label><input id="vacina-nome" required placeholder="Ex: Pentavalente"></div>
+      <div class="field-row">
+        <div class="field"><label>Dose</label><input id="vacina-dose" placeholder="Ex: 1ª dose, reforço"></div>
+        <div class="field"><label>Data aplicada</label><input type="date" id="vacina-data" required></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Próxima dose (opcional)</label><input type="date" id="vacina-proxima"></div>
+        <div class="field"><label>Local/clínica</label><input id="vacina-local" placeholder="Ex: UBS, pediatra"></div>
+      </div>
+      <div class="field"><label>Observações</label><textarea id="vacina-obs" placeholder="Reação, lote, observações..."></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">Salvar</button>
+        <button type="button" class="btn ghost" onclick="toggleForm('vacina')">Cancelar</button>
+      </div>
+    </form>
+    <div id="vacinas-list"></div>
+  </div>
+
+  <!-- ===== REMÉDIOS ===== -->
+  <div id="tab-remedios" class="tab-content">
+    <div class="profile-row" id="remedio-profile-row"></div>
+    <button class="add-btn" onclick="toggleForm('remedio')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar remédio</button>
+    <form class="entry-form" id="form-remedio" style="display:none" onsubmit="return saveRemedio(event)">
+      <input type="hidden" id="remedio-id">
+      <input type="hidden" id="remedio-perfil">
+      <div class="field"><label>Nome do remédio</label><input id="remedio-nome" required placeholder="Ex: Amoxicilina"></div>
+      <div class="field-row">
+        <div class="field"><label>Dosagem</label><input id="remedio-dosagem" placeholder="Ex: 5ml, 1 comprimido"></div>
+        <div class="field"><label>Horários</label><input id="remedio-horarios" placeholder="Ex: 08:00, 14:00, 20:00"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Início</label><input type="date" id="remedio-inicio"></div>
+        <div class="field"><label>Fim (opcional)</label><input type="date" id="remedio-fim"></div>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" id="remedio-continuo" style="width:auto;margin-right:6px;"> Uso contínuo (sem data de término)</label>
+      </div>
+      <div class="field"><label>Observações</label><textarea id="remedio-obs" placeholder="Motivo, orientação médica..."></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">Salvar</button>
+        <button type="button" class="btn ghost" onclick="toggleForm('remedio')">Cancelar</button>
+      </div>
+    </form>
+    <div class="filter-row" id="remedio-filters"></div>
+    <div id="remedios-list"></div>
+  </div>
+
+  <!-- ===== AJUSTES ===== -->
+  <div id="tab-ajustes" class="tab-content">
+    <div class="card">
+      <div class="section-title">Perfil do pet</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:0;">Usado na aba "Pet" (Exames/Vacinas/Remédios) e nas sugestões de vacina.</p>
+      <div class="pet-profile-fields">
+        <div class="field full"><label>Nome</label><input id="pet-nome" placeholder="Ex: Rex" onchange="savePetField('nome', this.value)"></div>
+        <div class="field"><label>Espécie</label>
+          <select id="pet-especie" onchange="savePetField('especie', this.value)">
+            <option value="cachorro">Cachorro</option>
+            <option value="gato">Gato</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="field"><label>Raça</label><input id="pet-raca" placeholder="Ex: Vira-lata" onchange="savePetField('raca', this.value)"></div>
+        <div class="field full"><label>Nascimento (aprox.)</label><input type="date" id="pet-nascimento" onchange="savePetField('nascimento', this.value)"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Notificações</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:0;">Avisos de vacina/exame próximos direto no iPhone. Precisa adicionar este site à Tela de Início primeiro (Safari → Compartilhar → Adicionar à Tela de Início) e abrir o app pelo ícone.</p>
+      <div id="notif-status" style="margin:8px 0 12px;"></div>
+      <div class="form-actions">
+        <button class="btn primary" id="notif-btn" onclick="enableNotifications()"><svg class="icon"><use href="#i-bell"/></svg> Ativar notificações</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Backup dos dados</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:0;">Os dados sincronizam automaticamente entre dispositivos. Este backup é extra, pra guardar uma cópia local.</p>
+      <div class="form-actions">
+        <button class="btn primary" onclick="exportData()"><svg class="icon"><use href="#i-download"/></svg> Exportar backup (.json)</button>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>Importar backup</label>
+        <input type="file" id="import-file" accept="application/json">
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Sobre</div>
+      <div class="settings-row"><span>App</span><span>Saúde do Caique</span></div>
+      <div class="settings-row"><span>Registros salvos</span><span id="storage-count">—</span></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="inicio" onclick="switchTab('inicio')"><svg class="icon"><use href="#i-home"/></svg>Início</button>
+    <button class="nav-btn" data-tab="exames" onclick="switchTab('exames')"><svg class="icon"><use href="#i-flask"/></svg>Exames</button>
+    <button class="nav-btn" data-tab="vacinas" onclick="switchTab('vacinas')"><svg class="icon"><use href="#i-shield"/></svg>Vacinas</button>
+    <button class="nav-btn" data-tab="remedios" onclick="switchTab('remedios')"><svg class="icon"><use href="#i-capsule"/></svg>Remédios</button>
+    <button class="nav-btn" data-tab="ajustes" onclick="switchTab('ajustes')"><svg class="icon"><use href="#i-sliders"/></svg>Ajustes</button>
+  </nav>
+</div>
+
+<script>
+const LS = 'caique-saude-';
+function lsGet(k, def){ try{ const v = localStorage.getItem(LS+k); return v===null ? def : JSON.parse(v); }catch(e){ return def; } }
+function lsSet(k, v){ try{ localStorage.setItem(LS+k, JSON.stringify(v)); }catch(e){} }
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function todayISO(){
+  return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+}
+function fmtDate(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function daysDiff(iso){
+  const today = new Date(todayISO()+'T00:00:00');
+  const target = new Date(iso+'T00:00:00');
+  return Math.round((target-today)/86400000);
+}
+
+/* ===== SYNC (Firebase Realtime Database) =====
+   Reaproveita o mesmo projeto Firebase do planner de viagem, mas num nó
+   separado (/caique-saude) — não tem nenhuma relação com os dados de
+   gastos/checklist da viagem, ver PROJECT_MAP.md. */
+const FB = 'https://viagem-noronha-default-rtdb.firebaseio.com/caique-saude';
+const FB_TIMEOUT_MS = 8000;
+
+function showSync(state){
+  const el = document.getElementById('sync-indicator');
+  const txt = document.getElementById('sync-text');
+  if(!el) return;
+  el.classList.remove('ok','err','busy');
+  if(state==='saving'){
+    el.classList.add('busy','show');
+    txt.textContent = 'Salvando...';
+  }else if(state==='synced'){
+    el.classList.add('ok','show');
+    txt.textContent = 'Sincronizado';
+    setTimeout(()=>el.classList.remove('show'), 1500);
+  }else if(state==='error'){
+    el.classList.add('err','show');
+    txt.textContent = navigator.onLine ? 'Erro ao sincronizar' : 'Sem internet — salvo só aqui';
+  }
+}
+
+function fbFetch(path, options){
+  return fetch(FB+path, Object.assign({signal: AbortSignal.timeout(FB_TIMEOUT_MS)}, options||{}));
+}
+function fbWrite(path, data){
+  showSync('saving');
+  return fbFetch('/'+path+'.json', {method:'PUT', body: JSON.stringify(data)})
+    .then(()=>{ showSync('synced'); })
+    .catch(()=>{ showSync('error'); });
+}
+
+function pullFromFirebase(){
+  return fbFetch('/.json')
+    .then(r=>r.json())
+    .then(data=>{
+      if(data){
+        if(Array.isArray(data.exames)) lsSet('exames', data.exames);
+        if(Array.isArray(data.vacinas)) lsSet('vacinas', data.vacinas);
+        if(Array.isArray(data.remedios)) lsSet('remedios', data.remedios);
+        if(data.pet) lsSet('pet', data.pet);
+      }
+      renderAll();
+    })
+    .catch(()=>{ showSync('error'); });
+}
+window.addEventListener('online', ()=>{ pullFromFirebase(); });
+
+/* ===== PERFIL (Caique / Pet) ===== */
+let activeProfile = { exame:'caique', vacina:'caique', remedio:'caique' };
+
+function getPet(){ return lsGet('pet', {nome:'', especie:'cachorro', raca:'', nascimento:''}); }
+function savePet(pet){ lsSet('pet', pet); fbWrite('pet', pet); }
+function savePetField(field, value){
+  const pet = getPet();
+  pet[field] = value;
+  savePet(pet);
+  renderAll();
+}
+function buildPetForm(){
+  const pet = getPet();
+  document.getElementById('pet-nome').value = pet.nome || '';
+  document.getElementById('pet-especie').value = pet.especie || 'cachorro';
+  document.getElementById('pet-raca').value = pet.raca || '';
+  document.getElementById('pet-nascimento').value = pet.nascimento || '';
+}
+function profileLabel(id){
+  if(id==='pet'){ const p = getPet(); return p && p.nome ? p.nome : 'Pet'; }
+  return 'Caique';
+}
+function buildProfileRow(kind){
+  const el = document.getElementById(kind+'-profile-row');
+  if(!el) return;
+  el.innerHTML = ['caique','pet'].map(p=>`
+    <button class="profile-pill ${activeProfile[kind]===p?'active':''}" onclick="setProfile('${kind}','${p}')">
+      <svg class="icon"><use href="#${p==='pet'?'i-paw':'i-user'}"/></svg>${escapeHtml(profileLabel(p))}
+    </button>
+  `).join('');
+}
+function setProfile(kind, p){
+  activeProfile[kind] = p;
+  renderAll();
+}
+
+/* ===== SUGESTÕES DE VACINA (pet) =====
+   Vacinas anuais mais comuns pra cachorro — protocolo varia por região/
+   veterinário, isso aqui é só ponto de partida, sempre confirmar com o vet. */
+const DOG_VACCINE_SUGGESTIONS = [
+  {nome:'V8/V10 (polivalente)', dose:'Reforço anual', desc:'Cinomose, parvovirose, leptospirose e mais'},
+  {nome:'Antirrábica', dose:'Reforço anual', desc:'Obrigatória por lei na maioria dos lugares'},
+  {nome:'Gripe canina (tosse dos canis)', dose:'A cada 6-12 meses', desc:'Se frequenta creche, hotel ou parquinho'},
+  {nome:'Giárdia', dose:'Reforço anual', desc:'Opcional, depende da região'},
+];
+function buildVacinaSuggestions(){
+  const el = document.getElementById('vacina-suggestions');
+  if(!el) return;
+  const pet = getPet();
+  if(activeProfile.vacina!=='pet' || (pet.especie||'cachorro')!=='cachorro'){ el.innerHTML=''; return; }
+  const existentes = getVacinas().filter(x=>(x.perfil||'caique')==='pet').map(x=>x.nome.toLowerCase());
+  el.innerHTML = `
+    <div class="suggest-card">
+      <div class="section-title">Sugestões pra cachorro (anuais)</div>
+      ${DOG_VACCINE_SUGGESTIONS.map(v=>{
+        const already = existentes.includes(v.nome.toLowerCase());
+        return `
+        <div class="suggest-item">
+          <div class="txt"><strong>${escapeHtml(v.nome)}</strong><span>${escapeHtml(v.dose)} · ${escapeHtml(v.desc)}</span></div>
+          <button class="suggest-add" ${already?'disabled':''} onclick="addSuggestedVacina('${v.nome.replace(/'/g,"\\'")}')" title="${already?'Já adicionada':'Adicionar'}">
+            <svg class="icon"><use href="#${already?'i-check':'i-plus'}"/></svg>
+          </button>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+function addSuggestedVacina(nome){
+  const list = getVacinas();
+  list.push({id:uid(), nome, dose:'', data:'', proxima:'', local:'', obs:'Preencha a data quando aplicar.', perfil:'pet'});
+  saveVacinas(list);
+  fbWrite('vacinas', list);
+  renderAll();
+}
+
+/* ===== NOTIFICAÇÕES (Web Push) =====
+   Chave pública VAPID — não é segredo, roda no navegador. A privada só
+   existe no GitHub Actions (secret), nunca neste arquivo. */
+const VAPID_PUBLIC_KEY = 'BER0vae7p2lF8R0KFbNhfdf3QGpCxgj59I_ENu9zma1J9kJJACBMv-ed2kdZAIRe4qyD3rpo0NItDzxuDEhavQ0';
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g,'+').replace(/_/g,'/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+}
+
+function isStandalonePwa(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+async function registerSW(){
+  if(!('serviceWorker' in navigator)) return null;
+  try{ return await navigator.serviceWorker.register('sw.js'); }
+  catch(e){ return null; }
+}
+
+function buildNotifStatus(){
+  const el = document.getElementById('notif-status');
+  const btn = document.getElementById('notif-btn');
+  if(!el || !btn) return;
+  const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  if(!supported){
+    el.innerHTML = `<span class="status-pill warn"><svg class="icon"><use href="#i-bell"/></svg>Não suportado neste navegador</span>`;
+    btn.disabled = true;
+    return;
+  }
+  if(!isStandalonePwa()){
+    el.innerHTML = `<span class="status-pill warn"><svg class="icon"><use href="#i-bell"/></svg>Adicione à Tela de Início e abra pelo ícone primeiro</span>`;
+    return;
+  }
+  if(Notification.permission === 'granted'){
+    el.innerHTML = `<span class="status-pill"><svg class="icon"><use href="#i-check"/></svg>Notificações ativadas</span>`;
+  }else if(Notification.permission === 'denied'){
+    el.innerHTML = `<span class="status-pill warn"><svg class="icon"><use href="#i-bell"/></svg>Bloqueadas — ative em Ajustes do iPhone</span>`;
+  }else{
+    el.innerHTML = `<span class="status-pill warn"><svg class="icon"><use href="#i-bell"/></svg>Ainda não ativadas</span>`;
+  }
+}
+
+async function enableNotifications(){
+  if(!isStandalonePwa()){
+    alert('Antes de ativar: adicione este app à Tela de Início (Compartilhar → Adicionar à Tela de Início) e abra por lá — o iPhone só permite notificação de apps instalados assim.');
+    return;
+  }
+  const reg = await registerSW();
+  if(!reg){ alert('Não consegui registrar o service worker.'); return; }
+  const permission = await Notification.requestPermission();
+  buildNotifStatus();
+  if(permission !== 'granted') return;
+  try{
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    const subId = lsGet('push-sub-id', null) || uid();
+    lsSet('push-sub-id', subId);
+    await fbWrite('pushSubscriptions/'+subId, JSON.parse(JSON.stringify(sub)));
+  }catch(e){
+    alert('Não consegui concluir a inscrição de notificações. Tenta de novo em alguns instantes.');
+  }
+  buildNotifStatus();
+}
+
+/* ===== TABS ===== */
+function switchTab(tab){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelector(`.nav-btn[data-tab="${tab}"]`).classList.add('active');
+  location.hash = tab;
+  renderAll();
+}
+const initTab = location.hash.replace('#','') || 'inicio';
+if(['inicio','exames','vacinas','remedios','ajustes'].includes(initTab)){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+initTab).classList.add('active');
+  document.querySelector(`.nav-btn[data-tab="${initTab}"]`).classList.add('active');
+}
+
+/* ===== FORM TOGGLE ===== */
+function toggleForm(kind){
+  const form = document.getElementById('form-'+kind);
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    form.reset();
+    document.getElementById(kind+'-id').value = '';
+    const perfilInput = document.getElementById(kind+'-perfil');
+    if(perfilInput) perfilInput.value = activeProfile[kind] || 'caique';
+  }
+}
+
+/* ===== EXAMES ===== */
+function getExames(){ return lsGet('exames', []); }
+function saveExames(list){ lsSet('exames', list); }
+let exameFilter = 'todos';
+
+function saveExame(ev){
+  ev.preventDefault();
+  const id = document.getElementById('exame-id').value || uid();
+  const item = {
+    id,
+    perfil: document.getElementById('exame-perfil').value || 'caique',
+    nome: document.getElementById('exame-nome').value.trim(),
+    data: document.getElementById('exame-data').value,
+    status: document.getElementById('exame-status').value,
+    resultado: document.getElementById('exame-resultado').value,
+    obs: document.getElementById('exame-obs').value.trim()
+  };
+  let list = getExames();
+  const idx = list.findIndex(x=>x.id===id);
+  if(idx>=0) list[idx]=item; else list.push(item);
+  saveExames(list);
+  fbWrite('exames', list);
+  toggleForm('exame');
+  renderAll();
+  return false;
+}
+function editExame(id){
+  const item = getExames().find(x=>x.id===id);
+  if(!item) return;
+  document.getElementById('form-exame').style.display='block';
+  document.getElementById('exame-id').value = item.id;
+  document.getElementById('exame-perfil').value = item.perfil || 'caique';
+  document.getElementById('exame-nome').value = item.nome;
+  document.getElementById('exame-data').value = item.data;
+  document.getElementById('exame-status').value = item.status;
+  document.getElementById('exame-resultado').value = item.resultado;
+  document.getElementById('exame-obs').value = item.obs;
+  document.getElementById('form-exame').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function removeExame(id){
+  if(!confirm('Remover este exame?')) return;
+  const list = getExames().filter(x=>x.id!==id);
+  saveExames(list);
+  fbWrite('exames', list);
+  renderAll();
+}
+const RESULTADO_LABEL = {aguardando:'Aguardando resultado', normal:'Resultado normal', alterado:'Resultado alterado', na:'Não se aplica'};
+const RESULTADO_CLASS = {aguardando:'pending', normal:'', alterado:'warn', na:''};
+
+function buildExames(){
+  buildProfileRow('exame');
+  const filters = [['todos','Todos'],['agendado','Agendados'],['realizado','Realizados']];
+  document.getElementById('exame-filters').innerHTML = filters.map(([v,l])=>
+    `<button class="chip ${exameFilter===v?'active':''}" onclick="exameFilter='${v}';renderAll()">${l}</button>`
+  ).join('');
+
+  let list = getExames().filter(x=>(x.perfil||'caique')===activeProfile.exame).sort((a,b)=> b.data.localeCompare(a.data));
+  if(exameFilter!=='todos') list = list.filter(x=>x.status===exameFilter);
+
+  const html = list.map(x=>`
+    <div class="item-card">
+      <div class="item-head">
+        <div>
+          <h3>${escapeHtml(x.nome)}</h3>
+          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${fmtDate(x.data)} · ${x.status==='agendado'?'Agendado':'Realizado'}</div>
+          <span class="badge ${RESULTADO_CLASS[x.resultado]}">${RESULTADO_LABEL[x.resultado]}</span>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn" onclick="editExame('${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
+          <button class="icon-btn danger" onclick="removeExame('${x.id}')"><svg class="icon"><use href="#i-trash"/></svg></button>
+        </div>
+      </div>
+      ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
+    </div>
+  `).join('');
+  document.getElementById('exames-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-flask"/></svg>Nenhum exame cadastrado ainda.</div>`;
+}
+
+/* ===== VACINAS ===== */
+function getVacinas(){ return lsGet('vacinas', []); }
+function saveVacinas(list){ lsSet('vacinas', list); }
+
+function saveVacina(ev){
+  ev.preventDefault();
+  const id = document.getElementById('vacina-id').value || uid();
+  const item = {
+    id,
+    perfil: document.getElementById('vacina-perfil').value || 'caique',
+    nome: document.getElementById('vacina-nome').value.trim(),
+    dose: document.getElementById('vacina-dose').value.trim(),
+    data: document.getElementById('vacina-data').value,
+    proxima: document.getElementById('vacina-proxima').value,
+    local: document.getElementById('vacina-local').value.trim(),
+    obs: document.getElementById('vacina-obs').value.trim()
+  };
+  let list = getVacinas();
+  const idx = list.findIndex(x=>x.id===id);
+  if(idx>=0) list[idx]=item; else list.push(item);
+  saveVacinas(list);
+  fbWrite('vacinas', list);
+  toggleForm('vacina');
+  renderAll();
+  return false;
+}
+function editVacina(id){
+  const item = getVacinas().find(x=>x.id===id);
+  if(!item) return;
+  document.getElementById('form-vacina').style.display='block';
+  document.getElementById('vacina-id').value = item.id;
+  document.getElementById('vacina-perfil').value = item.perfil || 'caique';
+  document.getElementById('vacina-nome').value = item.nome;
+  document.getElementById('vacina-dose').value = item.dose;
+  document.getElementById('vacina-data').value = item.data;
+  document.getElementById('vacina-proxima').value = item.proxima || '';
+  document.getElementById('vacina-local').value = item.local;
+  document.getElementById('vacina-obs').value = item.obs;
+  document.getElementById('form-vacina').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function removeVacina(id){
+  if(!confirm('Remover esta vacina?')) return;
+  const list = getVacinas().filter(x=>x.id!==id);
+  saveVacinas(list);
+  fbWrite('vacinas', list);
+  renderAll();
+}
+function buildVacinas(){
+  buildProfileRow('vacina');
+  buildVacinaSuggestions();
+  const list = getVacinas().filter(x=>(x.perfil||'caique')===activeProfile.vacina).sort((a,b)=> (b.data||'').localeCompare(a.data||''));
+  const html = list.map(x=>{
+    const atrasada = x.proxima && daysDiff(x.proxima) < 0;
+    const proxima = x.proxima && daysDiff(x.proxima) >= 0;
+    return `
+    <div class="item-card">
+      <div class="item-head">
+        <div>
+          <h3>${escapeHtml(x.nome)}${x.dose ? ` <span style="font-weight:400;color:var(--muted);font-size:13px;">· ${escapeHtml(x.dose)}</span>` : ''}</h3>
+          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${x.data ? 'Aplicada em '+fmtDate(x.data) : 'Data pendente'}${x.local ? ' · '+escapeHtml(x.local) : ''}</div>
+          ${x.proxima ? `<span class="badge ${atrasada?'warn':(proxima?'pending':'')}">${atrasada?'Próxima dose atrasada':'Próxima dose'}: ${fmtDate(x.proxima)}</span>` : ''}
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn" onclick="editVacina('${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
+          <button class="icon-btn danger" onclick="removeVacina('${x.id}')"><svg class="icon"><use href="#i-trash"/></svg></button>
+        </div>
+      </div>
+      ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
+    </div>
+  `;}).join('');
+  document.getElementById('vacinas-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-shield"/></svg>Nenhuma vacina cadastrada ainda.</div>`;
+}
+
+/* ===== REMÉDIOS ===== */
+function getRemedios(){ return lsGet('remedios', []); }
+function saveRemedios(list){ lsSet('remedios', list); }
+let remedioFilter = 'ativos';
+
+function isRemedioAtivo(x){
+  const today = todayISO();
+  if(x.continuo) return !x.inicio || x.inicio <= today;
+  if(x.inicio && x.inicio > today) return false;
+  if(x.fim && x.fim < today) return false;
+  return true;
+}
+
+function saveRemedio(ev){
+  ev.preventDefault();
+  const id = document.getElementById('remedio-id').value || uid();
+  const item = {
+    id,
+    perfil: document.getElementById('remedio-perfil').value || 'caique',
+    nome: document.getElementById('remedio-nome').value.trim(),
+    dosagem: document.getElementById('remedio-dosagem').value.trim(),
+    horarios: document.getElementById('remedio-horarios').value.trim(),
+    inicio: document.getElementById('remedio-inicio').value,
+    fim: document.getElementById('remedio-fim').value,
+    continuo: document.getElementById('remedio-continuo').checked,
+    obs: document.getElementById('remedio-obs').value.trim()
+  };
+  let list = getRemedios();
+  const idx = list.findIndex(x=>x.id===id);
+  if(idx>=0) list[idx]=item; else list.push(item);
+  saveRemedios(list);
+  fbWrite('remedios', list);
+  toggleForm('remedio');
+  renderAll();
+  return false;
+}
+function editRemedio(id){
+  const item = getRemedios().find(x=>x.id===id);
+  if(!item) return;
+  document.getElementById('form-remedio').style.display='block';
+  document.getElementById('remedio-id').value = item.id;
+  document.getElementById('remedio-perfil').value = item.perfil || 'caique';
+  document.getElementById('remedio-nome').value = item.nome;
+  document.getElementById('remedio-dosagem').value = item.dosagem;
+  document.getElementById('remedio-horarios').value = item.horarios;
+  document.getElementById('remedio-inicio').value = item.inicio || '';
+  document.getElementById('remedio-fim').value = item.fim || '';
+  document.getElementById('remedio-continuo').checked = !!item.continuo;
+  document.getElementById('remedio-obs').value = item.obs;
+  document.getElementById('form-remedio').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function removeRemedio(id){
+  if(!confirm('Remover este remédio?')) return;
+  const list = getRemedios().filter(x=>x.id!==id);
+  saveRemedios(list);
+  fbWrite('remedios', list);
+  renderAll();
+}
+function buildRemedios(){
+  buildProfileRow('remedio');
+  const filters = [['ativos','Ativos'],['todos','Todos']];
+  document.getElementById('remedio-filters').innerHTML = filters.map(([v,l])=>
+    `<button class="chip ${remedioFilter===v?'active':''}" onclick="remedioFilter='${v}';renderAll()">${l}</button>`
+  ).join('');
+
+  let list = getRemedios().filter(x=>(x.perfil||'caique')===activeProfile.remedio).sort((a,b)=> a.nome.localeCompare(b.nome));
+  if(remedioFilter==='ativos') list = list.filter(isRemedioAtivo);
+
+  const html = list.map(x=>{
+    const ativo = isRemedioAtivo(x);
+    const periodo = x.continuo ? 'Uso contínuo' : [x.inicio && `de ${fmtDate(x.inicio)}`, x.fim && `até ${fmtDate(x.fim)}`].filter(Boolean).join(' ');
+    return `
+    <div class="item-card">
+      <div class="item-head">
+        <div>
+          <h3>${escapeHtml(x.nome)}${x.dosagem ? ` <span style="font-weight:400;color:var(--muted);font-size:13px;">· ${escapeHtml(x.dosagem)}</span>` : ''}</h3>
+          ${x.horarios ? `<div class="item-meta"><svg class="icon"><use href="#i-clock"/></svg> ${escapeHtml(x.horarios)}</div>` : ''}
+          ${periodo ? `<div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${escapeHtml(periodo)}</div>` : ''}
+          <span class="badge ${ativo?'':'warn'}">${ativo?'Ativo':'Encerrado'}</span>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn" onclick="editRemedio('${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
+          <button class="icon-btn danger" onclick="removeRemedio('${x.id}')"><svg class="icon"><use href="#i-trash"/></svg></button>
+        </div>
+      </div>
+      ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
+    </div>
+  `;}).join('');
+  document.getElementById('remedios-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-capsule"/></svg>Nenhum remédio cadastrado ainda.</div>`;
+}
+
+/* ===== CHECKLIST "REMÉDIOS DE HOJE" ===== */
+function getTakenToday(){
+  const key = 'taken-'+todayISO();
+  return lsGet(key, []);
+}
+function toggleTaken(remedioId){
+  const key = 'taken-'+todayISO();
+  let taken = lsGet(key, []);
+  if(taken.includes(remedioId)) taken = taken.filter(id=>id!==remedioId);
+  else taken.push(remedioId);
+  lsSet(key, taken);
+  renderAll();
+}
+function buildMedsToday(){
+  const ativos = getRemedios().filter(isRemedioAtivo);
+  const taken = getTakenToday();
+  if(!ativos.length){
+    document.getElementById('meds-today').innerHTML = `<div class="empty-state"><svg class="icon"><use href="#i-capsule"/></svg>Nenhum remédio ativo hoje.</div>`;
+    return;
+  }
+  document.getElementById('meds-today').innerHTML = ativos.map(x=>{
+    const done = taken.includes(x.id);
+    const quem = profileLabel(x.perfil||'caique');
+    return `
+    <label class="med-today-item ${done?'done':''}">
+      <input type="checkbox" ${done?'checked':''} onchange="toggleTaken('${x.id}')">
+      <div class="txt">
+        <strong>${escapeHtml(x.nome)}${x.dosagem?` · ${escapeHtml(x.dosagem)}`:''}</strong>
+        <span>${escapeHtml(quem)} · ${escapeHtml(x.horarios || 'sem horário definido')}</span>
+      </div>
+    </label>`;
+  }).join('');
+}
+
+/* ===== DASHBOARD ===== */
+function buildDashboard(){
+  const exames = getExames();
+  const vacinas = getVacinas();
+  const remediosAtivos = getRemedios().filter(isRemedioAtivo);
+
+  document.getElementById('stat-exames').querySelector('.n').textContent = exames.length;
+  document.getElementById('stat-vacinas').querySelector('.n').textContent = vacinas.length;
+  document.getElementById('stat-remedios').querySelector('.n').textContent = remediosAtivos.length;
+
+  buildMedsToday();
+
+  const alerts = [];
+  exames.forEach(x=>{
+    const quem = profileLabel(x.perfil||'caique');
+    if(x.status==='agendado' && x.data){
+      const d = daysDiff(x.data);
+      if(d>=0 && d<=7) alerts.push({type:'info', icon:'i-flask', title:`${x.nome} · ${quem}`, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.data)}`});
+    }
+    if(x.resultado==='aguardando' && x.status==='realizado') alerts.push({type:'warn', icon:'i-hourglass', title:`${x.nome} · ${quem}`, sub:'Aguardando resultado'});
+  });
+  vacinas.forEach(x=>{
+    const quem = profileLabel(x.perfil||'caique');
+    if(x.proxima){
+      const d = daysDiff(x.proxima);
+      if(d<0) alerts.push({type:'warn', icon:'i-shield', title:`${x.nome} · ${quem}`, sub:`Dose atrasada desde ${fmtDate(x.proxima)}`});
+      else if(d<=14) alerts.push({type:'info', icon:'i-shield', title:`${x.nome} · ${quem}`, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.proxima)}`});
+    }
+  });
+
+  alerts.sort((a,b)=> (a.type==='warn'?0:1) - (b.type==='warn'?0:1));
+
+  document.getElementById('alerts').innerHTML = alerts.length ? alerts.map(a=>`
+    <div class="alert-item ${a.type}">
+      <div class="ic"><svg class="icon"><use href="#${a.icon}"/></svg></div>
+      <div class="txt"><strong>${escapeHtml(a.title)}</strong><span>${escapeHtml(a.sub)}</span></div>
+    </div>
+  `).join('') : `<div class="empty-state"><svg class="icon"><use href="#i-check"/></svg>Nenhum alerta no momento.</div>`;
+}
+
+/* ===== BACKUP ===== */
+async function exportData(){
+  const data = {
+    exames: getExames(),
+    vacinas: getVacinas(),
+    remedios: getRemedios(),
+    pet: getPet(),
+    exportadoEm: new Date().toISOString()
+  };
+  const json = JSON.stringify(data, null, 2);
+  const filename = `saude-caique-backup-${todayISO()}.json`;
+
+  if(window.claude && typeof window.claude.use === 'function'){
+    try{
+      const downloads = await window.claude.use('downloads');
+      if(downloads){
+        await downloads.save({filename, data: json});
+        return;
+      }
+    }catch(e){
+      if(e && e.code === 'declined') return;
+      /* sem downloads disponível aqui — cai pro fallback abaixo */
+    }
+  }
+
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+document.getElementById('import-file').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(){
+    try{
+      const data = JSON.parse(reader.result);
+      if(!confirm('Importar vai substituir os dados atuais (deste aparelho e sincronizados). Continuar?')) return;
+      if(Array.isArray(data.exames)){ saveExames(data.exames); fbWrite('exames', data.exames); }
+      if(Array.isArray(data.vacinas)){ saveVacinas(data.vacinas); fbWrite('vacinas', data.vacinas); }
+      if(Array.isArray(data.remedios)){ saveRemedios(data.remedios); fbWrite('remedios', data.remedios); }
+      if(data.pet){ savePet(data.pet); }
+      renderAll();
+      alert('Backup importado com sucesso.');
+    }catch(err){
+      alert('Não foi possível ler esse arquivo. Confirme que é um backup exportado por este app.');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+function buildAjustes(){
+  const total = getExames().length + getVacinas().length + getRemedios().length;
+  document.getElementById('storage-count').textContent = `${total} registro${total===1?'':'s'}`;
+  buildPetForm();
+  buildNotifStatus();
+}
+
+function renderAll(){
+  buildDashboard();
+  buildExames();
+  buildVacinas();
+  buildRemedios();
+  buildAjustes();
+}
+renderAll();
+pullFromFirebase();
+registerSW();
+
+</script>
+</body>
+</html>
