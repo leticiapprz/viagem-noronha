@@ -61,6 +61,9 @@ async function main() {
 
   exames.forEach((x) => {
     const quem = profileLabel(x.perfil, pet);
+    if (x.status === 'a_agendar') {
+      pending.push({ key: `exame:${x.id}:precisa-agendar`, title: `Falta agendar: ${x.nome} · ${quem}`, body: 'Ainda sem data marcada.' });
+    }
     if (x.status === 'agendado' && x.data) {
       const d = daysDiff(x.data);
       if (d >= 0 && d <= 7) {

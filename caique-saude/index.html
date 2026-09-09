@@ -184,6 +184,7 @@ header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
   padding:14px;margin-bottom:10px;
 }
 .item-card.agendado{border-style:dashed;border-color:var(--green);}
+.item-card.a-agendar{border-style:dashed;border-color:var(--amber);}
 .item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
 .item-head h3{margin:0;font-size:16px;font-family:var(--font-display);font-weight:600;}
 .item-meta{font-size:12.5px;color:var(--muted);margin-top:3px;}
@@ -435,9 +436,10 @@ form.entry-form{
       <input type="hidden" id="exame-perfil">
       <div class="field"><label>Nome</label><input id="exame-nome" required placeholder="Ex: Hemograma completo, Consulta com Dr. Fulano"></div>
       <div class="field-row">
-        <div class="field"><label>Data</label><input type="date" id="exame-data" required></div>
+        <div class="field"><label id="exame-data-label">Data</label><input type="date" id="exame-data" required></div>
         <div class="field"><label>Status</label>
-          <select id="exame-status" onchange="toggleResultadoField()">
+          <select id="exame-status" onchange="updateExameFormForStatus()">
+            <option value="a_agendar">A agendar</option>
             <option value="agendado">Agendado</option>
             <option value="realizado">Realizado</option>
           </select>
@@ -880,7 +882,10 @@ function openForm(kind){
   if(perfilInput) perfilInput.value = activeProfile[kind] || 'caique';
   formAnexos[kind] = [];
   renderAnexosList(kind);
-  if(kind==='exame') toggleResultadoField();
+  if(kind==='exame'){
+    document.getElementById('exame-status').value = 'agendado'; // default de exame novo: "Agendado", não o "A agendar" que é o 1º <option>
+    updateExameFormForStatus();
+  }
 }
 function closeForm(kind){
   document.getElementById('form-'+kind).style.display = 'none';
@@ -1020,11 +1025,18 @@ function saveExames(list){ lsSet('exames', list); }
 let exameFilter = 'todos';
 
 /* Resultado não faz sentido pra um exame que ainda não aconteceu — some do
-   formulário enquanto o status for "Agendado" (menos campo pra preencher
-   à toa, e evita alguém escolher "Normal"/"Alterado" antes da hora). */
-function toggleResultadoField(){
+   formulário enquanto o status não for "Realizado" (menos campo pra
+   preencher à toa, e evita alguém escolher "Normal"/"Alterado" antes da
+   hora). "A agendar" também libera a Data (ainda não existe uma data —
+   é literalmente o motivo desse status existir: um lembrete de "preciso
+   marcar isso", sem compromisso de quando ainda). */
+function updateExameFormForStatus(){
   const status = document.getElementById('exame-status').value;
   document.getElementById('exame-resultado-field').style.display = status==='realizado' ? 'block' : 'none';
+  const dataInput = document.getElementById('exame-data');
+  const dataLabel = document.getElementById('exame-data-label');
+  dataInput.required = status !== 'a_agendar';
+  dataLabel.textContent = status === 'a_agendar' ? 'Data (se já souber)' : 'Data';
 }
 
 function saveExame(ev){
@@ -1059,7 +1071,7 @@ function editExame(id){
   document.getElementById('exame-data').value = item.data;
   document.getElementById('exame-status').value = item.status;
   document.getElementById('exame-resultado').value = item.resultado;
-  toggleResultadoField();
+  updateExameFormForStatus();
   document.getElementById('exame-obs').value = item.obs;
   formAnexos.exame = (item.anexos||[]).slice();
   renderAnexosList('exame');
@@ -1098,7 +1110,7 @@ function markExameRealizado(id){
 
 function buildExames(){
   buildProfileRow('exame');
-  const filters = [['todos','Todos'],['agendado','Agendados'],['realizado','Realizados']];
+  const filters = [['todos','Todos'],['a_agendar','A agendar'],['agendado','Agendados'],['realizado','Realizados']];
   document.getElementById('exame-filters').innerHTML = filters.map(([v,l])=>
     `<button class="chip ${exameFilter===v?'active':''}" onclick="exameFilter='${v}';renderAll()">${l}</button>`
   ).join('');
@@ -1106,15 +1118,20 @@ function buildExames(){
   let list = getExames().filter(x=>(x.perfil||'caique')===activeProfile.exame).sort((a,b)=> b.data.localeCompare(a.data));
   if(exameFilter!=='todos') list = list.filter(x=>x.status===exameFilter);
 
+  const STATUS_LABEL = {a_agendar:'A agendar', agendado:'Agendado', realizado:'Realizado'};
   const html = list.map(x=>{
     const agendado = x.status==='agendado';
-    const badge = agendado ? agendadoBadge(x) : {cls:RESULTADO_CLASS[x.resultado], label:RESULTADO_LABEL[x.resultado]};
+    const aAgendar = x.status==='a_agendar';
+    let badge;
+    if(aAgendar) badge = {cls:'pending', label:'Falta agendar'};
+    else if(agendado) badge = agendadoBadge(x);
+    else badge = {cls:RESULTADO_CLASS[x.resultado], label:RESULTADO_LABEL[x.resultado]};
     return `
-    <div class="item-card ${agendado?'agendado':''}">
+    <div class="item-card ${agendado?'agendado':''} ${aAgendar?'a-agendar':''}">
       <div class="item-head">
         <div>
           <h3>${escapeHtml(x.nome)}</h3>
-          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${fmtDate(x.data)} · ${agendado?'Agendado':'Realizado'}</div>
+          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${x.data ? fmtDate(x.data)+' · ' : ''}${STATUS_LABEL[x.status]}</div>
           <span class="badge ${badge.cls}">${badge.label}</span>
         </div>
         <div class="item-actions">
@@ -1498,6 +1515,7 @@ function buildDashboard(){
   const alerts = [];
   exames.forEach(x=>{
     const quem = profileLabel(x.perfil||'caique');
+    if(x.status==='a_agendar') alerts.push({type:'info', icon:'i-flask', title:`${x.nome} · ${quem}`, sub:'Falta agendar'});
     if(x.status==='agendado' && x.data){
       const d = daysDiff(x.data);
       if(d>=0 && d<=7) alerts.push({type:'info', icon:'i-flask', title:`${x.nome} · ${quem}`, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.data)}`});
