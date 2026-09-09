@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Saúde do Caique</title>
 <meta name="theme-color" content="#4a6b3f">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Saúde Caique">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap">
@@ -237,6 +243,61 @@ form.entry-form{
 .settings-row:last-child{border-bottom:none;}
 .settings-row span{font-size:13.5px;}
 
+/* seletor de perfil (Caique / Pet) */
+.profile-row{display:flex;gap:6px;margin-bottom:12px;}
+.profile-pill{
+  flex:1;border:1px solid var(--border);background:var(--card);color:var(--muted);
+  padding:9px 10px;border-radius:11px;font-size:13.5px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.profile-pill .icon{width:16px;height:16px;vertical-align:0;}
+.profile-pill.active{background:var(--green-light);border-color:var(--green);color:var(--green-dark);}
+
+/* sync indicator */
+.sync-indicator{
+  position:fixed;top:10px;right:12px;z-index:60;
+  font-size:11px;font-weight:600;padding:5px 10px;border-radius:20px;
+  background:var(--card);border:1px solid var(--border);color:var(--muted);
+  display:flex;align-items:center;gap:5px;opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.sync-indicator.show{opacity:1;}
+.sync-indicator .dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.sync-indicator.ok .dot{background:var(--green);}
+.sync-indicator.err .dot{background:var(--coral);}
+.sync-indicator.busy .dot{background:var(--amber);}
+
+/* sugestões de vacina (pet) */
+.suggest-card{
+  background:var(--green-light);border:1px dashed var(--green);border-radius:var(--radius);
+  padding:14px;margin-bottom:14px;
+}
+.suggest-card .section-title{margin-bottom:8px;}
+.suggest-item{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:8px 0;border-bottom:1px solid rgba(0,0,0,.06);
+}
+.suggest-item:last-child{border-bottom:none;}
+.suggest-item .txt strong{display:block;font-size:13.5px;}
+.suggest-item .txt span{font-size:11.5px;color:var(--muted);}
+.suggest-add{
+  border:none;background:var(--accent-solid);color:var(--on-accent);
+  width:28px;height:28px;border-radius:8px;flex-shrink:0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.suggest-add .icon{width:16px;height:16px;margin:0;vertical-align:0;}
+.suggest-add[disabled]{opacity:.4;cursor:default;}
+
+/* perfil do pet */
+.pet-profile-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.pet-profile-fields .field.full{grid-column:1/-1;}
+
+.status-pill{
+  display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+  padding:5px 10px;border-radius:20px;background:var(--green-light);color:var(--green-dark);
+}
+.status-pill.warn{background:var(--coral-bg);color:var(--coral);}
+.status-pill .icon{width:14px;height:14px;margin:0;vertical-align:0;}
+
 :focus-visible{outline:2px solid var(--green);outline-offset:2px;}
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:.001ms !important;transition-duration:.001ms !important;}
@@ -258,7 +319,11 @@ form.entry-form{
   <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M6 3h12"/><path d="M6 21h12"/><path d="M7 3c0 5 4 6.5 5 8-1 1.5-5 3-5 8"/><path d="M17 3c0 5-4 6.5-5 8 1 1.5 5 3 5 8"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></symbol>
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 11 12 15.5 16.5 11"/><path d="M4.5 18.5h15"/></symbol>
+  <symbol id="i-paw" viewBox="0 0 24 24"><circle cx="7" cy="9" r="1.8"/><circle cx="12" cy="6.5" r="1.8"/><circle cx="17" cy="9" r="1.8"/><path d="M8.5 14.5c0-2 1.5-3 3.5-3s3.5 1 3.5 3-1.6 3.2-3.5 3.2-3.5-1.2-3.5-3.2Z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 10a6 6 0 0 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10Z"/><path d="M10 19a2 2 0 0 0 4 0"/></symbol>
 </svg>
+<div class="sync-indicator" id="sync-indicator"><span class="dot"></span><span id="sync-text">Sincronizado</span></div>
 <div class="app">
 
   <header class="topbar">
@@ -290,9 +355,11 @@ form.entry-form{
 
   <!-- ===== EXAMES ===== -->
   <div id="tab-exames" class="tab-content">
+    <div class="profile-row" id="exame-profile-row"></div>
     <button class="add-btn" onclick="toggleForm('exame')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar exame</button>
     <form class="entry-form" id="form-exame" style="display:none" onsubmit="return saveExame(event)">
       <input type="hidden" id="exame-id">
+      <input type="hidden" id="exame-perfil">
       <div class="field"><label>Nome do exame</label><input id="exame-nome" required placeholder="Ex: Hemograma completo"></div>
       <div class="field-row">
         <div class="field"><label>Data</label><input type="date" id="exame-data" required></div>
@@ -324,9 +391,12 @@ form.entry-form{
 
   <!-- ===== VACINAS ===== -->
   <div id="tab-vacinas" class="tab-content">
+    <div class="profile-row" id="vacina-profile-row"></div>
+    <div id="vacina-suggestions"></div>
     <button class="add-btn" onclick="toggleForm('vacina')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar vacina</button>
     <form class="entry-form" id="form-vacina" style="display:none" onsubmit="return saveVacina(event)">
       <input type="hidden" id="vacina-id">
+      <input type="hidden" id="vacina-perfil">
       <div class="field"><label>Nome da vacina</label><input id="vacina-nome" required placeholder="Ex: Pentavalente"></div>
       <div class="field-row">
         <div class="field"><label>Dose</label><input id="vacina-dose" placeholder="Ex: 1ª dose, reforço"></div>
@@ -347,9 +417,11 @@ form.entry-form{
 
   <!-- ===== REMÉDIOS ===== -->
   <div id="tab-remedios" class="tab-content">
+    <div class="profile-row" id="remedio-profile-row"></div>
     <button class="add-btn" onclick="toggleForm('remedio')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar remédio</button>
     <form class="entry-form" id="form-remedio" style="display:none" onsubmit="return saveRemedio(event)">
       <input type="hidden" id="remedio-id">
+      <input type="hidden" id="remedio-perfil">
       <div class="field"><label>Nome do remédio</label><input id="remedio-nome" required placeholder="Ex: Amoxicilina"></div>
       <div class="field-row">
         <div class="field"><label>Dosagem</label><input id="remedio-dosagem" placeholder="Ex: 5ml, 1 comprimido"></div>
@@ -375,8 +447,34 @@ form.entry-form{
   <!-- ===== AJUSTES ===== -->
   <div id="tab-ajustes" class="tab-content">
     <div class="card">
+      <div class="section-title">Perfil do pet</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:0;">Usado na aba "Pet" (Exames/Vacinas/Remédios) e nas sugestões de vacina.</p>
+      <div class="pet-profile-fields">
+        <div class="field full"><label>Nome</label><input id="pet-nome" placeholder="Ex: Rex" onchange="savePetField('nome', this.value)"></div>
+        <div class="field"><label>Espécie</label>
+          <select id="pet-especie" onchange="savePetField('especie', this.value)">
+            <option value="cachorro">Cachorro</option>
+            <option value="gato">Gato</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="field"><label>Raça</label><input id="pet-raca" placeholder="Ex: Vira-lata" onchange="savePetField('raca', this.value)"></div>
+        <div class="field full"><label>Nascimento (aprox.)</label><input type="date" id="pet-nascimento" onchange="savePetField('nascimento', this.value)"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Notificações</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:0;">Avisos de vacina/exame próximos direto no iPhone. Precisa adicionar este site à Tela de Início primeiro (Safari → Compartilhar → Adicionar à Tela de Início) e abrir o app pelo ícone.</p>
+      <div id="notif-status" style="margin:8px 0 12px;"></div>
+      <div class="form-actions">
+        <button class="btn primary" id="notif-btn" onclick="enableNotifications()"><svg class="icon"><use href="#i-bell"/></svg> Ativar notificações</button>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="section-title">Backup dos dados</div>
-      <p style="font-size:13px;color:var(--muted);margin-top:0;">Os dados ficam salvos só neste navegador/aparelho (localStorage). Exporte um backup de vez em quando, ou pra levar os dados pra outro aparelho.</p>
+      <p style="font-size:13px;color:var(--muted);margin-top:0;">Os dados sincronizam automaticamente entre dispositivos. Este backup é extra, pra guardar uma cópia local.</p>
       <div class="form-actions">
         <button class="btn primary" onclick="exportData()"><svg class="icon"><use href="#i-download"/></svg> Exportar backup (.json)</button>
       </div>
@@ -388,7 +486,7 @@ form.entry-form{
     <div class="card">
       <div class="section-title">Sobre</div>
       <div class="settings-row"><span>App</span><span>Saúde do Caique</span></div>
-      <div class="settings-row"><span>Dados salvos localmente</span><span id="storage-count">—</span></div>
+      <div class="settings-row"><span>Registros salvos</span><span id="storage-count">—</span></div>
     </div>
   </div>
 
@@ -423,6 +521,204 @@ function daysDiff(iso){
   return Math.round((target-today)/86400000);
 }
 
+/* ===== SYNC (Firebase Realtime Database) =====
+   Reaproveita o mesmo projeto Firebase do planner de viagem, mas num nó
+   separado (/caique-saude) — não tem nenhuma relação com os dados de
+   gastos/checklist da viagem, ver PROJECT_MAP.md. */
+const FB = 'https://viagem-noronha-default-rtdb.firebaseio.com/caique-saude';
+const FB_TIMEOUT_MS = 8000;
+
+function showSync(state){
+  const el = document.getElementById('sync-indicator');
+  const txt = document.getElementById('sync-text');
+  if(!el) return;
+  el.classList.remove('ok','err','busy');
+  if(state==='saving'){
+    el.classList.add('busy','show');
+    txt.textContent = 'Salvando...';
+  }else if(state==='synced'){
+    el.classList.add('ok','show');
+    txt.textContent = 'Sincronizado';
+    setTimeout(()=>el.classList.remove('show'), 1500);
+  }else if(state==='error'){
+    el.classList.add('err','show');
+    txt.textContent = navigator.onLine ? 'Erro ao sincronizar' : 'Sem internet — salvo só aqui';
+  }
+}
+
+function fbFetch(path, options){
+  return fetch(FB+path, Object.assign({signal: AbortSignal.timeout(FB_TIMEOUT_MS)}, options||{}));
+}
+function fbWrite(path, data){
+  showSync('saving');
+  return fbFetch('/'+path+'.json', {method:'PUT', body: JSON.stringify(data)})
+    .then(()=>{ showSync('synced'); })
+    .catch(()=>{ showSync('error'); });
+}
+
+function pullFromFirebase(){
+  return fbFetch('/.json')
+    .then(r=>r.json())
+    .then(data=>{
+      if(data){
+        if(Array.isArray(data.exames)) lsSet('exames', data.exames);
+        if(Array.isArray(data.vacinas)) lsSet('vacinas', data.vacinas);
+        if(Array.isArray(data.remedios)) lsSet('remedios', data.remedios);
+        if(data.pet) lsSet('pet', data.pet);
+      }
+      renderAll();
+    })
+    .catch(()=>{ showSync('error'); });
+}
+window.addEventListener('online', ()=>{ pullFromFirebase(); });
+
+/* ===== PERFIL (Caique / Pet) ===== */
+let activeProfile = { exame:'caique', vacina:'caique', remedio:'caique' };
+
+function getPet(){ return lsGet('pet', {nome:'', especie:'cachorro', raca:'', nascimento:''}); }
+function savePet(pet){ lsSet('pet', pet); fbWrite('pet', pet); }
+function savePetField(field, value){
+  const pet = getPet();
+  pet[field] = value;
+  savePet(pet);
+  renderAll();
+}
+function buildPetForm(){
+  const pet = getPet();
+  document.getElementById('pet-nome').value = pet.nome || '';
+  document.getElementById('pet-especie').value = pet.especie || 'cachorro';
+  document.getElementById('pet-raca').value = pet.raca || '';
+  document.getElementById('pet-nascimento').value = pet.nascimento || '';
+}
+function profileLabel(id){
+  if(id==='pet'){ const p = getPet(); return p && p.nome ? p.nome : 'Pet'; }
+  return 'Caique';
+}
+function buildProfileRow(kind){
+  const el = document.getElementById(kind+'-profile-row');
+  if(!el) return;
+  el.innerHTML = ['caique','pet'].map(p=>`
+    <button class="profile-pill ${activeProfile[kind]===p?'active':''}" onclick="setProfile('${kind}','${p}')">
+      <svg class="icon"><use href="#${p==='pet'?'i-paw':'i-user'}"/></svg>${escapeHtml(profileLabel(p))}
+    </button>
+  `).join('');
+}
+function setProfile(kind, p){
+  activeProfile[kind] = p;
+  renderAll();
+}
+
+/* ===== SUGESTÕES DE VACINA (pet) =====
+   Vacinas anuais mais comuns pra cachorro — protocolo varia por região/
+   veterinário, isso aqui é só ponto de partida, sempre confirmar com o vet. */
+const DOG_VACCINE_SUGGESTIONS = [
+  {nome:'V8/V10 (polivalente)', dose:'Reforço anual', desc:'Cinomose, parvovirose, leptospirose e mais'},
+  {nome:'Antirrábica', dose:'Reforço anual', desc:'Obrigatória por lei na maioria dos lugares'},
+  {nome:'Gripe canina (tosse dos canis)', dose:'A cada 6-12 meses', desc:'Se frequenta creche, hotel ou parquinho'},
+  {nome:'Giárdia', dose:'Reforço anual', desc:'Opcional, depende da região'},
+];
+function buildVacinaSuggestions(){
+  const el = document.getElementById('vacina-suggestions');
+  if(!el) return;
+  const pet = getPet();
+  if(activeProfile.vacina!=='pet' || (pet.especie||'cachorro')!=='cachorro'){ el.innerHTML=''; return; }
+  const existentes = getVacinas().filter(x=>(x.perfil||'caique')==='pet').map(x=>x.nome.toLowerCase());
+  el.innerHTML = `
+    <div class="suggest-card">
+      <div class="section-title">Sugestões pra cachorro (anuais)</div>
+      ${DOG_VACCINE_SUGGESTIONS.map(v=>{
+        const already = existentes.includes(v.nome.toLowerCase());
+        return `
+        <div class="suggest-item">
+          <div class="txt"><strong>${escapeHtml(v.nome)}</strong><span>${escapeHtml(v.dose)} · ${escapeHtml(v.desc)}</span></div>
+          <button class="suggest-add" ${already?'disabled':''} onclick="addSuggestedVacina('${v.nome.replace(/'/g,"\\'")}')" title="${already?'Já adicionada':'Adicionar'}">
+            <svg class="icon"><use href="#${already?'i-check':'i-plus'}"/></svg>
+          </button>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+function addSuggestedVacina(nome){
+  const list = getVacinas();
+  list.push({id:uid(), nome, dose:'', data:'', proxima:'', local:'', obs:'Preencha a data quando aplicar.', perfil:'pet'});
+  saveVacinas(list);
+  fbWrite('vacinas', list);
+  renderAll();
+}
+
+/* ===== NOTIFICAÇÕES (Web Push) =====
+   Chave pública VAPID — não é segredo, roda no navegador. A privada só
+   existe no GitHub Actions (secret), nunca neste arquivo. */
+const VAPID_PUBLIC_KEY = 'BER0vae7p2lF8R0KFbNhfdf3QGpCxgj59I_ENu9zma1J9kJJACBMv-ed2kdZAIRe4qyD3rpo0NItDzxuDEhavQ0';
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g,'+').replace(/_/g,'/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+}
+
+function isStandalonePwa(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+async function registerSW(){
+  if(!('serviceWorker' in navigator)) return null;
+  try{ return await navigator.serviceWorker.register('sw.js'); }
+  catch(e){ return null; }
+}
+
+function buildNotifStatus(){
+  const el = document.getElementById('notif-status');
+  const btn = document.getElementById('notif-btn');
+  if(!el || !btn) return;
+  const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  if(!supported){
+    el.innerHTML = `<span class="status-pill warn"><svg class="icon"><use href="#i-bell"/></svg>Não suportado neste navegador</span>`;
+    btn.disabled = true;
+    return;
+  }
+  if(!isStandalonePwa()){
+    el.innerHTML = `<span class="status-pill warn"><svg class="icon"><use href="#i-bell"/></svg>Adicione à Tela de Início e abra pelo ícone primeiro</span>`;
+    return;
+  }
+  if(Notification.permission === 'granted'){
+    el.innerHTML = `<span class="status-pill"><svg class="icon"><use href="#i-check"/></svg>Notificações ativadas</span>`;
+  }else if(Notification.permission === 'denied'){
+    el.innerHTML = `<span class="status-pill warn"><svg class="icon"><use href="#i-bell"/></svg>Bloqueadas — ative em Ajustes do iPhone</span>`;
+  }else{
+    el.innerHTML = `<span class="status-pill warn"><svg class="icon"><use href="#i-bell"/></svg>Ainda não ativadas</span>`;
+  }
+}
+
+async function enableNotifications(){
+  if(!isStandalonePwa()){
+    alert('Antes de ativar: adicione este app à Tela de Início (Compartilhar → Adicionar à Tela de Início) e abra por lá — o iPhone só permite notificação de apps instalados assim.');
+    return;
+  }
+  const reg = await registerSW();
+  if(!reg){ alert('Não consegui registrar o service worker.'); return; }
+  const permission = await Notification.requestPermission();
+  buildNotifStatus();
+  if(permission !== 'granted') return;
+  try{
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    const subId = lsGet('push-sub-id', null) || uid();
+    lsSet('push-sub-id', subId);
+    await fbWrite('pushSubscriptions/'+subId, JSON.parse(JSON.stringify(sub)));
+  }catch(e){
+    alert('Não consegui concluir a inscrição de notificações. Tenta de novo em alguns instantes.');
+  }
+  buildNotifStatus();
+}
+
 /* ===== TABS ===== */
 function switchTab(tab){
   document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
@@ -448,6 +744,8 @@ function toggleForm(kind){
   if(!isOpen){
     form.reset();
     document.getElementById(kind+'-id').value = '';
+    const perfilInput = document.getElementById(kind+'-perfil');
+    if(perfilInput) perfilInput.value = activeProfile[kind] || 'caique';
   }
 }
 
@@ -461,6 +759,7 @@ function saveExame(ev){
   const id = document.getElementById('exame-id').value || uid();
   const item = {
     id,
+    perfil: document.getElementById('exame-perfil').value || 'caique',
     nome: document.getElementById('exame-nome').value.trim(),
     data: document.getElementById('exame-data').value,
     status: document.getElementById('exame-status').value,
@@ -471,6 +770,7 @@ function saveExame(ev){
   const idx = list.findIndex(x=>x.id===id);
   if(idx>=0) list[idx]=item; else list.push(item);
   saveExames(list);
+  fbWrite('exames', list);
   toggleForm('exame');
   renderAll();
   return false;
@@ -480,6 +780,7 @@ function editExame(id){
   if(!item) return;
   document.getElementById('form-exame').style.display='block';
   document.getElementById('exame-id').value = item.id;
+  document.getElementById('exame-perfil').value = item.perfil || 'caique';
   document.getElementById('exame-nome').value = item.nome;
   document.getElementById('exame-data').value = item.data;
   document.getElementById('exame-status').value = item.status;
@@ -489,19 +790,22 @@ function editExame(id){
 }
 function removeExame(id){
   if(!confirm('Remover este exame?')) return;
-  saveExames(getExames().filter(x=>x.id!==id));
+  const list = getExames().filter(x=>x.id!==id);
+  saveExames(list);
+  fbWrite('exames', list);
   renderAll();
 }
 const RESULTADO_LABEL = {aguardando:'Aguardando resultado', normal:'Resultado normal', alterado:'Resultado alterado', na:'Não se aplica'};
 const RESULTADO_CLASS = {aguardando:'pending', normal:'', alterado:'warn', na:''};
 
 function buildExames(){
+  buildProfileRow('exame');
   const filters = [['todos','Todos'],['agendado','Agendados'],['realizado','Realizados']];
   document.getElementById('exame-filters').innerHTML = filters.map(([v,l])=>
     `<button class="chip ${exameFilter===v?'active':''}" onclick="exameFilter='${v}';renderAll()">${l}</button>`
   ).join('');
 
-  let list = getExames().slice().sort((a,b)=> b.data.localeCompare(a.data));
+  let list = getExames().filter(x=>(x.perfil||'caique')===activeProfile.exame).sort((a,b)=> b.data.localeCompare(a.data));
   if(exameFilter!=='todos') list = list.filter(x=>x.status===exameFilter);
 
   const html = list.map(x=>`
@@ -532,6 +836,7 @@ function saveVacina(ev){
   const id = document.getElementById('vacina-id').value || uid();
   const item = {
     id,
+    perfil: document.getElementById('vacina-perfil').value || 'caique',
     nome: document.getElementById('vacina-nome').value.trim(),
     dose: document.getElementById('vacina-dose').value.trim(),
     data: document.getElementById('vacina-data').value,
@@ -543,6 +848,7 @@ function saveVacina(ev){
   const idx = list.findIndex(x=>x.id===id);
   if(idx>=0) list[idx]=item; else list.push(item);
   saveVacinas(list);
+  fbWrite('vacinas', list);
   toggleForm('vacina');
   renderAll();
   return false;
@@ -552,6 +858,7 @@ function editVacina(id){
   if(!item) return;
   document.getElementById('form-vacina').style.display='block';
   document.getElementById('vacina-id').value = item.id;
+  document.getElementById('vacina-perfil').value = item.perfil || 'caique';
   document.getElementById('vacina-nome').value = item.nome;
   document.getElementById('vacina-dose').value = item.dose;
   document.getElementById('vacina-data').value = item.data;
@@ -562,11 +869,15 @@ function editVacina(id){
 }
 function removeVacina(id){
   if(!confirm('Remover esta vacina?')) return;
-  saveVacinas(getVacinas().filter(x=>x.id!==id));
+  const list = getVacinas().filter(x=>x.id!==id);
+  saveVacinas(list);
+  fbWrite('vacinas', list);
   renderAll();
 }
 function buildVacinas(){
-  const list = getVacinas().slice().sort((a,b)=> b.data.localeCompare(a.data));
+  buildProfileRow('vacina');
+  buildVacinaSuggestions();
+  const list = getVacinas().filter(x=>(x.perfil||'caique')===activeProfile.vacina).sort((a,b)=> (b.data||'').localeCompare(a.data||''));
   const html = list.map(x=>{
     const atrasada = x.proxima && daysDiff(x.proxima) < 0;
     const proxima = x.proxima && daysDiff(x.proxima) >= 0;
@@ -575,7 +886,7 @@ function buildVacinas(){
       <div class="item-head">
         <div>
           <h3>${escapeHtml(x.nome)}${x.dose ? ` <span style="font-weight:400;color:var(--muted);font-size:13px;">· ${escapeHtml(x.dose)}</span>` : ''}</h3>
-          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> Aplicada em ${fmtDate(x.data)}${x.local ? ' · '+escapeHtml(x.local) : ''}</div>
+          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${x.data ? 'Aplicada em '+fmtDate(x.data) : 'Data pendente'}${x.local ? ' · '+escapeHtml(x.local) : ''}</div>
           ${x.proxima ? `<span class="badge ${atrasada?'warn':(proxima?'pending':'')}">${atrasada?'Próxima dose atrasada':'Próxima dose'}: ${fmtDate(x.proxima)}</span>` : ''}
         </div>
         <div class="item-actions">
@@ -607,6 +918,7 @@ function saveRemedio(ev){
   const id = document.getElementById('remedio-id').value || uid();
   const item = {
     id,
+    perfil: document.getElementById('remedio-perfil').value || 'caique',
     nome: document.getElementById('remedio-nome').value.trim(),
     dosagem: document.getElementById('remedio-dosagem').value.trim(),
     horarios: document.getElementById('remedio-horarios').value.trim(),
@@ -619,6 +931,7 @@ function saveRemedio(ev){
   const idx = list.findIndex(x=>x.id===id);
   if(idx>=0) list[idx]=item; else list.push(item);
   saveRemedios(list);
+  fbWrite('remedios', list);
   toggleForm('remedio');
   renderAll();
   return false;
@@ -628,6 +941,7 @@ function editRemedio(id){
   if(!item) return;
   document.getElementById('form-remedio').style.display='block';
   document.getElementById('remedio-id').value = item.id;
+  document.getElementById('remedio-perfil').value = item.perfil || 'caique';
   document.getElementById('remedio-nome').value = item.nome;
   document.getElementById('remedio-dosagem').value = item.dosagem;
   document.getElementById('remedio-horarios').value = item.horarios;
@@ -639,16 +953,19 @@ function editRemedio(id){
 }
 function removeRemedio(id){
   if(!confirm('Remover este remédio?')) return;
-  saveRemedios(getRemedios().filter(x=>x.id!==id));
+  const list = getRemedios().filter(x=>x.id!==id);
+  saveRemedios(list);
+  fbWrite('remedios', list);
   renderAll();
 }
 function buildRemedios(){
+  buildProfileRow('remedio');
   const filters = [['ativos','Ativos'],['todos','Todos']];
   document.getElementById('remedio-filters').innerHTML = filters.map(([v,l])=>
     `<button class="chip ${remedioFilter===v?'active':''}" onclick="remedioFilter='${v}';renderAll()">${l}</button>`
   ).join('');
 
-  let list = getRemedios().slice().sort((a,b)=> a.nome.localeCompare(b.nome));
+  let list = getRemedios().filter(x=>(x.perfil||'caique')===activeProfile.remedio).sort((a,b)=> a.nome.localeCompare(b.nome));
   if(remedioFilter==='ativos') list = list.filter(isRemedioAtivo);
 
   const html = list.map(x=>{
@@ -696,12 +1013,13 @@ function buildMedsToday(){
   }
   document.getElementById('meds-today').innerHTML = ativos.map(x=>{
     const done = taken.includes(x.id);
+    const quem = profileLabel(x.perfil||'caique');
     return `
     <label class="med-today-item ${done?'done':''}">
       <input type="checkbox" ${done?'checked':''} onchange="toggleTaken('${x.id}')">
       <div class="txt">
         <strong>${escapeHtml(x.nome)}${x.dosagem?` · ${escapeHtml(x.dosagem)}`:''}</strong>
-        <span>${escapeHtml(x.horarios || 'sem horário definido')}</span>
+        <span>${escapeHtml(quem)} · ${escapeHtml(x.horarios || 'sem horário definido')}</span>
       </div>
     </label>`;
   }).join('');
@@ -721,17 +1039,19 @@ function buildDashboard(){
 
   const alerts = [];
   exames.forEach(x=>{
+    const quem = profileLabel(x.perfil||'caique');
     if(x.status==='agendado' && x.data){
       const d = daysDiff(x.data);
-      if(d>=0 && d<=7) alerts.push({type:'info', icon:'i-flask', title:x.nome, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.data)}`});
+      if(d>=0 && d<=7) alerts.push({type:'info', icon:'i-flask', title:`${x.nome} · ${quem}`, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.data)}`});
     }
-    if(x.resultado==='aguardando' && x.status==='realizado') alerts.push({type:'warn', icon:'i-hourglass', title:x.nome, sub:'Aguardando resultado'});
+    if(x.resultado==='aguardando' && x.status==='realizado') alerts.push({type:'warn', icon:'i-hourglass', title:`${x.nome} · ${quem}`, sub:'Aguardando resultado'});
   });
   vacinas.forEach(x=>{
+    const quem = profileLabel(x.perfil||'caique');
     if(x.proxima){
       const d = daysDiff(x.proxima);
-      if(d<0) alerts.push({type:'warn', icon:'i-shield', title:x.nome, sub:`Dose atrasada desde ${fmtDate(x.proxima)}`});
-      else if(d<=14) alerts.push({type:'info', icon:'i-shield', title:x.nome, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.proxima)}`});
+      if(d<0) alerts.push({type:'warn', icon:'i-shield', title:`${x.nome} · ${quem}`, sub:`Dose atrasada desde ${fmtDate(x.proxima)}`});
+      else if(d<=14) alerts.push({type:'info', icon:'i-shield', title:`${x.nome} · ${quem}`, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.proxima)}`});
     }
   });
 
@@ -751,6 +1071,7 @@ async function exportData(){
     exames: getExames(),
     vacinas: getVacinas(),
     remedios: getRemedios(),
+    pet: getPet(),
     exportadoEm: new Date().toISOString()
   };
   const json = JSON.stringify(data, null, 2);
@@ -786,10 +1107,11 @@ document.getElementById('import-file').addEventListener('change', function(e){
   reader.onload = function(){
     try{
       const data = JSON.parse(reader.result);
-      if(!confirm('Importar vai substituir os dados atuais salvos neste aparelho. Continuar?')) return;
-      if(Array.isArray(data.exames)) saveExames(data.exames);
-      if(Array.isArray(data.vacinas)) saveVacinas(data.vacinas);
-      if(Array.isArray(data.remedios)) saveRemedios(data.remedios);
+      if(!confirm('Importar vai substituir os dados atuais (deste aparelho e sincronizados). Continuar?')) return;
+      if(Array.isArray(data.exames)){ saveExames(data.exames); fbWrite('exames', data.exames); }
+      if(Array.isArray(data.vacinas)){ saveVacinas(data.vacinas); fbWrite('vacinas', data.vacinas); }
+      if(Array.isArray(data.remedios)){ saveRemedios(data.remedios); fbWrite('remedios', data.remedios); }
+      if(data.pet){ savePet(data.pet); }
       renderAll();
       alert('Backup importado com sucesso.');
     }catch(err){
@@ -803,6 +1125,8 @@ document.getElementById('import-file').addEventListener('change', function(e){
 function buildAjustes(){
   const total = getExames().length + getVacinas().length + getRemedios().length;
   document.getElementById('storage-count').textContent = `${total} registro${total===1?'':'s'}`;
+  buildPetForm();
+  buildNotifStatus();
 }
 
 function renderAll(){
@@ -813,6 +1137,9 @@ function renderAll(){
   buildAjustes();
 }
 renderAll();
+pullFromFirebase();
+registerSW();
+
 </script>
 </body>
 </html>

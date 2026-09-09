@@ -1,0 +1,23 @@
+name: Saúde do Caique — lembretes
+
+on:
+  schedule:
+    # 11:00 UTC = 08:00 em Brasília (sem horário de verão desde 2019)
+    - cron: '0 11 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: caique-saude/scripts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: node send-reminders.mjs
+        env:
+          VAPID_PRIVATE_KEY: ${{ secrets.CAIQUE_SAUDE_VAPID_PRIVATE_KEY }}
