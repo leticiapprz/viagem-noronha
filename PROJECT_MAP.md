@@ -209,6 +209,8 @@ Referenciados pelo `index.html`:
 
 App estático independente, **sem nenhuma relação com os dados do planner de viagem** — mora numa pasta própria. Um único arquivo `caique-saude/index.html` (HTML+CSS+JS inline, mesmo padrão "sem build" do resto do repo), mais um punhado de arquivos de apoio (manifest, service worker, ícones, e um script Node que roda só no GitHub Actions — ver 6.4). CSS/JS de `index.html` são totalmente duplicados e independentes, não compartilham nada com o `index.html` da raiz.
 
+`caique-saude/avatar-caique.jpg` — foto de verdade do Caique (recortada em quadrado, 300×300), usada só no avatar redondo do cabeçalho (`header.topbar .avatar img`). Diferente dos ícones em `icons/` (favicon/Tela de Início), que são a ilustração vetorial — dois assets com propósitos diferentes, não confundir/unificar. Se a foto trocar no futuro, sobrescrever esse arquivo (mesmo nome) já resolve, sem mexer no HTML.
+
 6 telas (nav inferior/lateral, mesmo padrão responsivo `@media(min-width:768px)` da seção 2.4): **Início** (dashboard — contadores, checklist de remédios de hoje, alertas de exames próximos/vacinas atrasadas/pendentes), **Exames**, **Vacinas**, **Remédios**, **Ajustes** (perfil do pet, notificações, backup).
 
 ### 6.1 Perfis (Caique / pet)
