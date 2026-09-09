@@ -873,29 +873,53 @@ function renderAnexosList(kind){
     </div>
   `).join('');
 }
-async function openAnexo(id){
+function openAnexo(id){
+  /* Abre a aba JÁ AQUI, de forma síncrona no clique — não depois do await
+     de buscar o anexo no Firebase. iOS Safari (principalmente PWA instalada
+     na Tela de Início) exige que window.open/navegação aconteça direto
+     dentro do gesto do usuário; depois de um await ele bloqueia em
+     silêncio, sem erro nenhum — foi exatamente esse o bug (upload ok,
+     abrir não fazia nada visível). Navegar essa aba já aberta depois,
+     via win.location, continua permitido mesmo após o await. */
+  const win = window.open('', '_blank');
+  fetchAndShowAnexo(id, win);
+}
+async function fetchAndShowAnexo(id, win){
   try{
     const data = await fbGet('files/'+id);
-    if(!data || !data.dataUrl){ alert('Não achei esse anexo — pode ter sido removido.'); return; }
+    if(!data || !data.dataUrl){
+      if(win) win.close();
+      alert('Não achei esse anexo — pode ter sido removido.');
+      return;
+    }
     if(window.claude && typeof window.claude.use === 'function'){
       try{
         const downloads = await window.claude.use('downloads');
         if(downloads){
+          if(win) win.close();
           const blob = await (await fetch(data.dataUrl)).blob();
           await downloads.save({filename: data.nome, data: blob});
           return;
         }
       }catch(e){
-        if(e && e.code === 'declined') return;
+        if(e && e.code === 'declined'){ if(win) win.close(); return; }
       }
     }
-    const a = document.createElement('a');
-    a.href = data.dataUrl;
-    a.download = data.nome;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    const blob = await (await fetch(data.dataUrl)).blob();
+    const blobUrl = URL.createObjectURL(blob);
+    if(win && !win.closed){
+      win.location.href = blobUrl;
+    }else{
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = data.nome;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+    setTimeout(()=>URL.revokeObjectURL(blobUrl), 60000);
   }catch(e){
+    if(win) win.close();
     alert('Não consegui abrir esse anexo. Confira sua conexão.');
   }
 }
