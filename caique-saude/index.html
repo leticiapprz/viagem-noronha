@@ -154,19 +154,22 @@ header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
   position:fixed;left:0;right:0;bottom:0;
   background:var(--card);border-top:1px solid var(--border);
   display:flex;justify-content:space-around;
-  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  padding:6px 2px calc(6px + env(safe-area-inset-bottom));
   z-index:50;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
 }
 .nav-btn{
   background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;
-  color:var(--muted);font-size:10.5px;padding:6px 10px;border-radius:10px;cursor:pointer;
+  color:var(--muted);font-size:10px;padding:6px 7px;border-radius:10px;cursor:pointer;
+  flex-shrink:0;white-space:nowrap;
 }
-.nav-btn .icon{width:20px;height:20px;vertical-align:0;}
+.nav-btn .icon{width:19px;height:19px;vertical-align:0;}
 .nav-btn.active{color:var(--green-dark);}
 @media(min-width:768px){
   .bottom-nav{
     top:0;bottom:0;left:0;right:auto;width:96px;flex-direction:column;justify-content:flex-start;
     padding:24px 8px;border-top:none;border-right:1px solid var(--border);gap:8px;
+    overflow-x:visible;
   }
   .app{max-width:640px;margin-left:96px;}
   .nav-btn{width:100%;}
@@ -296,6 +299,40 @@ form.entry-form{
 .anexo-upload-btn input{display:none;}
 .anexo-hint{font-size:11px;color:var(--muted);margin-top:4px;}
 
+/* calendário */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-nav-btn{
+  background:var(--green-light);color:var(--green-dark);border:none;
+  width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+}
+.cal-nav-btn .icon{margin:0;vertical-align:0;}
+.cal-title-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.cal-title{font-family:var(--font-display);font-weight:700;font-size:16px;}
+.cal-today-btn{background:none;border:none;color:var(--green-dark);font-size:11px;font-weight:600;cursor:pointer;padding:0;}
+.cal-weekdays,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-weekdays{margin-bottom:4px;}
+.cal-weekday{text-align:center;font-size:10.5px;color:var(--muted);font-weight:600;padding:2px 0;}
+.cal-day{
+  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  border-radius:9px;cursor:pointer;font-size:13px;background:transparent;border:1px solid transparent;
+  color:var(--ink);appearance:none;-webkit-appearance:none;font-family:inherit;
+}
+.cal-day.empty{visibility:hidden;pointer-events:none;}
+.cal-day.today{border-color:var(--green);font-weight:700;}
+.cal-day.selected{background:var(--accent-solid);color:var(--on-accent);}
+.cal-day .dot{width:5px;height:5px;border-radius:50%;background:var(--coral);}
+.cal-day.selected .dot{background:var(--on-accent);}
+.cal-event-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.cal-event-item:last-child{border-bottom:none;}
+.cal-event-item .ic{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;background:var(--green-light);color:var(--green-dark);
+  display:flex;align-items:center;justify-content:center;
+}
+.cal-event-item .ic .icon{margin:0;vertical-align:0;}
+.cal-event-item .txt strong{display:block;font-size:13.5px;}
+.cal-event-item .txt span{font-size:12px;color:var(--muted);}
+
 /* sugestões de vacina (pet) */
 .suggest-card{
   background:var(--green-light);border:1px dashed var(--green);border-radius:var(--radius);
@@ -355,6 +392,9 @@ form.entry-form{
   <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l5 5v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/></symbol>
   <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5.5-5.5L13 15l3-3 4 4.5"/></symbol>
   <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="M7 12.5 15 4.5a3.2 3.2 0 0 1 4.5 4.5l-9 9a5 5 0 0 1-7-7l7.5-7.5"/></symbol>
+  <symbol id="i-droplet" viewBox="0 0 24 24"><path d="M12 3.5c3 4 6.5 8.2 6.5 11.5a6.5 6.5 0 0 1-13 0c0-3.3 3.5-7.5 6.5-11.5Z"/></symbol>
+  <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
 </svg>
 <div class="sync-indicator" id="sync-indicator"><span class="dot"></span><span id="sync-text">Sincronizado</span></div>
 <div class="app">
@@ -487,6 +527,51 @@ form.entry-form{
     <div id="remedios-list"></div>
   </div>
 
+  <!-- ===== BANHOS E TOSAS ===== -->
+  <div id="tab-banhos" class="tab-content">
+    <div class="profile-row" id="banho-profile-row"></div>
+    <button class="add-btn" onclick="toggleForm('banho')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar banho ou tosa</button>
+    <form class="entry-form" id="form-banho" style="display:none" onsubmit="return saveBanho(event)">
+      <input type="hidden" id="banho-id">
+      <input type="hidden" id="banho-perfil">
+      <div class="field"><label>Nome</label><input id="banho-nome" required placeholder="Ex: Banho e tosa higiênica"></div>
+      <div class="field-row">
+        <div class="field"><label>Data</label><input type="date" id="banho-data" required></div>
+        <div class="field"><label>Local</label><input id="banho-local" placeholder="Ex: Pet shop, banho em casa"></div>
+      </div>
+      <div class="field"><label>Próximo (opcional)</label><input type="date" id="banho-proxima"></div>
+      <div class="field"><label>Observações</label><textarea id="banho-obs" placeholder="Produto usado, reação, preferências..."></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">Salvar</button>
+        <button type="button" class="btn ghost" onclick="toggleForm('banho')">Cancelar</button>
+      </div>
+    </form>
+    <div id="banhos-list"></div>
+  </div>
+
+  <!-- ===== CALENDÁRIO ===== -->
+  <div id="tab-calendario" class="tab-content">
+    <div class="card">
+      <div class="cal-header">
+        <button class="cal-nav-btn" onclick="calShiftMonth(-1)"><svg class="icon"><use href="#i-chevron-left"/></svg></button>
+        <div class="cal-title-wrap">
+          <div class="cal-title" id="cal-title"></div>
+          <button class="cal-today-btn" onclick="calGoToday()">Hoje</button>
+        </div>
+        <button class="cal-nav-btn" onclick="calShiftMonth(1)"><svg class="icon"><use href="#i-chevron-right"/></svg></button>
+      </div>
+      <div class="cal-weekdays">
+        <div class="cal-weekday">S</div><div class="cal-weekday">T</div><div class="cal-weekday">Q</div>
+        <div class="cal-weekday">Q</div><div class="cal-weekday">S</div><div class="cal-weekday">S</div><div class="cal-weekday">D</div>
+      </div>
+      <div class="cal-grid" id="cal-days"></div>
+    </div>
+    <div class="card">
+      <div class="section-title" id="cal-selected-label">Hoje</div>
+      <div id="cal-day-events"></div>
+    </div>
+  </div>
+
   <!-- ===== AJUSTES ===== -->
   <div id="tab-ajustes" class="tab-content">
     <div class="card">
@@ -538,6 +623,8 @@ form.entry-form{
     <button class="nav-btn" data-tab="exames" onclick="switchTab('exames')"><svg class="icon"><use href="#i-flask"/></svg>Exames</button>
     <button class="nav-btn" data-tab="vacinas" onclick="switchTab('vacinas')"><svg class="icon"><use href="#i-shield"/></svg>Vacinas</button>
     <button class="nav-btn" data-tab="remedios" onclick="switchTab('remedios')"><svg class="icon"><use href="#i-capsule"/></svg>Remédios</button>
+    <button class="nav-btn" data-tab="banhos" onclick="switchTab('banhos')"><svg class="icon"><use href="#i-droplet"/></svg>Banhos</button>
+    <button class="nav-btn" data-tab="calendario" onclick="switchTab('calendario')"><svg class="icon"><use href="#i-calendar"/></svg>Calendário</button>
     <button class="nav-btn" data-tab="ajustes" onclick="switchTab('ajustes')"><svg class="icon"><use href="#i-sliders"/></svg>Ajustes</button>
   </nav>
 </div>
@@ -610,6 +697,7 @@ function pullFromFirebase(){
         if(Array.isArray(data.exames)) lsSet('exames', data.exames);
         if(Array.isArray(data.vacinas)) lsSet('vacinas', data.vacinas);
         if(Array.isArray(data.remedios)) lsSet('remedios', data.remedios);
+        if(Array.isArray(data.banhos)) lsSet('banhos', data.banhos);
         if(data.pet) lsSet('pet', data.pet);
       }
       renderAll();
@@ -619,7 +707,7 @@ function pullFromFirebase(){
 window.addEventListener('online', ()=>{ pullFromFirebase(); });
 
 /* ===== PERFIL (Caique / Pet) ===== */
-let activeProfile = { exame:'caique', vacina:'caique', remedio:'caique' };
+let activeProfile = { exame:'caique', vacina:'caique', remedio:'caique', banho:'caique' };
 
 function getPet(){ return lsGet('pet', {nome:'', especie:'cachorro', raca:'', nascimento:''}); }
 function savePet(pet){ lsSet('pet', pet); fbWrite('pet', pet); }
@@ -775,7 +863,7 @@ function switchTab(tab){
   renderAll();
 }
 const initTab = location.hash.replace('#','') || 'inicio';
-if(['inicio','exames','vacinas','remedios','ajustes'].includes(initTab)){
+if(['inicio','exames','vacinas','remedios','banhos','calendario','ajustes'].includes(initTab)){
   document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+initTab).classList.add('active');
@@ -1120,6 +1208,76 @@ function buildVacinas(){
   document.getElementById('vacinas-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-shield"/></svg>Nenhuma vacina cadastrada ainda.</div>`;
 }
 
+/* ===== BANHOS E TOSAS ===== */
+function getBanhos(){ return lsGet('banhos', []); }
+function saveBanhos(list){ lsSet('banhos', list); }
+
+function saveBanho(ev){
+  ev.preventDefault();
+  const id = document.getElementById('banho-id').value || uid();
+  const item = {
+    id,
+    perfil: document.getElementById('banho-perfil').value || 'caique',
+    nome: document.getElementById('banho-nome').value.trim(),
+    data: document.getElementById('banho-data').value,
+    proxima: document.getElementById('banho-proxima').value,
+    local: document.getElementById('banho-local').value.trim(),
+    obs: document.getElementById('banho-obs').value.trim()
+  };
+  let list = getBanhos();
+  const idx = list.findIndex(x=>x.id===id);
+  if(idx>=0) list[idx]=item; else list.push(item);
+  saveBanhos(list);
+  fbWrite('banhos', list);
+  toggleForm('banho');
+  renderAll();
+  return false;
+}
+function editBanho(id){
+  const item = getBanhos().find(x=>x.id===id);
+  if(!item) return;
+  document.getElementById('form-banho').style.display='block';
+  document.getElementById('banho-id').value = item.id;
+  document.getElementById('banho-perfil').value = item.perfil || 'caique';
+  document.getElementById('banho-nome').value = item.nome;
+  document.getElementById('banho-data').value = item.data;
+  document.getElementById('banho-proxima').value = item.proxima || '';
+  document.getElementById('banho-local').value = item.local;
+  document.getElementById('banho-obs').value = item.obs;
+  document.getElementById('form-banho').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function removeBanho(id){
+  if(!confirm('Remover este registro?')) return;
+  const list = getBanhos().filter(x=>x.id!==id);
+  saveBanhos(list);
+  fbWrite('banhos', list);
+  renderAll();
+}
+function buildBanhos(){
+  buildProfileRow('banho');
+  const list = getBanhos().filter(x=>(x.perfil||'caique')===activeProfile.banho).sort((a,b)=> (b.data||'').localeCompare(a.data||''));
+  const html = list.map(x=>{
+    const atrasado = x.proxima && daysDiff(x.proxima) < 0;
+    const proximo = x.proxima && daysDiff(x.proxima) >= 0;
+    return `
+    <div class="item-card">
+      <div class="item-head">
+        <div>
+          <h3>${escapeHtml(x.nome)}</h3>
+          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${x.data ? fmtDate(x.data) : 'Data pendente'}${x.local ? ' · '+escapeHtml(x.local) : ''}</div>
+          ${x.proxima ? `<span class="badge ${atrasado?'warn':(proximo?'pending':'')}">${atrasado?'Próximo atrasado':'Próximo'}: ${fmtDate(x.proxima)}</span>` : ''}
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn" onclick="editBanho('${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
+          <button class="icon-btn danger" onclick="removeBanho('${x.id}')"><svg class="icon"><use href="#i-trash"/></svg></button>
+        </div>
+      </div>
+      ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
+    </div>
+  `;}).join('');
+  document.getElementById('banhos-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-droplet"/></svg>Nenhum banho ou tosa registrado ainda.</div>`;
+}
+
 /* ===== REMÉDIOS ===== */
 function getRemedios(){ return lsGet('remedios', []); }
 function saveRemedios(list){ lsSet('remedios', list); }
@@ -1245,6 +1403,86 @@ function buildMedsToday(){
   }).join('');
 }
 
+/* ===== CALENDÁRIO =====
+   Agrega exames, vacinas e banhos/tosas dos dois perfis num grid mensal.
+   Remédios ficam de fora de propósito: são rotina diária, já cobertos
+   pelo checklist "Remédios de hoje" da Início — um remédio contínuo
+   apareceria em toda data do mês e só ia poluir a visão. */
+let calendarViewDate = new Date(todayISO()+'T00:00:00');
+let calendarSelected = todayISO();
+const MES_NOMES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+
+function calShiftMonth(delta){
+  calendarViewDate = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth()+delta, 1);
+  buildCalendar();
+}
+function calGoToday(){
+  calendarViewDate = new Date(todayISO()+'T00:00:00');
+  calendarSelected = todayISO();
+  buildCalendar();
+}
+function calSelectDay(iso){
+  calendarSelected = iso;
+  buildCalendar();
+}
+function getCalendarEvents(){
+  const events = {};
+  function push(iso, icon, nome, sub, quem){
+    if(!iso) return;
+    if(!events[iso]) events[iso] = [];
+    events[iso].push({icon, nome, sub, quem});
+  }
+  getExames().forEach(x=>{
+    const quem = profileLabel(x.perfil||'caique');
+    if(x.data) push(x.data, 'i-flask', x.nome, x.status==='agendado'?'Agendado':'Realizado', quem);
+  });
+  getVacinas().forEach(x=>{
+    const quem = profileLabel(x.perfil||'caique');
+    if(x.data) push(x.data, 'i-shield', x.nome, 'Aplicada', quem);
+    if(x.proxima) push(x.proxima, 'i-shield', x.nome, 'Próxima dose', quem);
+  });
+  getBanhos().forEach(x=>{
+    const quem = profileLabel(x.perfil||'caique');
+    if(x.data) push(x.data, 'i-droplet', x.nome, 'Feito', quem);
+    if(x.proxima) push(x.proxima, 'i-droplet', x.nome, 'Próximo', quem);
+  });
+  return events;
+}
+function buildCalendar(){
+  const y = calendarViewDate.getFullYear();
+  const m = calendarViewDate.getMonth();
+  const mesNome = MES_NOMES[m];
+  document.getElementById('cal-title').textContent = `${mesNome.charAt(0).toUpperCase()+mesNome.slice(1)} de ${y}`;
+
+  const events = getCalendarEvents();
+  const firstWeekday = (new Date(y, m, 1).getDay() + 6) % 7; // 0=segunda
+  const totalDays = new Date(y, m+1, 0).getDate();
+  const today = todayISO();
+
+  let cellsHtml = '';
+  for(let i=0;i<firstWeekday;i++) cellsHtml += `<div class="cal-day empty"></div>`;
+  for(let d=1; d<=totalDays; d++){
+    const iso = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const has = events[iso] && events[iso].length;
+    const cls = ['cal-day'];
+    if(iso===today) cls.push('today');
+    if(iso===calendarSelected) cls.push('selected');
+    cellsHtml += `<button type="button" class="${cls.join(' ')}" onclick="calSelectDay('${iso}')">${d}${has?'<span class="dot"></span>':''}</button>`;
+  }
+  document.getElementById('cal-days').innerHTML = cellsHtml;
+
+  const isToday = calendarSelected===today;
+  document.getElementById('cal-selected-label').textContent = isToday ? 'Hoje' : fmtDate(calendarSelected);
+
+  const dayEvents = events[calendarSelected] || [];
+  document.getElementById('cal-day-events').innerHTML = dayEvents.length ? dayEvents.map(e=>`
+    <div class="cal-event-item">
+      <div class="ic"><svg class="icon"><use href="#${e.icon}"/></svg></div>
+      <div class="txt"><strong>${escapeHtml(e.nome)}</strong><span>${escapeHtml(e.quem)} · ${escapeHtml(e.sub)}</span></div>
+    </div>
+  `).join('') : `<div class="empty-state"><svg class="icon"><use href="#i-calendar"/></svg>Nada nesse dia.</div>`;
+}
+
 /* ===== DASHBOARD ===== */
 function buildDashboard(){
   const exames = getExames();
@@ -1274,6 +1512,14 @@ function buildDashboard(){
       else if(d<=14) alerts.push({type:'info', icon:'i-shield', title:`${x.nome} · ${quem}`, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.proxima)}`});
     }
   });
+  getBanhos().forEach(x=>{
+    const quem = profileLabel(x.perfil||'caique');
+    if(x.proxima){
+      const d = daysDiff(x.proxima);
+      if(d<0) alerts.push({type:'warn', icon:'i-droplet', title:`${x.nome} · ${quem}`, sub:`Atrasado desde ${fmtDate(x.proxima)}`});
+      else if(d<=7) alerts.push({type:'info', icon:'i-droplet', title:`${x.nome} · ${quem}`, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.proxima)}`});
+    }
+  });
 
   alerts.sort((a,b)=> (a.type==='warn'?0:1) - (b.type==='warn'?0:1));
 
@@ -1291,6 +1537,7 @@ async function exportData(){
     exames: getExames(),
     vacinas: getVacinas(),
     remedios: getRemedios(),
+    banhos: getBanhos(),
     pet: getPet(),
     exportadoEm: new Date().toISOString()
   };
@@ -1331,6 +1578,7 @@ document.getElementById('import-file').addEventListener('change', function(e){
       if(Array.isArray(data.exames)){ saveExames(data.exames); fbWrite('exames', data.exames); }
       if(Array.isArray(data.vacinas)){ saveVacinas(data.vacinas); fbWrite('vacinas', data.vacinas); }
       if(Array.isArray(data.remedios)){ saveRemedios(data.remedios); fbWrite('remedios', data.remedios); }
+      if(Array.isArray(data.banhos)){ saveBanhos(data.banhos); fbWrite('banhos', data.banhos); }
       if(data.pet){ savePet(data.pet); }
       renderAll();
       alert('Backup importado com sucesso.');
@@ -1343,7 +1591,7 @@ document.getElementById('import-file').addEventListener('change', function(e){
 });
 
 function buildAjustes(){
-  const total = getExames().length + getVacinas().length + getRemedios().length;
+  const total = getExames().length + getVacinas().length + getRemedios().length + getBanhos().length;
   document.getElementById('storage-count').textContent = `${total} registro${total===1?'':'s'}`;
   buildPetForm();
   buildNotifStatus();
@@ -1354,6 +1602,8 @@ function renderAll(){
   buildExames();
   buildVacinas();
   buildRemedios();
+  buildBanhos();
+  buildCalendar();
   buildAjustes();
 }
 renderAll();

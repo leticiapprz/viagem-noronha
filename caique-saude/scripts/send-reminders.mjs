@@ -51,6 +51,7 @@ async function main() {
   const exames = Array.isArray(data.exames) ? data.exames : [];
   const vacinas = Array.isArray(data.vacinas) ? data.vacinas : [];
   const remedios = Array.isArray(data.remedios) ? data.remedios : [];
+  const banhos = Array.isArray(data.banhos) ? data.banhos : [];
   const pet = data.pet || {};
   const subscriptions = data.pushSubscriptions || {};
   const notified = data.notified || {};
@@ -80,6 +81,19 @@ async function main() {
         pending.push({ key: `vacina:${x.id}:overdue:${weekIndex}`, title: `Vacina atrasada: ${x.nome} · ${quem}`, body: `Atrasada desde ${fmtDate(x.proxima)}.` });
       } else if (d <= 14) {
         pending.push({ key: `vacina:${x.id}:soon`, title: `Vacina: ${x.nome} · ${quem}`, body: d === 0 ? 'É hoje.' : `Em ${d} dia${d === 1 ? '' : 's'} (${fmtDate(x.proxima)}).` });
+      }
+    }
+  });
+
+  banhos.forEach((x) => {
+    const quem = profileLabel(x.perfil, pet);
+    if (x.proxima) {
+      const d = daysDiff(x.proxima);
+      if (d < 0) {
+        const weekIndex = Math.floor(-d / 7);
+        pending.push({ key: `banho:${x.id}:overdue:${weekIndex}`, title: `Banho/tosa atrasado: ${x.nome} · ${quem}`, body: `Atrasado desde ${fmtDate(x.proxima)}.` });
+      } else if (d <= 7) {
+        pending.push({ key: `banho:${x.id}:soon`, title: `Banho/tosa: ${x.nome} · ${quem}`, body: d === 0 ? 'É hoje.' : `Em ${d} dia${d === 1 ? '' : 's'} (${fmtDate(x.proxima)}).` });
       }
     }
   });
