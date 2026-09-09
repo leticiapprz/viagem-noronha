@@ -250,7 +250,16 @@ Como o app não tem backend próprio, quem efetivamente **dispara** os pushes é
 - **Setup necessário fora deste repo** (não dá pra automatizar por aqui): 1) adicionar o secret `CAIQUE_SAUDE_VAPID_PRIVATE_KEY` nas configurações do repositório no GitHub (Settings → Secrets and variables → Actions); 2) no iPhone, abrir o site em Safari → Compartilhar → Adicionar à Tela de Início → abrir pelo ícone → aba Ajustes → "Ativar notificações". Sem isso o workflow roda normalmente todo dia, só não tem pra quem mandar (`subIds.length===0`, não dá erro).
 - **Hosting confirmado (09/2026): GitHub Pages**, publicando a partir do branch `main` (sem `gh-pages`, sem workflow de deploy próprio — é o modo clássico "Deploy from a branch" configurado direto no console do GitHub). Importante: **qualquer mudança só fica visível de verdade depois de mergeada no `main`** — desenvolver num branch e nunca mergear significa que o site publicado continua na versão antiga. Se o ícone/manifest for atualizado, quem já tiver o atalho salvo na Tela de Início do iPhone precisa remover e adicionar de novo (o iOS cacheia o ícone do atalho, não busca de novo sozinho).
 
-### 6.5 Anexos (exames, boletins médicos, transcrições de consulta)
+### 6.5 Exame agendado vs. realizado — cara diferente de propósito
+
+Card de exame muda de aparência conforme `status` (09/2026, a pedido da Leticia — queria diferenciar visualmente o que ainda vai acontecer do que já aconteceu):
+
+- **Agendado**: borda tracejada verde (`.item-card.agendado`, mesmo padrão visual de "ainda não é definitivo" já usado em `.add-btn`/`.suggest-card`). No lugar do badge de resultado, mostra uma contagem regressiva (`agendadoBadge(x)`, baseada em `daysDiff`) — "Em N dias" / "Hoje" / e um aviso em vermelho se a data já passou e ninguém marcou como feito. Ganha um botão extra nas ações do card (ícone de check, `markExameRealizado(id)`) que troca `status` pra `'realizado'` com um toque só, sem precisar abrir o formulário de edição.
+- **Realizado**: card normal (borda sólida), badge mostra o resultado de verdade (`RESULTADO_LABEL`/`RESULTADO_CLASS`, como já era antes).
+- **No formulário**, o campo "Resultado" (`#exame-resultado-field`) só aparece quando o Status selecionado é "Realizado" (`toggleResultadoField()`, chamado no `onchange` do select de status, e também em `openForm`/`editExame` pra já nascer no estado certo) — não faz sentido perguntar "normal ou alterado" de um exame que ainda nem aconteceu. O campo continua existindo no DOM mesmo escondido (só `display:none`), então `saveExame` sempre lê `#exame-resultado` normalmente — um exame salvo como "Agendado" grava `resultado:'aguardando'` (valor da primeira opção do select) mesmo sem o usuário ter visto o campo; isso é intencional e inofensivo, já que a UI nunca mostra esse valor pra um exame agendado (mostra a contagem regressiva no lugar).
+- **Observações e anexos continuam visíveis em ambos os estados** — só o badge de resultado e o botão de marcar-como-feito mudam. Faz sentido anexar um pedido/prescrição a um exame ainda agendado.
+
+### 6.6 Anexos (exames, boletins médicos, transcrições de consulta)
 
 Desde 09/2026 a aba Exames aceita anexar arquivos (PDF, foto, doc) a qualquer registro — cobre exame, boletim médico ou transcrição de consulta (o campo continua chamado "exame" no código/dado, mas o rótulo da UI é genérico, "Adicionar exame ou documento").
 
@@ -263,7 +272,7 @@ Desde 09/2026 a aba Exames aceita anexar arquivos (PDF, foto, doc) a qualquer re
 - **Privacidade:** os arquivos ficam sob as mesmas regras públicas do banco (seção 5) — decisão consciente da Leticia (09/2026) de manter aberto, mesmo sendo documento médico, pela simplicidade. Se isso mudar de ideia no futuro, a op­ção mais rápida é replicar a tela de login por hash de senha que já existe no `index.html` da raiz (seção 2.1) — não é segurança de verdade, mas já tira o acesso casual.
 - Export/import de backup (JSON, aba Ajustes) carrega só a metadata dos anexos (o array `anexos` dentro de cada exame) — **não** inclui o conteúdo dos arquivos. Restaurar um backup antigo traz de volta os registros e as referências, mas não recria os blobs em `/files/` se eles tiverem sido apagados por fora.
 
-### 6.6 Testar localmente
+### 6.7 Testar localmente
 
 `python3 -m http.server` dentro de `caique-saude/` (ou na raiz do repo) + abrir via `http://localhost:PORTA/caique-saude/index.html` — service worker exige HTTP(S), não `file://` (mesma restrição da seção 2.13/8). Sem internet, o sync com Firebase falha silenciosamente (indicador mostra "Sem internet — salvo só aqui", cai pro `localStorage`) — pra testar de verdade a sincronização entre "dispositivos", precisa de internet de verdade (o Firebase real). Push notification não dá pra testar neste tipo de sandbox (precisa HTTPS real + iPhone físico com o PWA instalado); o `send-reminders.mjs` dá pra rodar manualmente (`workflow_dispatch` no Actions, ou local com `VAPID_PRIVATE_KEY=... node send-reminders.mjs` dentro de `caique-saude/scripts` depois de `npm install`) pra conferir os logs sem depender do cron.
 

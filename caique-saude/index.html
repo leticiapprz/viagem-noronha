@@ -180,6 +180,7 @@ header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
   background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
   padding:14px;margin-bottom:10px;
 }
+.item-card.agendado{border-style:dashed;border-color:var(--green);}
 .item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
 .item-head h3{margin:0;font-size:16px;font-family:var(--font-display);font-weight:600;}
 .item-meta{font-size:12.5px;color:var(--muted);margin-top:3px;}
@@ -396,13 +397,13 @@ form.entry-form{
       <div class="field-row">
         <div class="field"><label>Data</label><input type="date" id="exame-data" required></div>
         <div class="field"><label>Status</label>
-          <select id="exame-status">
+          <select id="exame-status" onchange="toggleResultadoField()">
             <option value="agendado">Agendado</option>
             <option value="realizado">Realizado</option>
           </select>
         </div>
       </div>
-      <div class="field"><label>Resultado</label>
+      <div class="field" id="exame-resultado-field"><label>Resultado</label>
         <select id="exame-resultado">
           <option value="aguardando">Aguardando resultado</option>
           <option value="normal">Normal</option>
@@ -791,6 +792,7 @@ function openForm(kind){
   if(perfilInput) perfilInput.value = activeProfile[kind] || 'caique';
   formAnexos[kind] = [];
   renderAnexosList(kind);
+  if(kind==='exame') toggleResultadoField();
 }
 function closeForm(kind){
   document.getElementById('form-'+kind).style.display = 'none';
@@ -929,6 +931,14 @@ function getExames(){ return lsGet('exames', []); }
 function saveExames(list){ lsSet('exames', list); }
 let exameFilter = 'todos';
 
+/* Resultado não faz sentido pra um exame que ainda não aconteceu — some do
+   formulário enquanto o status for "Agendado" (menos campo pra preencher
+   à toa, e evita alguém escolher "Normal"/"Alterado" antes da hora). */
+function toggleResultadoField(){
+  const status = document.getElementById('exame-status').value;
+  document.getElementById('exame-resultado-field').style.display = status==='realizado' ? 'block' : 'none';
+}
+
 function saveExame(ev){
   ev.preventDefault();
   const id = document.getElementById('exame-id').value || uid();
@@ -961,6 +971,7 @@ function editExame(id){
   document.getElementById('exame-data').value = item.data;
   document.getElementById('exame-status').value = item.status;
   document.getElementById('exame-resultado').value = item.resultado;
+  toggleResultadoField();
   document.getElementById('exame-obs').value = item.obs;
   formAnexos.exame = (item.anexos||[]).slice();
   renderAnexosList('exame');
@@ -976,6 +987,27 @@ function removeExame(id){
 const RESULTADO_LABEL = {aguardando:'Aguardando resultado', normal:'Resultado normal', alterado:'Resultado alterado', na:'Não se aplica'};
 const RESULTADO_CLASS = {aguardando:'pending', normal:'', alterado:'warn', na:''};
 
+/* Card de exame agendado mostra uma contagem regressiva no lugar do badge
+   de resultado (que não faz sentido antes de acontecer). Se a data já
+   passou e ninguém marcou como realizado, avisa em vez de fingir que
+   "faltam -3 dias". */
+function agendadoBadge(x){
+  const d = daysDiff(x.data);
+  if(d < 0) return {cls:'warn', label:'Data passou — marcar como realizado?'};
+  if(d === 0) return {cls:'pending', label:'Hoje'};
+  if(d <= 7) return {cls:'pending', label:`Em ${d} dia${d===1?'':'s'}`};
+  return {cls:'', label:`Em ${d} dias`};
+}
+function markExameRealizado(id){
+  const list = getExames();
+  const idx = list.findIndex(x=>x.id===id);
+  if(idx<0) return;
+  list[idx] = Object.assign({}, list[idx], {status:'realizado'});
+  saveExames(list);
+  fbWrite('exames', list);
+  renderAll();
+}
+
 function buildExames(){
   buildProfileRow('exame');
   const filters = [['todos','Todos'],['agendado','Agendados'],['realizado','Realizados']];
@@ -986,15 +1018,19 @@ function buildExames(){
   let list = getExames().filter(x=>(x.perfil||'caique')===activeProfile.exame).sort((a,b)=> b.data.localeCompare(a.data));
   if(exameFilter!=='todos') list = list.filter(x=>x.status===exameFilter);
 
-  const html = list.map(x=>`
-    <div class="item-card">
+  const html = list.map(x=>{
+    const agendado = x.status==='agendado';
+    const badge = agendado ? agendadoBadge(x) : {cls:RESULTADO_CLASS[x.resultado], label:RESULTADO_LABEL[x.resultado]};
+    return `
+    <div class="item-card ${agendado?'agendado':''}">
       <div class="item-head">
         <div>
           <h3>${escapeHtml(x.nome)}</h3>
-          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${fmtDate(x.data)} · ${x.status==='agendado'?'Agendado':'Realizado'}</div>
-          <span class="badge ${RESULTADO_CLASS[x.resultado]}">${RESULTADO_LABEL[x.resultado]}</span>
+          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${fmtDate(x.data)} · ${agendado?'Agendado':'Realizado'}</div>
+          <span class="badge ${badge.cls}">${badge.label}</span>
         </div>
         <div class="item-actions">
+          ${agendado ? `<button class="icon-btn" onclick="markExameRealizado('${x.id}')" title="Marcar como realizado"><svg class="icon"><use href="#i-check"/></svg></button>` : ''}
           <button class="icon-btn" onclick="editExame('${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
           <button class="icon-btn danger" onclick="removeExame('${x.id}')"><svg class="icon"><use href="#i-trash"/></svg></button>
         </div>
@@ -1007,8 +1043,7 @@ function buildExames(){
           <span class="size">${fmtBytes(a.tamanho)}</span>
         </button>
       `).join('')}</div>` : ''}
-    </div>
-  `).join('');
+    </div>`;}).join('');
   document.getElementById('exames-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-flask"/></svg>Nenhum exame cadastrado ainda.</div>`;
 }
 
