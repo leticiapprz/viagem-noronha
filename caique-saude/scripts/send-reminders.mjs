@@ -61,13 +61,14 @@ async function main() {
 
   exames.forEach((x) => {
     const quem = profileLabel(x.perfil, pet);
+    const tipoLabel = x.categoria === 'consulta' ? 'Consulta' : 'Exame';
     if (x.status === 'a_agendar') {
       pending.push({ key: `exame:${x.id}:precisa-agendar`, title: `Falta agendar: ${x.nome} · ${quem}`, body: 'Ainda sem data marcada.' });
     }
     if (x.status === 'agendado' && x.data) {
       const d = daysDiff(x.data);
       if (d >= 0 && d <= 7) {
-        pending.push({ key: `exame:${x.id}:soon`, title: `Exame: ${x.nome} · ${quem}`, body: d === 0 ? 'É hoje.' : `Em ${d} dia${d === 1 ? '' : 's'} (${fmtDate(x.data)}).` });
+        pending.push({ key: `exame:${x.id}:soon`, title: `${tipoLabel}: ${x.nome} · ${quem}`, body: d === 0 ? 'É hoje.' : `Em ${d} dia${d === 1 ? '' : 's'} (${fmtDate(x.data)}).` });
       }
     }
     if (x.resultado === 'aguardando' && x.status === 'realizado') {
