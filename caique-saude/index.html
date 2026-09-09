@@ -5,25 +5,66 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Saúde do Caique</title>
 <meta name="theme-color" content="#2f8f7a">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/dist/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800&display=swap">
 <style>
 :root{
   --teal:#2f8f7a;
-  --teal-dark:#1f6b5a;
-  --teal-light:#e6f4f1;
-  --coral:#e8735c;
-  --amber:#e0a530;
-  --ink:#243330;
-  --muted:#6b7a77;
-  --bg:#f6faf9;
+  --teal-dark:#1c5f50;
+  --teal-light:#e6f2ee;
+  --coral:#c85a41;
+  --coral-bg:#f7e9e4;
+  --amber:#a8730f;
+  --amber-bg:#f7ecd8;
+  --ink:#1e2b27;
+  --muted:#66766f;
+  --bg:#f5f8f6;
   --card:#ffffff;
-  --border:#e1eae8;
+  --border:#e0e7e3;
+  --shadow:0 1px 2px rgba(30,43,39,.04);
   --radius:14px;
+  --font-display:"Fraunces",Georgia,"Times New Roman",serif;
+  --font-body:"Nunito Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --accent-solid:#2f8f7a;
+  --on-accent:#fdfefe;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --teal:#4fb69a;
+    --teal-dark:#7ecdb6;
+    --teal-light:#1b332c;
+    --coral:#e69a86;
+    --coral-bg:#3a251e;
+    --amber:#e3bf7c;
+    --amber-bg:#3a2f18;
+    --ink:#eef3f0;
+    --muted:#93a49c;
+    --bg:#0f1c18;
+    --card:#152420;
+    --border:#233933;
+    --shadow:0 1px 2px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --teal:#4fb69a;
+  --teal-dark:#7ecdb6;
+  --teal-light:#1b332c;
+  --coral:#e69a86;
+  --coral-bg:#3a251e;
+  --amber:#e3bf7c;
+  --amber-bg:#3a2f18;
+  --ink:#eef3f0;
+  --muted:#93a49c;
+  --bg:#0f1c18;
+  --card:#152420;
+  --border:#233933;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
 }
 *{box-sizing:border-box;}
 body{margin:0;}
 html,body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-family:var(--font-body);
   background:var(--bg);
   color:var(--ink);
   -webkit-font-smoothing:antialiased;
@@ -31,6 +72,7 @@ html,body{
 a{color:inherit;}
 button{font-family:inherit;}
 input,select,textarea{font-family:inherit;font-size:15px;}
+.icon{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;vertical-align:-4px;}
 
 .app{
   max-width:720px;
@@ -45,11 +87,12 @@ header.topbar{
 }
 header.topbar .avatar{
   width:44px;height:44px;border-radius:50%;
-  background:linear-gradient(135deg,var(--teal),var(--teal-dark));
+  background:linear-gradient(135deg,#2f8f7a,#1c5f50);
   display:flex;align-items:center;justify-content:center;
-  color:#fff;font-weight:700;font-size:18px;flex-shrink:0;
+  color:#fdfefe;font-weight:700;font-size:18px;flex-shrink:0;
+  font-family:var(--font-display);
 }
-header.topbar h1{font-size:19px;margin:0;line-height:1.2;}
+header.topbar h1{font-family:var(--font-display);font-weight:600;font-size:21px;margin:0;line-height:1.2;text-wrap:balance;}
 header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
 
 .card{
@@ -74,7 +117,7 @@ header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
   background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
   padding:14px 10px;text-align:center;
 }
-.stat-card .n{font-size:22px;font-weight:800;color:var(--teal-dark);}
+.stat-card .n{font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--teal-dark);font-variant-numeric:tabular-nums;}
 .stat-card .l{font-size:11px;color:var(--muted);margin-top:2px;}
 .stat-card.warn .n{color:var(--coral);}
 
@@ -86,20 +129,21 @@ header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
 .alert-item .ic{
   width:32px;height:32px;border-radius:50%;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  background:#fbeae6;color:var(--coral);font-size:16px;
+  background:var(--coral-bg);color:var(--coral);
 }
+.alert-item .ic .icon{margin:0;vertical-align:0;}
 .alert-item.info .ic{background:var(--teal-light);color:var(--teal-dark);}
-.alert-item .txt strong{display:block;font-size:14px;}
+.alert-item .txt strong{display:block;font-size:14px;font-family:var(--font-display);font-weight:600;}
 .alert-item .txt span{font-size:12.5px;color:var(--muted);}
 .empty-state{
   text-align:center;color:var(--muted);font-size:13.5px;padding:18px 8px;
 }
-.empty-state i{font-size:26px;display:block;margin-bottom:6px;color:var(--teal);}
+.empty-state .icon{width:26px;height:26px;display:block;margin:0 auto 6px;color:var(--teal);vertical-align:0;}
 
 /* nav */
 .bottom-nav{
   position:fixed;left:0;right:0;bottom:0;
-  background:#fff;border-top:1px solid var(--border);
+  background:var(--card);border-top:1px solid var(--border);
   display:flex;justify-content:space-around;
   padding:6px 4px calc(6px + env(safe-area-inset-bottom));
   z-index:50;
@@ -108,7 +152,7 @@ header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
   background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;
   color:var(--muted);font-size:10.5px;padding:6px 10px;border-radius:10px;cursor:pointer;
 }
-.nav-btn i{font-size:20px;}
+.nav-btn .icon{width:20px;height:20px;vertical-align:0;}
 .nav-btn.active{color:var(--teal-dark);}
 @media(min-width:768px){
   .bottom-nav{
@@ -128,29 +172,30 @@ header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
   padding:14px;margin-bottom:10px;
 }
 .item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
-.item-head h3{margin:0;font-size:15.5px;}
+.item-head h3{margin:0;font-size:16px;font-family:var(--font-display);font-weight:600;}
 .item-meta{font-size:12.5px;color:var(--muted);margin-top:3px;}
 .item-actions{display:flex;gap:6px;flex-shrink:0;}
 .icon-btn{
   border:none;background:var(--teal-light);color:var(--teal-dark);
   width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:14px;
+  cursor:pointer;
 }
-.icon-btn.danger{background:#fbeae6;color:var(--coral);}
+.icon-btn .icon{margin:0;vertical-align:0;}
+.icon-btn.danger{background:var(--coral-bg);color:var(--coral);}
 .badge{
   display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;
   background:var(--teal-light);color:var(--teal-dark);margin-top:6px;
 }
-.badge.warn{background:#fbeae6;color:var(--coral);}
-.badge.pending{background:#fdf3e0;color:#a8730f;}
+.badge.warn{background:var(--coral-bg);color:var(--coral);}
+.badge.pending{background:var(--amber-bg);color:var(--amber);}
 .item-notes{font-size:13px;color:var(--ink);margin-top:8px;white-space:pre-wrap;}
 
 .filter-row{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;}
 .chip{
-  border:1px solid var(--border);background:#fff;color:var(--muted);
+  border:1px solid var(--border);background:var(--card);color:var(--muted);
   padding:6px 12px;border-radius:20px;font-size:12.5px;white-space:nowrap;cursor:pointer;
 }
-.chip.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+.chip.active{background:var(--accent-solid);border-color:var(--accent-solid);color:var(--on-accent);}
 
 .add-btn{
   width:100%;border:1.5px dashed var(--teal);background:var(--teal-light);color:var(--teal-dark);
@@ -164,7 +209,7 @@ form.entry-form{
 .field{margin-bottom:10px;}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--teal-dark);margin-bottom:4px;}
 .field input,.field select,.field textarea{
-  width:100%;padding:9px 10px;border-radius:9px;border:1px solid var(--border);background:#fff;
+  width:100%;padding:9px 10px;border-radius:9px;border:1px solid var(--border);background:var(--card);color:var(--ink);
 }
 .field textarea{resize:vertical;min-height:56px;}
 .field-row{display:flex;gap:8px;}
@@ -172,9 +217,10 @@ form.entry-form{
 .form-actions{display:flex;gap:8px;margin-top:4px;}
 .btn{
   border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
 }
-.btn.primary{background:var(--teal);color:#fff;}
-.btn.ghost{background:#fff;color:var(--muted);border:1px solid var(--border);}
+.btn.primary{background:var(--accent-solid);color:var(--on-accent);}
+.btn.ghost{background:var(--card);color:var(--muted);border:1px solid var(--border);}
 
 .med-today-item{
   display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);
@@ -190,9 +236,29 @@ form.entry-form{
 }
 .settings-row:last-child{border-bottom:none;}
 .settings-row span{font-size:13.5px;}
+
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;transition-duration:.001ms !important;}
+}
 </style>
 </head>
 <body>
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10.5V20h12v-9.5"/><path d="M10 20v-6h4v6"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6"/><path d="M10 3v6.2L4.7 18a2 2 0 0 0 1.7 3h11.2a2 2 0 0 0 1.7-3L14 9.2V3"/><path d="M7.5 15h9"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.2 19 6v6c0 5-3 7.8-7 8.8-4-1-7-3.8-7-8.8V6l7-2.8Z"/><path d="M12 9v6"/><path d="M9 12h6"/></symbol>
+  <symbol id="i-capsule" viewBox="0 0 24 24"><path d="M4.5 12.5 12.5 4.5a5 5 0 1 1 7 7l-8 8a5 5 0 0 1-7-7Z"/><path d="M9 8l7 7"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9"/><path d="M17 7h3"/><circle cx="14" cy="7" r="2"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="8" cy="12" r="2"/><path d="M4 17h12"/><path d="M20 17h0"/><circle cx="18" cy="17" r="2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M4 10h16"/><path d="M8 3.5v3"/><path d="M16 3.5v3"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M15.5 4.5 19.5 8.5 8 20H4v-4Z"/><path d="M13.5 6.5l4 4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M7 7l1 13h8l1-13"/></symbol>
+  <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M6 3h12"/><path d="M6 21h12"/><path d="M7 3c0 5 4 6.5 5 8-1 1.5-5 3-5 8"/><path d="M17 3c0 5-4 6.5-5 8 1 1.5 5 3 5 8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 11 12 15.5 16.5 11"/><path d="M4.5 18.5h15"/></symbol>
+</svg>
 <div class="app">
 
   <header class="topbar">
@@ -224,7 +290,7 @@ form.entry-form{
 
   <!-- ===== EXAMES ===== -->
   <div id="tab-exames" class="tab-content">
-    <button class="add-btn" onclick="toggleForm('exame')"><i class="ti ti-plus"></i> Adicionar exame</button>
+    <button class="add-btn" onclick="toggleForm('exame')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar exame</button>
     <form class="entry-form" id="form-exame" style="display:none" onsubmit="return saveExame(event)">
       <input type="hidden" id="exame-id">
       <div class="field"><label>Nome do exame</label><input id="exame-nome" required placeholder="Ex: Hemograma completo"></div>
@@ -258,7 +324,7 @@ form.entry-form{
 
   <!-- ===== VACINAS ===== -->
   <div id="tab-vacinas" class="tab-content">
-    <button class="add-btn" onclick="toggleForm('vacina')"><i class="ti ti-plus"></i> Adicionar vacina</button>
+    <button class="add-btn" onclick="toggleForm('vacina')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar vacina</button>
     <form class="entry-form" id="form-vacina" style="display:none" onsubmit="return saveVacina(event)">
       <input type="hidden" id="vacina-id">
       <div class="field"><label>Nome da vacina</label><input id="vacina-nome" required placeholder="Ex: Pentavalente"></div>
@@ -281,7 +347,7 @@ form.entry-form{
 
   <!-- ===== REMÉDIOS ===== -->
   <div id="tab-remedios" class="tab-content">
-    <button class="add-btn" onclick="toggleForm('remedio')"><i class="ti ti-plus"></i> Adicionar remédio</button>
+    <button class="add-btn" onclick="toggleForm('remedio')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar remédio</button>
     <form class="entry-form" id="form-remedio" style="display:none" onsubmit="return saveRemedio(event)">
       <input type="hidden" id="remedio-id">
       <div class="field"><label>Nome do remédio</label><input id="remedio-nome" required placeholder="Ex: Amoxicilina"></div>
@@ -312,7 +378,7 @@ form.entry-form{
       <div class="section-title">Backup dos dados</div>
       <p style="font-size:13px;color:var(--muted);margin-top:0;">Os dados ficam salvos só neste navegador/aparelho (localStorage). Exporte um backup de vez em quando, ou pra levar os dados pra outro aparelho.</p>
       <div class="form-actions">
-        <button class="btn primary" onclick="exportData()"><i class="ti ti-download"></i> Exportar backup (.json)</button>
+        <button class="btn primary" onclick="exportData()"><svg class="icon"><use href="#i-download"/></svg> Exportar backup (.json)</button>
       </div>
       <div class="field" style="margin-top:12px;">
         <label>Importar backup</label>
@@ -327,11 +393,11 @@ form.entry-form{
   </div>
 
   <nav class="bottom-nav">
-    <button class="nav-btn active" data-tab="inicio" onclick="switchTab('inicio')"><i class="ti ti-home"></i>Início</button>
-    <button class="nav-btn" data-tab="exames" onclick="switchTab('exames')"><i class="ti ti-microscope"></i>Exames</button>
-    <button class="nav-btn" data-tab="vacinas" onclick="switchTab('vacinas')"><i class="ti ti-vaccine"></i>Vacinas</button>
-    <button class="nav-btn" data-tab="remedios" onclick="switchTab('remedios')"><i class="ti ti-pill"></i>Remédios</button>
-    <button class="nav-btn" data-tab="ajustes" onclick="switchTab('ajustes')"><i class="ti ti-settings"></i>Ajustes</button>
+    <button class="nav-btn active" data-tab="inicio" onclick="switchTab('inicio')"><svg class="icon"><use href="#i-home"/></svg>Início</button>
+    <button class="nav-btn" data-tab="exames" onclick="switchTab('exames')"><svg class="icon"><use href="#i-flask"/></svg>Exames</button>
+    <button class="nav-btn" data-tab="vacinas" onclick="switchTab('vacinas')"><svg class="icon"><use href="#i-shield"/></svg>Vacinas</button>
+    <button class="nav-btn" data-tab="remedios" onclick="switchTab('remedios')"><svg class="icon"><use href="#i-capsule"/></svg>Remédios</button>
+    <button class="nav-btn" data-tab="ajustes" onclick="switchTab('ajustes')"><svg class="icon"><use href="#i-sliders"/></svg>Ajustes</button>
   </nav>
 </div>
 
@@ -443,18 +509,18 @@ function buildExames(){
       <div class="item-head">
         <div>
           <h3>${escapeHtml(x.nome)}</h3>
-          <div class="item-meta"><i class="ti ti-calendar"></i> ${fmtDate(x.data)} · ${x.status==='agendado'?'Agendado':'Realizado'}</div>
+          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${fmtDate(x.data)} · ${x.status==='agendado'?'Agendado':'Realizado'}</div>
           <span class="badge ${RESULTADO_CLASS[x.resultado]}">${RESULTADO_LABEL[x.resultado]}</span>
         </div>
         <div class="item-actions">
-          <button class="icon-btn" onclick="editExame('${x.id}')"><i class="ti ti-pencil"></i></button>
-          <button class="icon-btn danger" onclick="removeExame('${x.id}')"><i class="ti ti-trash"></i></button>
+          <button class="icon-btn" onclick="editExame('${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
+          <button class="icon-btn danger" onclick="removeExame('${x.id}')"><svg class="icon"><use href="#i-trash"/></svg></button>
         </div>
       </div>
       ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
     </div>
   `).join('');
-  document.getElementById('exames-list').innerHTML = html || `<div class="empty-state"><i class="ti ti-microscope"></i>Nenhum exame cadastrado ainda.</div>`;
+  document.getElementById('exames-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-flask"/></svg>Nenhum exame cadastrado ainda.</div>`;
 }
 
 /* ===== VACINAS ===== */
@@ -509,18 +575,18 @@ function buildVacinas(){
       <div class="item-head">
         <div>
           <h3>${escapeHtml(x.nome)}${x.dose ? ` <span style="font-weight:400;color:var(--muted);font-size:13px;">· ${escapeHtml(x.dose)}</span>` : ''}</h3>
-          <div class="item-meta"><i class="ti ti-calendar"></i> Aplicada em ${fmtDate(x.data)}${x.local ? ' · '+escapeHtml(x.local) : ''}</div>
+          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> Aplicada em ${fmtDate(x.data)}${x.local ? ' · '+escapeHtml(x.local) : ''}</div>
           ${x.proxima ? `<span class="badge ${atrasada?'warn':(proxima?'pending':'')}">${atrasada?'Próxima dose atrasada':'Próxima dose'}: ${fmtDate(x.proxima)}</span>` : ''}
         </div>
         <div class="item-actions">
-          <button class="icon-btn" onclick="editVacina('${x.id}')"><i class="ti ti-pencil"></i></button>
-          <button class="icon-btn danger" onclick="removeVacina('${x.id}')"><i class="ti ti-trash"></i></button>
+          <button class="icon-btn" onclick="editVacina('${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
+          <button class="icon-btn danger" onclick="removeVacina('${x.id}')"><svg class="icon"><use href="#i-trash"/></svg></button>
         </div>
       </div>
       ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
     </div>
   `;}).join('');
-  document.getElementById('vacinas-list').innerHTML = html || `<div class="empty-state"><i class="ti ti-vaccine"></i>Nenhuma vacina cadastrada ainda.</div>`;
+  document.getElementById('vacinas-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-shield"/></svg>Nenhuma vacina cadastrada ainda.</div>`;
 }
 
 /* ===== REMÉDIOS ===== */
@@ -593,19 +659,19 @@ function buildRemedios(){
       <div class="item-head">
         <div>
           <h3>${escapeHtml(x.nome)}${x.dosagem ? ` <span style="font-weight:400;color:var(--muted);font-size:13px;">· ${escapeHtml(x.dosagem)}</span>` : ''}</h3>
-          ${x.horarios ? `<div class="item-meta"><i class="ti ti-clock"></i> ${escapeHtml(x.horarios)}</div>` : ''}
-          ${periodo ? `<div class="item-meta"><i class="ti ti-calendar"></i> ${escapeHtml(periodo)}</div>` : ''}
+          ${x.horarios ? `<div class="item-meta"><svg class="icon"><use href="#i-clock"/></svg> ${escapeHtml(x.horarios)}</div>` : ''}
+          ${periodo ? `<div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${escapeHtml(periodo)}</div>` : ''}
           <span class="badge ${ativo?'':'warn'}">${ativo?'Ativo':'Encerrado'}</span>
         </div>
         <div class="item-actions">
-          <button class="icon-btn" onclick="editRemedio('${x.id}')"><i class="ti ti-pencil"></i></button>
-          <button class="icon-btn danger" onclick="removeRemedio('${x.id}')"><i class="ti ti-trash"></i></button>
+          <button class="icon-btn" onclick="editRemedio('${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
+          <button class="icon-btn danger" onclick="removeRemedio('${x.id}')"><svg class="icon"><use href="#i-trash"/></svg></button>
         </div>
       </div>
       ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
     </div>
   `;}).join('');
-  document.getElementById('remedios-list').innerHTML = html || `<div class="empty-state"><i class="ti ti-pill"></i>Nenhum remédio cadastrado ainda.</div>`;
+  document.getElementById('remedios-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-capsule"/></svg>Nenhum remédio cadastrado ainda.</div>`;
 }
 
 /* ===== CHECKLIST "REMÉDIOS DE HOJE" ===== */
@@ -625,7 +691,7 @@ function buildMedsToday(){
   const ativos = getRemedios().filter(isRemedioAtivo);
   const taken = getTakenToday();
   if(!ativos.length){
-    document.getElementById('meds-today').innerHTML = `<div class="empty-state"><i class="ti ti-pill"></i>Nenhum remédio ativo hoje.</div>`;
+    document.getElementById('meds-today').innerHTML = `<div class="empty-state"><svg class="icon"><use href="#i-capsule"/></svg>Nenhum remédio ativo hoje.</div>`;
     return;
   }
   document.getElementById('meds-today').innerHTML = ativos.map(x=>{
@@ -657,15 +723,15 @@ function buildDashboard(){
   exames.forEach(x=>{
     if(x.status==='agendado' && x.data){
       const d = daysDiff(x.data);
-      if(d>=0 && d<=7) alerts.push({type:'info', icon:'ti-microscope', title:x.nome, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.data)}`});
+      if(d>=0 && d<=7) alerts.push({type:'info', icon:'i-flask', title:x.nome, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.data)}`});
     }
-    if(x.resultado==='aguardando' && x.status==='realizado') alerts.push({type:'warn', icon:'ti-hourglass', title:x.nome, sub:'Aguardando resultado'});
+    if(x.resultado==='aguardando' && x.status==='realizado') alerts.push({type:'warn', icon:'i-hourglass', title:x.nome, sub:'Aguardando resultado'});
   });
   vacinas.forEach(x=>{
     if(x.proxima){
       const d = daysDiff(x.proxima);
-      if(d<0) alerts.push({type:'warn', icon:'ti-vaccine', title:x.nome, sub:`Dose atrasada desde ${fmtDate(x.proxima)}`});
-      else if(d<=14) alerts.push({type:'info', icon:'ti-vaccine', title:x.nome, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.proxima)}`});
+      if(d<0) alerts.push({type:'warn', icon:'i-shield', title:x.nome, sub:`Dose atrasada desde ${fmtDate(x.proxima)}`});
+      else if(d<=14) alerts.push({type:'info', icon:'i-shield', title:x.nome, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.proxima)}`});
     }
   });
 
@@ -673,25 +739,41 @@ function buildDashboard(){
 
   document.getElementById('alerts').innerHTML = alerts.length ? alerts.map(a=>`
     <div class="alert-item ${a.type}">
-      <div class="ic"><i class="ti ${a.icon}"></i></div>
+      <div class="ic"><svg class="icon"><use href="#${a.icon}"/></svg></div>
       <div class="txt"><strong>${escapeHtml(a.title)}</strong><span>${escapeHtml(a.sub)}</span></div>
     </div>
-  `).join('') : `<div class="empty-state"><i class="ti ti-check"></i>Nenhum alerta no momento.</div>`;
+  `).join('') : `<div class="empty-state"><svg class="icon"><use href="#i-check"/></svg>Nenhum alerta no momento.</div>`;
 }
 
 /* ===== BACKUP ===== */
-function exportData(){
+async function exportData(){
   const data = {
     exames: getExames(),
     vacinas: getVacinas(),
     remedios: getRemedios(),
     exportadoEm: new Date().toISOString()
   };
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const json = JSON.stringify(data, null, 2);
+  const filename = `saude-caique-backup-${todayISO()}.json`;
+
+  if(window.claude && typeof window.claude.use === 'function'){
+    try{
+      const downloads = await window.claude.use('downloads');
+      if(downloads){
+        await downloads.save({filename, data: json});
+        return;
+      }
+    }catch(e){
+      if(e && e.code === 'declined') return;
+      /* sem downloads disponível aqui — cai pro fallback abaixo */
+    }
+  }
+
+  const blob = new Blob([json], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `saude-caique-backup-${todayISO()}.json`;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
