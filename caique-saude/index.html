@@ -92,12 +92,12 @@ header.topbar{
   padding:18px 4px 10px;
 }
 header.topbar .avatar{
-  width:44px;height:44px;border-radius:50%;
+  width:48px;height:48px;border-radius:50%;overflow:hidden;
   background:linear-gradient(135deg,#5c7d4e,#33492b);
   display:flex;align-items:center;justify-content:center;
-  color:#fdfefe;font-weight:700;font-size:18px;flex-shrink:0;
-  font-family:var(--font-display);
+  flex-shrink:0;box-shadow:0 0 0 2px var(--card),0 0 0 3px var(--border);
 }
+header.topbar .avatar img{width:100%;height:100%;object-fit:cover;display:block;}
 header.topbar h1{font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;margin:0;line-height:1.15;text-wrap:balance;}
 header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
 
@@ -129,22 +129,6 @@ header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
 .stat-card .n{font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-0.01em;color:var(--green-dark);font-variant-numeric:tabular-nums;}
 .stat-card .l{font-size:11px;color:var(--muted);margin-top:2px;}
 .stat-card.warn .n{color:var(--coral);}
-
-/* atalhos de adicionar rápido */
-.quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
-.quick-action{
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:14px 8px;cursor:pointer;color:var(--ink);font-size:12px;font-weight:600;
-  appearance:none;-webkit-appearance:none;font-family:inherit;
-  transition:transform .1s;
-}
-.quick-action:active{transform:scale(.97);}
-.quick-action .icon-circle{
-  width:38px;height:38px;border-radius:50%;background:var(--green-light);color:var(--green-dark);
-  display:flex;align-items:center;justify-content:center;
-}
-.quick-action .icon-circle .icon{width:18px;height:18px;margin:0;vertical-align:0;}
 
 .alert-list .alert-item{
   display:flex;align-items:flex-start;gap:10px;
@@ -285,6 +269,32 @@ form.entry-form{
 .sync-indicator.err .dot{background:var(--coral);}
 .sync-indicator.busy .dot{background:var(--amber);}
 
+/* anexos */
+.anexo-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+.anexo-chip{
+  display:flex;align-items:center;gap:8px;
+  background:var(--card);border:1px solid var(--border);border-radius:9px;
+  padding:8px 10px;font-size:12.5px;cursor:pointer;text-align:left;width:100%;
+  color:var(--ink);appearance:none;-webkit-appearance:none;font-family:inherit;
+}
+.anexo-chip .icon{width:16px;height:16px;color:var(--green-dark);flex-shrink:0;margin:0;vertical-align:0;}
+.anexo-chip .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.anexo-chip .size{color:var(--muted);font-size:11px;flex-shrink:0;}
+.anexo-chip .remove{
+  border:none;background:none;cursor:pointer;flex-shrink:0;
+  width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:6px;
+}
+.anexo-chip .remove:hover{background:var(--coral-bg);}
+.anexo-chip .remove .icon{width:14px;height:14px;color:var(--coral);margin:0;}
+.anexo-upload-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  border:1px dashed var(--green);background:var(--green-light);color:var(--green-dark);
+  border-radius:9px;padding:9px 12px;font-size:12.5px;font-weight:600;cursor:pointer;margin-top:4px;
+}
+.anexo-upload-btn .icon{margin:0;vertical-align:0;}
+.anexo-upload-btn input{display:none;}
+.anexo-hint{font-size:11px;color:var(--muted);margin-top:4px;}
+
 /* sugestões de vacina (pet) */
 .suggest-card{
   background:var(--green-light);border:1px dashed var(--green);border-radius:var(--radius);
@@ -341,12 +351,15 @@ form.entry-form{
   <symbol id="i-paw" viewBox="0 0 24 24"><circle cx="7" cy="9" r="1.8"/><circle cx="12" cy="6.5" r="1.8"/><circle cx="17" cy="9" r="1.8"/><path d="M8.5 14.5c0-2 1.5-3 3.5-3s3.5 1 3.5 3-1.6 3.2-3.5 3.2-3.5-1.2-3.5-3.2Z"/></symbol>
   <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 10a6 6 0 0 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10Z"/><path d="M10 19a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l5 5v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5.5-5.5L13 15l3-3 4 4.5"/></symbol>
+  <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="M7 12.5 15 4.5a3.2 3.2 0 0 1 4.5 4.5l-9 9a5 5 0 0 1-7-7l7.5-7.5"/></symbol>
 </svg>
 <div class="sync-indicator" id="sync-indicator"><span class="dot"></span><span id="sync-text">Sincronizado</span></div>
 <div class="app">
 
   <header class="topbar">
-    <div class="avatar">C</div>
+    <div class="avatar"><img src="avatar-caique.jpg" alt="Caique"></div>
     <div>
       <h1>Saúde do Caique</h1>
       <p>Exames, vacinas e remédios em um só lugar</p>
@@ -359,12 +372,6 @@ form.entry-form{
       <button class="stat-card" id="stat-exames" onclick="switchTab('exames')"><div class="n">0</div><div class="l">Exames</div></button>
       <button class="stat-card" id="stat-vacinas" onclick="switchTab('vacinas')"><div class="n">0</div><div class="l">Vacinas</div></button>
       <button class="stat-card" id="stat-remedios" onclick="switchTab('remedios')"><div class="n">0</div><div class="l">Remédios ativos</div></button>
-    </div>
-
-    <div class="quick-actions">
-      <button class="quick-action" onclick="quickAdd('exame')"><span class="icon-circle"><svg class="icon"><use href="#i-flask"/></svg></span>Exame</button>
-      <button class="quick-action" onclick="quickAdd('vacina')"><span class="icon-circle"><svg class="icon"><use href="#i-shield"/></svg></span>Vacina</button>
-      <button class="quick-action" onclick="quickAdd('remedio')"><span class="icon-circle"><svg class="icon"><use href="#i-capsule"/></svg></span>Remédio</button>
     </div>
 
     <div class="card">
@@ -381,11 +388,11 @@ form.entry-form{
   <!-- ===== EXAMES ===== -->
   <div id="tab-exames" class="tab-content">
     <div class="profile-row" id="exame-profile-row"></div>
-    <button class="add-btn" onclick="toggleForm('exame')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar exame</button>
+    <button class="add-btn" onclick="toggleForm('exame')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar exame ou documento</button>
     <form class="entry-form" id="form-exame" style="display:none" onsubmit="return saveExame(event)">
       <input type="hidden" id="exame-id">
       <input type="hidden" id="exame-perfil">
-      <div class="field"><label>Nome do exame</label><input id="exame-nome" required placeholder="Ex: Hemograma completo"></div>
+      <div class="field"><label>Nome</label><input id="exame-nome" required placeholder="Ex: Hemograma completo, Consulta com Dr. Fulano"></div>
       <div class="field-row">
         <div class="field"><label>Data</label><input type="date" id="exame-data" required></div>
         <div class="field"><label>Status</label>
@@ -404,6 +411,16 @@ form.entry-form{
         </select>
       </div>
       <div class="field"><label>Observações</label><textarea id="exame-obs" placeholder="Médico solicitante, local, anotações..."></textarea></div>
+      <div class="field">
+        <label>Anexos</label>
+        <div id="exame-anexos-list" class="anexo-list"></div>
+        <label class="anexo-upload-btn">
+          <svg class="icon"><use href="#i-paperclip"/></svg>
+          <span id="exame-anexo-btn-label">Anexar arquivo</span>
+          <input type="file" id="exame-anexo-input" accept="application/pdf,image/*,.doc,.docx,.txt" multiple onchange="handleAnexoSelect('exame', this.files)">
+        </label>
+        <div class="anexo-hint">PDF, foto ou documento — até 6MB por arquivo.</div>
+      </div>
       <div class="form-actions">
         <button type="submit" class="btn primary">Salvar</button>
         <button type="button" class="btn ghost" onclick="toggleForm('exame')">Cancelar</button>
@@ -579,6 +596,9 @@ function fbWrite(path, data){
   return fbFetch('/'+path+'.json', {method:'PUT', body: JSON.stringify(data)})
     .then(()=>{ showSync('synced'); })
     .catch(()=>{ showSync('error'); });
+}
+function fbGet(path){
+  return fbFetch('/'+path+'.json').then(r=>r.json());
 }
 
 function pullFromFirebase(){
@@ -769,6 +789,8 @@ function openForm(kind){
   document.getElementById(kind+'-id').value = '';
   const perfilInput = document.getElementById(kind+'-perfil');
   if(perfilInput) perfilInput.value = activeProfile[kind] || 'caique';
+  formAnexos[kind] = [];
+  renderAnexosList(kind);
 }
 function closeForm(kind){
   document.getElementById('form-'+kind).style.display = 'none';
@@ -779,14 +801,103 @@ function toggleForm(kind){
   if(isOpen) closeForm(kind); else openForm(kind);
 }
 
-/* Atalho "adicionar rápido" da tela Início: pula direto pra aba certa com o
-   formulário já aberto, em vez de exigir trocar de aba e clicar em Adicionar. */
-function quickAdd(kind){
-  const tabByKind = {exame:'exames', vacina:'vacinas', remedio:'remedios'};
-  switchTab(tabByKind[kind]);
-  openForm(kind);
-  const form = document.getElementById('form-'+kind);
-  setTimeout(()=>form.scrollIntoView({behavior:'smooth', block:'start'}), 50);
+/* ===== ANEXOS =====
+   Arquivo (base64) fica num nó separado do Firebase (/files/<id>), fora
+   da árvore principal — pullFromFirebase() nunca baixa esse nó inteiro,
+   só busca um anexo específico quando alguém abre ele. Isso mantém o
+   sync da lista rápido mesmo com PDFs/fotos grandes acumulados.
+   Remover um anexo do formulário só tira a referência, nunca apaga o
+   blob em /files/ — evita apagar um arquivo que outro dispositivo ainda
+   pode estar exibindo; o custo é algum blob órfão de vez em quando,
+   aceitável pro uso pessoal (ver PROJECT_MAP.md seção 6). */
+const ANEXO_MAX_BYTES = 6 * 1024 * 1024;
+let formAnexos = {};
+
+function fileToDataUrl(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+function fmtBytes(n){
+  if(!n) return '';
+  if(n < 1024*1024) return Math.round(n/1024)+' KB';
+  return (n/(1024*1024)).toFixed(1)+' MB';
+}
+function anexoIcon(tipo){
+  return (tipo||'').startsWith('image/') ? 'i-image' : 'i-file';
+}
+async function handleAnexoSelect(kind, fileList){
+  const files = Array.from(fileList||[]);
+  const btnLabel = document.getElementById(kind+'-anexo-btn-label');
+  for(const file of files){
+    if(file.size > ANEXO_MAX_BYTES){
+      alert(`"${file.name}" tem ${fmtBytes(file.size)} — o limite é 6MB por arquivo.`);
+      continue;
+    }
+    if(btnLabel) btnLabel.textContent = 'Enviando...';
+    const tipo = file.type || 'application/octet-stream';
+    const id = uid();
+    showSync('saving');
+    try{
+      const dataUrl = await fileToDataUrl(file);
+      const res = await fbFetch('/files/'+id+'.json', {method:'PUT', body: JSON.stringify({nome:file.name, tipo, tamanho:file.size, dataUrl})});
+      if(!res.ok) throw new Error('http '+res.status);
+      showSync('synced');
+      formAnexos[kind].push({id, nome:file.name, tipo, tamanho:file.size});
+    }catch(e){
+      showSync('error');
+      alert(`Não consegui enviar "${file.name}" — fica de fora deste registro. Confira sua conexão e tenta anexar de novo.`);
+    }
+  }
+  if(btnLabel) btnLabel.textContent = 'Anexar arquivo';
+  const input = document.getElementById(kind+'-anexo-input');
+  if(input) input.value = '';
+  renderAnexosList(kind);
+}
+function removeAnexoFromForm(kind, id){
+  formAnexos[kind] = (formAnexos[kind]||[]).filter(a=>a.id!==id);
+  renderAnexosList(kind);
+}
+function renderAnexosList(kind){
+  const el = document.getElementById(kind+'-anexos-list');
+  if(!el) return;
+  el.innerHTML = (formAnexos[kind]||[]).map(a=>`
+    <div class="anexo-chip" style="cursor:default;">
+      <svg class="icon"><use href="#${anexoIcon(a.tipo)}"/></svg>
+      <span class="name">${escapeHtml(a.nome)}</span>
+      <span class="size">${fmtBytes(a.tamanho)}</span>
+      <button type="button" class="remove" onclick="removeAnexoFromForm('${kind}','${a.id}')" title="Remover"><svg class="icon"><use href="#i-trash"/></svg></button>
+    </div>
+  `).join('');
+}
+async function openAnexo(id){
+  try{
+    const data = await fbGet('files/'+id);
+    if(!data || !data.dataUrl){ alert('Não achei esse anexo — pode ter sido removido.'); return; }
+    if(window.claude && typeof window.claude.use === 'function'){
+      try{
+        const downloads = await window.claude.use('downloads');
+        if(downloads){
+          const blob = await (await fetch(data.dataUrl)).blob();
+          await downloads.save({filename: data.nome, data: blob});
+          return;
+        }
+      }catch(e){
+        if(e && e.code === 'declined') return;
+      }
+    }
+    const a = document.createElement('a');
+    a.href = data.dataUrl;
+    a.download = data.nome;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }catch(e){
+    alert('Não consegui abrir esse anexo. Confira sua conexão.');
+  }
 }
 
 /* ===== EXAMES ===== */
@@ -804,7 +915,8 @@ function saveExame(ev){
     data: document.getElementById('exame-data').value,
     status: document.getElementById('exame-status').value,
     resultado: document.getElementById('exame-resultado').value,
-    obs: document.getElementById('exame-obs').value.trim()
+    obs: document.getElementById('exame-obs').value.trim(),
+    anexos: (formAnexos.exame||[]).slice()
   };
   let list = getExames();
   const idx = list.findIndex(x=>x.id===id);
@@ -826,6 +938,8 @@ function editExame(id){
   document.getElementById('exame-status').value = item.status;
   document.getElementById('exame-resultado').value = item.resultado;
   document.getElementById('exame-obs').value = item.obs;
+  formAnexos.exame = (item.anexos||[]).slice();
+  renderAnexosList('exame');
   document.getElementById('form-exame').scrollIntoView({behavior:'smooth', block:'center'});
 }
 function removeExame(id){
@@ -862,6 +976,13 @@ function buildExames(){
         </div>
       </div>
       ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
+      ${x.anexos && x.anexos.length ? `<div class="anexo-list">${x.anexos.map(a=>`
+        <button type="button" class="anexo-chip" onclick="openAnexo('${a.id}')">
+          <svg class="icon"><use href="#${anexoIcon(a.tipo)}"/></svg>
+          <span class="name">${escapeHtml(a.nome)}</span>
+          <span class="size">${fmtBytes(a.tamanho)}</span>
+        </button>
+      `).join('')}</div>` : ''}
     </div>
   `).join('');
   document.getElementById('exames-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-flask"/></svg>Nenhum exame cadastrado ainda.</div>`;
