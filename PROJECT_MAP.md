@@ -1,6 +1,6 @@
 # PROJECT_MAP.md — Mapa do projeto Viagem Noronha
 
-Referência obrigatória. **Leia este arquivo antes de qualquer mudança.** Depois de criar, remover ou alterar a função de um arquivo — ou de mudar como os dados são sincronizados, os dias do roteiro, as abas, etc. — atualize a seção correspondente aqui antes de considerar a tarefa concluída (ver seção 8).
+Referência obrigatória. **Leia este arquivo antes de qualquer mudança.** Depois de criar, remover ou alterar a função de um arquivo — ou de mudar como os dados são sincronizados, os dias do roteiro, as abas, etc. — atualize a seção correspondente aqui antes de considerar a tarefa concluída (ver seção 9).
 
 ---
 
@@ -13,6 +13,8 @@ Não há pipeline de build ou deploy configurado no repositório (sem CI, sem `p
 O site tem um **service worker** (`sw.js`, ver seção 2.13) que cacheia o app-shell pra funcionar offline. Isso significa que, depois da primeira visita, quem abrir o site pode estar vendo uma versão em cache — não é só "editou o arquivo, recarregou, viu a mudança" como num site estático puro. Ver seção 2.13 antes de mexer em `sw.js` ou na lista de arquivos pré-cacheados.
 
 Repositório: `leticiapprz/viagem-noronha` (branch `main`).
+
+**Este repositório hospeda mais de um site estático independente.** Além do planner de viagem descrito neste documento (raiz do repo), há também `caique-saude/` (app de controle de saúde do Caique — exames, vacinas, remédios; ver seção 15). São projetos **sem nenhuma relação** — não compartilham dados, Firebase, service worker, CSS ou JS. Se for mexer num, não presuma nada sobre o outro.
 
 ---
 
@@ -163,7 +165,7 @@ O site pode ser "instalado" (Adicionar à tela de início, no celular) e continu
 - **Ícones** (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`, raiz do repo) — gerados a partir de `icon.svg` (não versionado, só o PNG final) via screenshot headless (Playwright/Chromium), já que não há ImageMagick/PIL disponível no ambiente. Design: gradiente `--ocean`→`--green` com o emoji 🦈 (mesmo do favicon) sobre uma onda. Fundo em **full-bleed quadrado, sem cantos arredondados manualmente** — o SO aplica a própria máscara (Android/iOS); arredondar os dois juntos deixava uma borda branca feia. Pra regenerar/trocar o ícone: editar o SVG e re-rodar o screenshot nos 3 tamanhos.
 - **`sw.js`** (raiz do repo, registrado no fim do `<script>` via `navigator.serviceWorker.register('sw.js')`) — cacheia só requisições **do próprio domínio** (`self.location.origin`): o `index.html` (estratégia network-first, com fallback pro cache se a rede falhar — garante que quem tem internet sempre vê a versão mais nova, e quem não tem ainda consegue abrir o app) e os arquivos estáticos próprios (`manifest.json`, ícones, fotos do splash — estratégia cache-first). **Não cacheia nada de fora** (Firebase, Google Fonts, Leaflet/Chart.js/tabler-icons via CDN, tiles do OSRM/OpenStreetMap) — isso é proposital, não uma limitação a corrigir de leve: cachear um webfont de terceiros às cegas (múltiplos arquivos de fonte referenciados de dentro do CSS, caminhos não óbvios) tem alto risco de cache quebrado por pouco ganho. Efeito prático offline: dados (gastos/roteiro/checklist) funcionam 100% (vêm do `localStorage`, seção 2.3), a aba Mapa mostra a mensagem de fallback (seção 2.11), ícones (`ti ti-*`) e a fonte DM Sans não aparecem (cai no fallback do sistema) — cosmético, não quebra nada.
 - **Versionamento do cache:** `CACHE_VERSION`/`CACHE_NAME` no topo do `sw.js`. Ao adicionar/remover um arquivo da lista `PRECACHE_URLS`, **bump o `CACHE_VERSION`** (ex. `'v1'`→`'v2'`) — isso força um cache novo e o `activate` apaga o antigo. Sem isso, navegadores que já instalaram o SW anterior podem não pegar os arquivos novos até o cache antigo expirar/ser limpo manualmente.
-- **Testar isso exige HTTP, não `file://`:** service workers não registram em páginas abertas via `file://` (não é contexto seguro o suficiente pro browser). Pra testar mudanças no `sw.js`/manifest, suba um servidor local (`python3 -m http.server` na raiz do repo) e abra via `http://localhost:PORT/index.html` — abrir o arquivo direto no navegador (double-click, ver seção 7) não vai registrar o service worker, mas o resto do site funciona normalmente do mesmo jeito.
+- **Testar isso exige HTTP, não `file://`:** service workers não registram em páginas abertas via `file://` (não é contexto seguro o suficiente pro browser). Pra testar mudanças no `sw.js`/manifest, suba um servidor local (`python3 -m http.server` na raiz do repo) e abra via `http://localhost:PORT/index.html` — abrir o arquivo direto no navegador (double-click, ver seção 8) não vai registrar o service worker, mas o resto do site funciona normalmente do mesmo jeito.
 
 ### 2.14 FAB flutuante: gasto rápido / info importante (10/08/2026)
 Dois botões redondos fixos (`.fab-group`, HTML estático no `<body>`, antes da `<nav>`) visíveis em **qualquer aba** — não fazem parte de nenhuma `tab-content`, então sobrevivem a troca de aba sem re-render. Ficam acima da bottom-nav no mobile, canto inferior direito no desktop (sidebar não usa essa área).
@@ -203,7 +205,20 @@ Referenciados pelo `index.html`:
 
 ---
 
-## 6. Histórico relevante (não repetir aqui, só contexto pra não redescobrir via git log)
+## 6. `caique-saude/` — app de saúde do Caique (projeto separado)
+
+App estático independente, **sem nenhuma relação com o planner de viagem** — mora numa pasta própria pra ficar isolado do resto do repo. Um único arquivo `caique-saude/index.html` (HTML+CSS+JS inline, mesmo padrão "sem build" do resto do repo), sem Firebase — só `localStorage` (prefixo de chave `caique-saude-`), com export/import manual de backup em JSON (botões na aba Ajustes) já que não há sincronização entre dispositivos.
+
+- 5 abas (nav inferior/lateral, mesmo padrão responsivo `@media(min-width:768px)` da seção 2.4, mas é CSS/JS totalmente duplicado e independente, não compartilhado com `index.html`): **Início** (dashboard — contadores, checklist de remédios de hoje, alertas de exames próximos/vacinas atrasadas), **Exames**, **Vacinas**, **Remédios**, **Ajustes** (backup).
+- Cada aba de cadastro (Exames/Vacinas/Remédios) segue o mesmo padrão: array salvo no localStorage (`getX()`/`saveX()`), formulário inline (`toggleForm(kind)`) pra adicionar/editar por `id` estável (`uid()`), lista renderizada em `buildX()`, chamado a partir de `renderAll()` (roda depois de qualquer save/delete).
+- Remédios têm um conceito de **ativo** (`isRemedioAtivo`): contínuo (sem data fim) ou dentro do intervalo início/fim. A aba Início usa isso pra montar a checklist "Remédios de hoje", com estado de "tomado hoje" salvo por dia (`taken-<data-ISO>`, zera sozinho no dia seguinte porque a chave muda).
+- Datas usam fuso de Brasília (`todayISO()`, mesmo padrão de `getTodayISO()` da seção 2.8) — importante pro cálculo de "atrasado"/"em quantos dias" (`daysDiff`).
+- **Se for expandir esse app pra sincronizar entre dispositivos**, não reusar o Firebase do planner de viagem (mesmo banco, dados sem relação) — criar um projeto/nó separado, e ao fazer isso revisar a seção 2.3 (bug do `pushDefaults`/`PUT` que apaga nó inteiro) antes de implementar do zero.
+- Não tem service worker/manifest próprio (não é instalável como PWA offline ainda) — se isso for pedido, seguir o padrão da seção 2.13 mas com cache/escopo isolados (não reusar `sw.js` da raiz, que só lista arquivos do planner de viagem).
+
+---
+
+## 7. Histórico relevante (não repetir aqui, só contexto pra não redescobrir via git log)
 
 - Migração de Google Sheets → Firebase Realtime Database para sync entre dispositivos.
 - Lista de compras + lista de "resolver" foram unificadas num checklist único com tags editáveis (ver seção 2.10 e a nota de dado morto na seção 2.3).
@@ -211,7 +226,7 @@ Referenciados pelo `index.html`:
 
 ---
 
-## 7. Como testar uma mudança
+## 8. Como testar uma mudança
 
 Não há servidor/build — basta abrir `index.html` direto no navegador (duplo-clique ou `open index.html`) para ver o resultado. Mudanças em dados sincronizados (gastos, checklist) só refletem entre "dispositivos" diferentes através do Firebase — testar localmente basta olhar a própria aba, já que o localStorage funciona igual sem internet (só a sincronização entre abas/dispositivos depende do Firebase estar acessível).
 
@@ -219,7 +234,7 @@ Exceção: mudanças no service worker/manifest (seção 2.13) só são testáve
 
 ---
 
-## 8. Como manter este arquivo
+## 9. Como manter este arquivo
 
 Sempre que:
 - adicionar/remover uma aba, uma seção de código, ou um arquivo no repo;

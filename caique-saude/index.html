@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Saúde do Caique</title>
+<meta name="theme-color" content="#2f8f7a">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/dist/tabler-icons.min.css">
+<style>
+:root{
+  --teal:#2f8f7a;
+  --teal-dark:#1f6b5a;
+  --teal-light:#e6f4f1;
+  --coral:#e8735c;
+  --amber:#e0a530;
+  --ink:#243330;
+  --muted:#6b7a77;
+  --bg:#f6faf9;
+  --card:#ffffff;
+  --border:#e1eae8;
+  --radius:14px;
+}
+*{box-sizing:border-box;}
+body{margin:0;}
+html,body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;}
+button{font-family:inherit;}
+input,select,textarea{font-family:inherit;font-size:15px;}
+
+.app{
+  max-width:720px;
+  margin:0 auto;
+  padding:16px 16px 96px;
+}
+header.topbar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:18px 4px 10px;
+}
+header.topbar .avatar{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),var(--teal-dark));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700;font-size:18px;flex-shrink:0;
+}
+header.topbar h1{font-size:19px;margin:0;line-height:1.2;}
+header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  margin-bottom:14px;
+}
+.section-title{
+  font-size:13px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  color:var(--muted);
+  margin:0 0 10px 2px;
+}
+
+/* dashboard stat grid */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 10px;text-align:center;
+}
+.stat-card .n{font-size:22px;font-weight:800;color:var(--teal-dark);}
+.stat-card .l{font-size:11px;color:var(--muted);margin-top:2px;}
+.stat-card.warn .n{color:var(--coral);}
+
+.alert-list .alert-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 0;border-bottom:1px solid var(--border);
+}
+.alert-list .alert-item:last-child{border-bottom:none;}
+.alert-item .ic{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:#fbeae6;color:var(--coral);font-size:16px;
+}
+.alert-item.info .ic{background:var(--teal-light);color:var(--teal-dark);}
+.alert-item .txt strong{display:block;font-size:14px;}
+.alert-item .txt span{font-size:12.5px;color:var(--muted);}
+.empty-state{
+  text-align:center;color:var(--muted);font-size:13.5px;padding:18px 8px;
+}
+.empty-state i{font-size:26px;display:block;margin-bottom:6px;color:var(--teal);}
+
+/* nav */
+.bottom-nav{
+  position:fixed;left:0;right:0;bottom:0;
+  background:#fff;border-top:1px solid var(--border);
+  display:flex;justify-content:space-around;
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  z-index:50;
+}
+.nav-btn{
+  background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;
+  color:var(--muted);font-size:10.5px;padding:6px 10px;border-radius:10px;cursor:pointer;
+}
+.nav-btn i{font-size:20px;}
+.nav-btn.active{color:var(--teal-dark);}
+@media(min-width:768px){
+  .bottom-nav{
+    top:0;bottom:0;left:0;right:auto;width:96px;flex-direction:column;justify-content:flex-start;
+    padding:24px 8px;border-top:none;border-right:1px solid var(--border);gap:8px;
+  }
+  .app{max-width:640px;margin-left:96px;}
+  .nav-btn{width:100%;}
+}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* list items */
+.item-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px;margin-bottom:10px;
+}
+.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.item-head h3{margin:0;font-size:15.5px;}
+.item-meta{font-size:12.5px;color:var(--muted);margin-top:3px;}
+.item-actions{display:flex;gap:6px;flex-shrink:0;}
+.icon-btn{
+  border:none;background:var(--teal-light);color:var(--teal-dark);
+  width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:14px;
+}
+.icon-btn.danger{background:#fbeae6;color:var(--coral);}
+.badge{
+  display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;
+  background:var(--teal-light);color:var(--teal-dark);margin-top:6px;
+}
+.badge.warn{background:#fbeae6;color:var(--coral);}
+.badge.pending{background:#fdf3e0;color:#a8730f;}
+.item-notes{font-size:13px;color:var(--ink);margin-top:8px;white-space:pre-wrap;}
+
+.filter-row{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;}
+.chip{
+  border:1px solid var(--border);background:#fff;color:var(--muted);
+  padding:6px 12px;border-radius:20px;font-size:12.5px;white-space:nowrap;cursor:pointer;
+}
+.chip.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+
+.add-btn{
+  width:100%;border:1.5px dashed var(--teal);background:var(--teal-light);color:var(--teal-dark);
+  border-radius:var(--radius);padding:12px;font-size:14px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:14px;
+}
+
+form.entry-form{
+  background:var(--teal-light);border-radius:var(--radius);padding:14px;margin-bottom:14px;
+}
+.field{margin-bottom:10px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--teal-dark);margin-bottom:4px;}
+.field input,.field select,.field textarea{
+  width:100%;padding:9px 10px;border-radius:9px;border:1px solid var(--border);background:#fff;
+}
+.field textarea{resize:vertical;min-height:56px;}
+.field-row{display:flex;gap:8px;}
+.field-row .field{flex:1;}
+.form-actions{display:flex;gap:8px;margin-top:4px;}
+.btn{
+  border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;
+}
+.btn.primary{background:var(--teal);color:#fff;}
+.btn.ghost{background:#fff;color:var(--muted);border:1px solid var(--border);}
+
+.med-today-item{
+  display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);
+}
+.med-today-item:last-child{border-bottom:none;}
+.med-today-item input[type=checkbox]{width:20px;height:20px;accent-color:var(--teal);flex-shrink:0;}
+.med-today-item.done .txt{text-decoration:line-through;color:var(--muted);}
+.med-today-item .txt strong{display:block;font-size:14px;}
+.med-today-item .txt span{font-size:12px;color:var(--muted);}
+
+.settings-row{
+  display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);
+}
+.settings-row:last-child{border-bottom:none;}
+.settings-row span{font-size:13.5px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="avatar">C</div>
+    <div>
+      <h1>Saúde do Caique</h1>
+      <p>Exames, vacinas e remédios em um só lugar</p>
+    </div>
+  </header>
+
+  <!-- ===== INÍCIO ===== -->
+  <div id="tab-inicio" class="tab-content active">
+    <div class="stat-grid">
+      <div class="stat-card" id="stat-exames"><div class="n">0</div><div class="l">Exames</div></div>
+      <div class="stat-card" id="stat-vacinas"><div class="n">0</div><div class="l">Vacinas</div></div>
+      <div class="stat-card" id="stat-remedios"><div class="n">0</div><div class="l">Remédios ativos</div></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Remédios de hoje</div>
+      <div id="meds-today"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Alertas</div>
+      <div id="alerts" class="alert-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== EXAMES ===== -->
+  <div id="tab-exames" class="tab-content">
+    <button class="add-btn" onclick="toggleForm('exame')"><i class="ti ti-plus"></i> Adicionar exame</button>
+    <form class="entry-form" id="form-exame" style="display:none" onsubmit="return saveExame(event)">
+      <input type="hidden" id="exame-id">
+      <div class="field"><label>Nome do exame</label><input id="exame-nome" required placeholder="Ex: Hemograma completo"></div>
+      <div class="field-row">
+        <div class="field"><label>Data</label><input type="date" id="exame-data" required></div>
+        <div class="field"><label>Status</label>
+          <select id="exame-status">
+            <option value="agendado">Agendado</option>
+            <option value="realizado">Realizado</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Resultado</label>
+        <select id="exame-resultado">
+          <option value="aguardando">Aguardando resultado</option>
+          <option value="normal">Normal</option>
+          <option value="alterado">Alterado</option>
+          <option value="na">Não se aplica</option>
+        </select>
+      </div>
+      <div class="field"><label>Observações</label><textarea id="exame-obs" placeholder="Médico solicitante, local, anotações..."></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">Salvar</button>
+        <button type="button" class="btn ghost" onclick="toggleForm('exame')">Cancelar</button>
+      </div>
+    </form>
+
+    <div class="filter-row" id="exame-filters"></div>
+    <div id="exames-list"></div>
+  </div>
+
+  <!-- ===== VACINAS ===== -->
+  <div id="tab-vacinas" class="tab-content">
+    <button class="add-btn" onclick="toggleForm('vacina')"><i class="ti ti-plus"></i> Adicionar vacina</button>
+    <form class="entry-form" id="form-vacina" style="display:none" onsubmit="return saveVacina(event)">
+      <input type="hidden" id="vacina-id">
+      <div class="field"><label>Nome da vacina</label><input id="vacina-nome" required placeholder="Ex: Pentavalente"></div>
+      <div class="field-row">
+        <div class="field"><label>Dose</label><input id="vacina-dose" placeholder="Ex: 1ª dose, reforço"></div>
+        <div class="field"><label>Data aplicada</label><input type="date" id="vacina-data" required></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Próxima dose (opcional)</label><input type="date" id="vacina-proxima"></div>
+        <div class="field"><label>Local/clínica</label><input id="vacina-local" placeholder="Ex: UBS, pediatra"></div>
+      </div>
+      <div class="field"><label>Observações</label><textarea id="vacina-obs" placeholder="Reação, lote, observações..."></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">Salvar</button>
+        <button type="button" class="btn ghost" onclick="toggleForm('vacina')">Cancelar</button>
+      </div>
+    </form>
+    <div id="vacinas-list"></div>
+  </div>
+
+  <!-- ===== REMÉDIOS ===== -->
+  <div id="tab-remedios" class="tab-content">
+    <button class="add-btn" onclick="toggleForm('remedio')"><i class="ti ti-plus"></i> Adicionar remédio</button>
+    <form class="entry-form" id="form-remedio" style="display:none" onsubmit="return saveRemedio(event)">
+      <input type="hidden" id="remedio-id">
+      <div class="field"><label>Nome do remédio</label><input id="remedio-nome" required placeholder="Ex: Amoxicilina"></div>
+      <div class="field-row">
+        <div class="field"><label>Dosagem</label><input id="remedio-dosagem" placeholder="Ex: 5ml, 1 comprimido"></div>
+        <div class="field"><label>Horários</label><input id="remedio-horarios" placeholder="Ex: 08:00, 14:00, 20:00"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Início</label><input type="date" id="remedio-inicio"></div>
+        <div class="field"><label>Fim (opcional)</label><input type="date" id="remedio-fim"></div>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" id="remedio-continuo" style="width:auto;margin-right:6px;"> Uso contínuo (sem data de término)</label>
+      </div>
+      <div class="field"><label>Observações</label><textarea id="remedio-obs" placeholder="Motivo, orientação médica..."></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">Salvar</button>
+        <button type="button" class="btn ghost" onclick="toggleForm('remedio')">Cancelar</button>
+      </div>
+    </form>
+    <div class="filter-row" id="remedio-filters"></div>
+    <div id="remedios-list"></div>
+  </div>
+
+  <!-- ===== AJUSTES ===== -->
+  <div id="tab-ajustes" class="tab-content">
+    <div class="card">
+      <div class="section-title">Backup dos dados</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:0;">Os dados ficam salvos só neste navegador/aparelho (localStorage). Exporte um backup de vez em quando, ou pra levar os dados pra outro aparelho.</p>
+      <div class="form-actions">
+        <button class="btn primary" onclick="exportData()"><i class="ti ti-download"></i> Exportar backup (.json)</button>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>Importar backup</label>
+        <input type="file" id="import-file" accept="application/json">
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Sobre</div>
+      <div class="settings-row"><span>App</span><span>Saúde do Caique</span></div>
+      <div class="settings-row"><span>Dados salvos localmente</span><span id="storage-count">—</span></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="inicio" onclick="switchTab('inicio')"><i class="ti ti-home"></i>Início</button>
+    <button class="nav-btn" data-tab="exames" onclick="switchTab('exames')"><i class="ti ti-microscope"></i>Exames</button>
+    <button class="nav-btn" data-tab="vacinas" onclick="switchTab('vacinas')"><i class="ti ti-vaccine"></i>Vacinas</button>
+    <button class="nav-btn" data-tab="remedios" onclick="switchTab('remedios')"><i class="ti ti-pill"></i>Remédios</button>
+    <button class="nav-btn" data-tab="ajustes" onclick="switchTab('ajustes')"><i class="ti ti-settings"></i>Ajustes</button>
+  </nav>
+</div>
+
+<script>
+const LS = 'caique-saude-';
+function lsGet(k, def){ try{ const v = localStorage.getItem(LS+k); return v===null ? def : JSON.parse(v); }catch(e){ return def; } }
+function lsSet(k, v){ try{ localStorage.setItem(LS+k, JSON.stringify(v)); }catch(e){} }
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function todayISO(){
+  return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+}
+function fmtDate(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function daysDiff(iso){
+  const today = new Date(todayISO()+'T00:00:00');
+  const target = new Date(iso+'T00:00:00');
+  return Math.round((target-today)/86400000);
+}
+
+/* ===== TABS ===== */
+function switchTab(tab){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelector(`.nav-btn[data-tab="${tab}"]`).classList.add('active');
+  location.hash = tab;
+  renderAll();
+}
+const initTab = location.hash.replace('#','') || 'inicio';
+if(['inicio','exames','vacinas','remedios','ajustes'].includes(initTab)){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+initTab).classList.add('active');
+  document.querySelector(`.nav-btn[data-tab="${initTab}"]`).classList.add('active');
+}
+
+/* ===== FORM TOGGLE ===== */
+function toggleForm(kind){
+  const form = document.getElementById('form-'+kind);
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    form.reset();
+    document.getElementById(kind+'-id').value = '';
+  }
+}
+
+/* ===== EXAMES ===== */
+function getExames(){ return lsGet('exames', []); }
+function saveExames(list){ lsSet('exames', list); }
+let exameFilter = 'todos';
+
+function saveExame(ev){
+  ev.preventDefault();
+  const id = document.getElementById('exame-id').value || uid();
+  const item = {
+    id,
+    nome: document.getElementById('exame-nome').value.trim(),
+    data: document.getElementById('exame-data').value,
+    status: document.getElementById('exame-status').value,
+    resultado: document.getElementById('exame-resultado').value,
+    obs: document.getElementById('exame-obs').value.trim()
+  };
+  let list = getExames();
+  const idx = list.findIndex(x=>x.id===id);
+  if(idx>=0) list[idx]=item; else list.push(item);
+  saveExames(list);
+  toggleForm('exame');
+  renderAll();
+  return false;
+}
+function editExame(id){
+  const item = getExames().find(x=>x.id===id);
+  if(!item) return;
+  document.getElementById('form-exame').style.display='block';
+  document.getElementById('exame-id').value = item.id;
+  document.getElementById('exame-nome').value = item.nome;
+  document.getElementById('exame-data').value = item.data;
+  document.getElementById('exame-status').value = item.status;
+  document.getElementById('exame-resultado').value = item.resultado;
+  document.getElementById('exame-obs').value = item.obs;
+  document.getElementById('form-exame').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function removeExame(id){
+  if(!confirm('Remover este exame?')) return;
+  saveExames(getExames().filter(x=>x.id!==id));
+  renderAll();
+}
+const RESULTADO_LABEL = {aguardando:'Aguardando resultado', normal:'Resultado normal', alterado:'Resultado alterado', na:'Não se aplica'};
+const RESULTADO_CLASS = {aguardando:'pending', normal:'', alterado:'warn', na:''};
+
+function buildExames(){
+  const filters = [['todos','Todos'],['agendado','Agendados'],['realizado','Realizados']];
+  document.getElementById('exame-filters').innerHTML = filters.map(([v,l])=>
+    `<button class="chip ${exameFilter===v?'active':''}" onclick="exameFilter='${v}';renderAll()">${l}</button>`
+  ).join('');
+
+  let list = getExames().slice().sort((a,b)=> b.data.localeCompare(a.data));
+  if(exameFilter!=='todos') list = list.filter(x=>x.status===exameFilter);
+
+  const html = list.map(x=>`
+    <div class="item-card">
+      <div class="item-head">
+        <div>
+          <h3>${escapeHtml(x.nome)}</h3>
+          <div class="item-meta"><i class="ti ti-calendar"></i> ${fmtDate(x.data)} · ${x.status==='agendado'?'Agendado':'Realizado'}</div>
+          <span class="badge ${RESULTADO_CLASS[x.resultado]}">${RESULTADO_LABEL[x.resultado]}</span>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn" onclick="editExame('${x.id}')"><i class="ti ti-pencil"></i></button>
+          <button class="icon-btn danger" onclick="removeExame('${x.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
+    </div>
+  `).join('');
+  document.getElementById('exames-list').innerHTML = html || `<div class="empty-state"><i class="ti ti-microscope"></i>Nenhum exame cadastrado ainda.</div>`;
+}
+
+/* ===== VACINAS ===== */
+function getVacinas(){ return lsGet('vacinas', []); }
+function saveVacinas(list){ lsSet('vacinas', list); }
+
+function saveVacina(ev){
+  ev.preventDefault();
+  const id = document.getElementById('vacina-id').value || uid();
+  const item = {
+    id,
+    nome: document.getElementById('vacina-nome').value.trim(),
+    dose: document.getElementById('vacina-dose').value.trim(),
+    data: document.getElementById('vacina-data').value,
+    proxima: document.getElementById('vacina-proxima').value,
+    local: document.getElementById('vacina-local').value.trim(),
+    obs: document.getElementById('vacina-obs').value.trim()
+  };
+  let list = getVacinas();
+  const idx = list.findIndex(x=>x.id===id);
+  if(idx>=0) list[idx]=item; else list.push(item);
+  saveVacinas(list);
+  toggleForm('vacina');
+  renderAll();
+  return false;
+}
+function editVacina(id){
+  const item = getVacinas().find(x=>x.id===id);
+  if(!item) return;
+  document.getElementById('form-vacina').style.display='block';
+  document.getElementById('vacina-id').value = item.id;
+  document.getElementById('vacina-nome').value = item.nome;
+  document.getElementById('vacina-dose').value = item.dose;
+  document.getElementById('vacina-data').value = item.data;
+  document.getElementById('vacina-proxima').value = item.proxima || '';
+  document.getElementById('vacina-local').value = item.local;
+  document.getElementById('vacina-obs').value = item.obs;
+  document.getElementById('form-vacina').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function removeVacina(id){
+  if(!confirm('Remover esta vacina?')) return;
+  saveVacinas(getVacinas().filter(x=>x.id!==id));
+  renderAll();
+}
+function buildVacinas(){
+  const list = getVacinas().slice().sort((a,b)=> b.data.localeCompare(a.data));
+  const html = list.map(x=>{
+    const atrasada = x.proxima && daysDiff(x.proxima) < 0;
+    const proxima = x.proxima && daysDiff(x.proxima) >= 0;
+    return `
+    <div class="item-card">
+      <div class="item-head">
+        <div>
+          <h3>${escapeHtml(x.nome)}${x.dose ? ` <span style="font-weight:400;color:var(--muted);font-size:13px;">· ${escapeHtml(x.dose)}</span>` : ''}</h3>
+          <div class="item-meta"><i class="ti ti-calendar"></i> Aplicada em ${fmtDate(x.data)}${x.local ? ' · '+escapeHtml(x.local) : ''}</div>
+          ${x.proxima ? `<span class="badge ${atrasada?'warn':(proxima?'pending':'')}">${atrasada?'Próxima dose atrasada':'Próxima dose'}: ${fmtDate(x.proxima)}</span>` : ''}
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn" onclick="editVacina('${x.id}')"><i class="ti ti-pencil"></i></button>
+          <button class="icon-btn danger" onclick="removeVacina('${x.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
+    </div>
+  `;}).join('');
+  document.getElementById('vacinas-list').innerHTML = html || `<div class="empty-state"><i class="ti ti-vaccine"></i>Nenhuma vacina cadastrada ainda.</div>`;
+}
+
+/* ===== REMÉDIOS ===== */
+function getRemedios(){ return lsGet('remedios', []); }
+function saveRemedios(list){ lsSet('remedios', list); }
+let remedioFilter = 'ativos';
+
+function isRemedioAtivo(x){
+  const today = todayISO();
+  if(x.continuo) return !x.inicio || x.inicio <= today;
+  if(x.inicio && x.inicio > today) return false;
+  if(x.fim && x.fim < today) return false;
+  return true;
+}
+
+function saveRemedio(ev){
+  ev.preventDefault();
+  const id = document.getElementById('remedio-id').value || uid();
+  const item = {
+    id,
+    nome: document.getElementById('remedio-nome').value.trim(),
+    dosagem: document.getElementById('remedio-dosagem').value.trim(),
+    horarios: document.getElementById('remedio-horarios').value.trim(),
+    inicio: document.getElementById('remedio-inicio').value,
+    fim: document.getElementById('remedio-fim').value,
+    continuo: document.getElementById('remedio-continuo').checked,
+    obs: document.getElementById('remedio-obs').value.trim()
+  };
+  let list = getRemedios();
+  const idx = list.findIndex(x=>x.id===id);
+  if(idx>=0) list[idx]=item; else list.push(item);
+  saveRemedios(list);
+  toggleForm('remedio');
+  renderAll();
+  return false;
+}
+function editRemedio(id){
+  const item = getRemedios().find(x=>x.id===id);
+  if(!item) return;
+  document.getElementById('form-remedio').style.display='block';
+  document.getElementById('remedio-id').value = item.id;
+  document.getElementById('remedio-nome').value = item.nome;
+  document.getElementById('remedio-dosagem').value = item.dosagem;
+  document.getElementById('remedio-horarios').value = item.horarios;
+  document.getElementById('remedio-inicio').value = item.inicio || '';
+  document.getElementById('remedio-fim').value = item.fim || '';
+  document.getElementById('remedio-continuo').checked = !!item.continuo;
+  document.getElementById('remedio-obs').value = item.obs;
+  document.getElementById('form-remedio').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function removeRemedio(id){
+  if(!confirm('Remover este remédio?')) return;
+  saveRemedios(getRemedios().filter(x=>x.id!==id));
+  renderAll();
+}
+function buildRemedios(){
+  const filters = [['ativos','Ativos'],['todos','Todos']];
+  document.getElementById('remedio-filters').innerHTML = filters.map(([v,l])=>
+    `<button class="chip ${remedioFilter===v?'active':''}" onclick="remedioFilter='${v}';renderAll()">${l}</button>`
+  ).join('');
+
+  let list = getRemedios().slice().sort((a,b)=> a.nome.localeCompare(b.nome));
+  if(remedioFilter==='ativos') list = list.filter(isRemedioAtivo);
+
+  const html = list.map(x=>{
+    const ativo = isRemedioAtivo(x);
+    const periodo = x.continuo ? 'Uso contínuo' : [x.inicio && `de ${fmtDate(x.inicio)}`, x.fim && `até ${fmtDate(x.fim)}`].filter(Boolean).join(' ');
+    return `
+    <div class="item-card">
+      <div class="item-head">
+        <div>
+          <h3>${escapeHtml(x.nome)}${x.dosagem ? ` <span style="font-weight:400;color:var(--muted);font-size:13px;">· ${escapeHtml(x.dosagem)}</span>` : ''}</h3>
+          ${x.horarios ? `<div class="item-meta"><i class="ti ti-clock"></i> ${escapeHtml(x.horarios)}</div>` : ''}
+          ${periodo ? `<div class="item-meta"><i class="ti ti-calendar"></i> ${escapeHtml(periodo)}</div>` : ''}
+          <span class="badge ${ativo?'':'warn'}">${ativo?'Ativo':'Encerrado'}</span>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn" onclick="editRemedio('${x.id}')"><i class="ti ti-pencil"></i></button>
+          <button class="icon-btn danger" onclick="removeRemedio('${x.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
+    </div>
+  `;}).join('');
+  document.getElementById('remedios-list').innerHTML = html || `<div class="empty-state"><i class="ti ti-pill"></i>Nenhum remédio cadastrado ainda.</div>`;
+}
+
+/* ===== CHECKLIST "REMÉDIOS DE HOJE" ===== */
+function getTakenToday(){
+  const key = 'taken-'+todayISO();
+  return lsGet(key, []);
+}
+function toggleTaken(remedioId){
+  const key = 'taken-'+todayISO();
+  let taken = lsGet(key, []);
+  if(taken.includes(remedioId)) taken = taken.filter(id=>id!==remedioId);
+  else taken.push(remedioId);
+  lsSet(key, taken);
+  renderAll();
+}
+function buildMedsToday(){
+  const ativos = getRemedios().filter(isRemedioAtivo);
+  const taken = getTakenToday();
+  if(!ativos.length){
+    document.getElementById('meds-today').innerHTML = `<div class="empty-state"><i class="ti ti-pill"></i>Nenhum remédio ativo hoje.</div>`;
+    return;
+  }
+  document.getElementById('meds-today').innerHTML = ativos.map(x=>{
+    const done = taken.includes(x.id);
+    return `
+    <label class="med-today-item ${done?'done':''}">
+      <input type="checkbox" ${done?'checked':''} onchange="toggleTaken('${x.id}')">
+      <div class="txt">
+        <strong>${escapeHtml(x.nome)}${x.dosagem?` · ${escapeHtml(x.dosagem)}`:''}</strong>
+        <span>${escapeHtml(x.horarios || 'sem horário definido')}</span>
+      </div>
+    </label>`;
+  }).join('');
+}
+
+/* ===== DASHBOARD ===== */
+function buildDashboard(){
+  const exames = getExames();
+  const vacinas = getVacinas();
+  const remediosAtivos = getRemedios().filter(isRemedioAtivo);
+
+  document.getElementById('stat-exames').querySelector('.n').textContent = exames.length;
+  document.getElementById('stat-vacinas').querySelector('.n').textContent = vacinas.length;
+  document.getElementById('stat-remedios').querySelector('.n').textContent = remediosAtivos.length;
+
+  buildMedsToday();
+
+  const alerts = [];
+  exames.forEach(x=>{
+    if(x.status==='agendado' && x.data){
+      const d = daysDiff(x.data);
+      if(d>=0 && d<=7) alerts.push({type:'info', icon:'ti-microscope', title:x.nome, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.data)}`});
+    }
+    if(x.resultado==='aguardando' && x.status==='realizado') alerts.push({type:'warn', icon:'ti-hourglass', title:x.nome, sub:'Aguardando resultado'});
+  });
+  vacinas.forEach(x=>{
+    if(x.proxima){
+      const d = daysDiff(x.proxima);
+      if(d<0) alerts.push({type:'warn', icon:'ti-vaccine', title:x.nome, sub:`Dose atrasada desde ${fmtDate(x.proxima)}`});
+      else if(d<=14) alerts.push({type:'info', icon:'ti-vaccine', title:x.nome, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.proxima)}`});
+    }
+  });
+
+  alerts.sort((a,b)=> (a.type==='warn'?0:1) - (b.type==='warn'?0:1));
+
+  document.getElementById('alerts').innerHTML = alerts.length ? alerts.map(a=>`
+    <div class="alert-item ${a.type}">
+      <div class="ic"><i class="ti ${a.icon}"></i></div>
+      <div class="txt"><strong>${escapeHtml(a.title)}</strong><span>${escapeHtml(a.sub)}</span></div>
+    </div>
+  `).join('') : `<div class="empty-state"><i class="ti ti-check"></i>Nenhum alerta no momento.</div>`;
+}
+
+/* ===== BACKUP ===== */
+function exportData(){
+  const data = {
+    exames: getExames(),
+    vacinas: getVacinas(),
+    remedios: getRemedios(),
+    exportadoEm: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `saude-caique-backup-${todayISO()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+document.getElementById('import-file').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(){
+    try{
+      const data = JSON.parse(reader.result);
+      if(!confirm('Importar vai substituir os dados atuais salvos neste aparelho. Continuar?')) return;
+      if(Array.isArray(data.exames)) saveExames(data.exames);
+      if(Array.isArray(data.vacinas)) saveVacinas(data.vacinas);
+      if(Array.isArray(data.remedios)) saveRemedios(data.remedios);
+      renderAll();
+      alert('Backup importado com sucesso.');
+    }catch(err){
+      alert('Não foi possível ler esse arquivo. Confirme que é um backup exportado por este app.');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+function buildAjustes(){
+  const total = getExames().length + getVacinas().length + getRemedios().length;
+  document.getElementById('storage-count').textContent = `${total} registro${total===1?'':'s'}`;
+}
+
+function renderAll(){
+  buildDashboard();
+  buildExames();
+  buildVacinas();
+  buildRemedios();
+  buildAjustes();
+}
+renderAll();
+</script>
+</body>
+</html>
