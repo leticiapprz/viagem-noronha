@@ -131,8 +131,10 @@ async function main() {
     const payload = JSON.stringify({ title: item.title, body: item.body, url: './index.html', tag: item.key });
     let sentToAny = subIds.length === 0; // se não há inscritos, marca como "notificado" mesmo assim (evita reprocessar pra sempre)
     for (const subId of subIds) {
+      const raw = subscriptions[subId];
+      const sub = raw && raw.subscription ? raw.subscription : raw; // formato novo {subscription, owner} ou antigo (subscription crua)
       try {
-        await webpush.sendNotification(subscriptions[subId], payload);
+        await webpush.sendNotification(sub, payload);
         sentToAny = true;
       } catch (err) {
         const status = err && err.statusCode;

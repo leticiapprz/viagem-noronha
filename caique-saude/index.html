@@ -521,6 +521,8 @@ header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
     <div class="card">
       <div class="section-title">Notificações</div>
       <p style="font-size:13px;color:var(--muted);margin-top:0;">Avisos de vacina/exame próximos direto no iPhone. Precisa adicionar este site à Tela de Início primeiro (Safari → Compartilhar → Adicionar à Tela de Início) e abrir o app pelo ícone.</p>
+      <div class="field full" style="margin-bottom:10px;"><label>Seu nome</label><input id="owner-name" placeholder="Ex: Letícia" onchange="setOwnerNameField(this.value)"></div>
+      <p style="font-size:12px;color:var(--muted);margin-top:-6px;">Usado pra avisar quem deu remédio pro Caique — e pra não te notificar da sua própria marcação.</p>
       <div id="notif-status" style="margin:8px 0 12px;"></div>
       <div class="form-actions">
         <button class="btn primary" id="notif-btn" onclick="enableNotifications()"><svg class="icon"><use href="#i-bell"/></svg> Ativar notificações</button>
@@ -766,6 +768,8 @@ function pullFromFirebase(){
         if(Array.isArray(data.remedios)) lsSet('remedios', data.remedios);
         if(Array.isArray(data.banhos)) lsSet('banhos', data.banhos);
         if(data.pet) lsSet('pet', data.pet);
+        const takenHoje = data.remedioTomados && data.remedioTomados[todayISO()];
+        if(Array.isArray(takenHoje)) lsSet('taken-'+todayISO(), takenHoje);
       }
       renderAll();
     })
@@ -853,6 +857,46 @@ function addSuggestedVacina(nome){
    existe no GitHub Actions (secret), nunca neste arquivo. */
 const VAPID_PUBLIC_KEY = 'BPKWtjKRdZgx2eBzyUc4viVT9pZGdfxY3JTK4nG5hEQYTb4Bo2dcCd790-Nq-b2Nto1IJ9td7QagjUEt9ch7AX4';
 
+/* "Seu nome" — usado só pra rotular quem deu um remédio nas notificações
+   instantâneas (ver notifyRemedioDado) e pra não notificar quem acabou
+   de marcar. Não é login, é só um rótulo salvo neste aparelho. */
+function getOwnerName(){ return lsGet('owner-name', ''); }
+function setOwnerNameField(value){ lsSet('owner-name', (value||'').trim()); }
+function buildOwnerNameField(){
+  const el = document.getElementById('owner-name');
+  if(el) el.value = getOwnerName();
+}
+
+/* ===== NOTIFICAÇÃO INSTANTÂNEA DE "REMÉDIO DADO" =====
+   Não dá pra mandar Web Push direto do navegador (precisa da chave VAPID
+   privada, que fica só no GitHub Actions). Em vez de esperar o robô
+   diário, disparamos um "repository_dispatch" — a mesma API que aciona
+   workflows do GitHub — que roda na hora e manda o push em segundos.
+   Isso exige um token do GitHub no código do app (ver PROJECT_MAP.md
+   seção 6.3): igual à decisão de deixar o banco aberto, é uma troca
+   consciente — o token só tem permissão de Actions neste repositório,
+   nada de código-fonte. */
+const GITHUB_DISPATCH_REPO = 'leticiapprz/viagem-noronha';
+const GITHUB_DISPATCH_TOKEN = ''; // preencher com o fine-grained PAT (ver PROJECT_MAP.md)
+
+function notifyRemedioDado(remedioId){
+  if(!GITHUB_DISPATCH_TOKEN) return; // notificação instantânea ainda não configurada
+  const remedio = getRemedios().find(x=>x.id===remedioId);
+  if(!remedio) return;
+  fetch(`https://api.github.com/repos/${GITHUB_DISPATCH_REPO}/dispatches`, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + GITHUB_DISPATCH_TOKEN,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      event_type: 'remedio-dado',
+      client_payload: { nome: remedio.nome, quem: profileLabel(remedio.perfil||'caique'), by: getOwnerName() }
+    })
+  }).catch(()=>{}); // falha silenciosa — o check já foi salvo de qualquer jeito, a notificação é só um bônus
+}
+
 function urlBase64ToUint8Array(base64String){
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/-/g,'+').replace(/_/g,'/');
@@ -898,6 +942,12 @@ async function enableNotifications(){
     alert('Antes de ativar: adicione este app à Tela de Início (Compartilhar → Adicionar à Tela de Início) e abra por lá — o iPhone só permite notificação de apps instalados assim.');
     return;
   }
+  if(!getOwnerName()){
+    const name = (prompt('Seu nome? (aparece nas notificações de "remédio dado")') || '').trim();
+    if(!name){ alert('Precisa de um nome pra continuar — dá pra preencher no campo "Seu nome" em Configurações e tentar de novo.'); return; }
+    setOwnerNameField(name);
+    buildOwnerNameField();
+  }
   const reg = await registerSW();
   if(!reg){ alert('Não consegui registrar o service worker.'); return; }
   const permission = await Notification.requestPermission();
@@ -913,7 +963,7 @@ async function enableNotifications(){
     }
     const subId = lsGet('push-sub-id', null) || uid();
     lsSet('push-sub-id', subId);
-    await fbWrite('pushSubscriptions/'+subId, JSON.parse(JSON.stringify(sub)));
+    await fbWrite('pushSubscriptions/'+subId, { subscription: JSON.parse(JSON.stringify(sub)), owner: getOwnerName() });
   }catch(e){
     alert('Não consegui concluir a inscrição de notificações. Tenta de novo em alguns instantes.');
   }
@@ -1551,9 +1601,12 @@ function getTakenToday(){
 function toggleTaken(remedioId){
   const key = 'taken-'+todayISO();
   let taken = lsGet(key, []);
-  if(taken.includes(remedioId)) taken = taken.filter(id=>id!==remedioId);
+  const wasTaken = taken.includes(remedioId);
+  if(wasTaken) taken = taken.filter(id=>id!==remedioId);
   else taken.push(remedioId);
   lsSet(key, taken);
+  fbWrite('remedioTomados/'+todayISO(), taken);
+  if(!wasTaken) notifyRemedioDado(remedioId); // só avisa quando MARCA como dado, não ao desmarcar
   renderAll();
 }
 function buildMedsToday(){
@@ -1772,6 +1825,7 @@ function buildAjustes(){
   const total = getExames().length + getVacinas().length + getRemedios().length + getBanhos().length;
   document.getElementById('storage-count').textContent = `${total} registro${total===1?'':'s'}`;
   buildPetForm();
+  buildOwnerNameField();
   buildNotifStatus();
 }
 
