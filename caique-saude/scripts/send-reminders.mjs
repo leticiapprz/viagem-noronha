@@ -7,7 +7,7 @@
 import webpush from 'web-push';
 
 const FB = 'https://viagem-noronha-default-rtdb.firebaseio.com/caique-saude';
-const VAPID_PUBLIC_KEY = 'BER0vae7p2lF8R0KFbNhfdf3QGpCxgj59I_ENu9zma1J9kJJACBMv-ed2kdZAIRe4qyD3rpo0NItDzxuDEhavQ0';
+const VAPID_PUBLIC_KEY = 'BPKWtjKRdZgx2eBzyUc4viVT9pZGdfxY3JTK4nG5hEQYTb4Bo2dcCd790-Nq-b2Nto1IJ9td7QagjUEt9ch7AX4';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 const VAPID_SUBJECT = 'https://github.com/leticiapprz/viagem-noronha';
 
