@@ -211,15 +211,36 @@ header.topbar p{margin:2px 0 0;font-size:12.5px;color:var(--muted);}
 }
 .chip.active{background:var(--accent-solid);border-color:var(--accent-solid);color:var(--on-accent);}
 
-.add-btn{
-  width:100%;border:1.5px dashed var(--green);background:var(--green-light);color:var(--green-dark);
-  border-radius:var(--radius);padding:12px;font-size:14px;font-weight:600;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:14px;
+/* FAB + modal unificado de adicionar/editar */
+.fab{
+  position:fixed;right:18px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:55;
+  width:52px;height:52px;border-radius:50%;border:none;
+  background:var(--accent-solid);color:var(--on-accent);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:0 4px 14px rgba(24,28,20,.25);
 }
+.fab .icon{width:24px;height:24px;margin:0;vertical-align:0;}
+@media(min-width:768px){
+  .fab{right:32px;bottom:32px;}
+}
+.modal-overlay{
+  position:fixed;inset:0;z-index:70;background:rgba(20,24,17,.45);
+  display:flex;align-items:flex-end;justify-content:center;
+}
+@media(min-width:600px){
+  .modal-overlay{align-items:center;}
+}
+.modal-sheet{
+  background:var(--bg);width:100%;max-width:560px;max-height:88vh;overflow-y:auto;
+  border-radius:18px 18px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom));
+}
+@media(min-width:600px){
+  .modal-sheet{border-radius:18px;max-height:80vh;}
+}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.modal-header h2{font-family:var(--font-display);font-size:18px;font-weight:700;margin:0;}
+.u-group{border-top:1px dashed var(--border);margin-top:6px;padding-top:10px;}
 
-form.entry-form{
-  background:var(--green-light);border-radius:var(--radius);padding:14px;margin-bottom:14px;
-}
 .field{margin-bottom:10px;}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--green-dark);margin-bottom:4px;}
 .field input,.field select,.field textarea{
@@ -396,6 +417,7 @@ form.entry-form{
   <symbol id="i-droplet" viewBox="0 0 24 24"><path d="M12 3.5c3 4 6.5 8.2 6.5 11.5a6.5 6.5 0 0 1-13 0c0-3.3 3.5-7.5 6.5-11.5Z"/></symbol>
   <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></symbol>
   <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></symbol>
 </svg>
 <div class="sync-indicator" id="sync-indicator"><span class="dot"></span><span id="sync-text">Sincronizado</span></div>
 <div class="app">
@@ -430,46 +452,6 @@ form.entry-form{
   <!-- ===== EXAMES ===== -->
   <div id="tab-exames" class="tab-content">
     <div class="profile-row" id="exame-profile-row"></div>
-    <button class="add-btn" onclick="toggleForm('exame')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar exame ou documento</button>
-    <form class="entry-form" id="form-exame" style="display:none" onsubmit="return saveExame(event)">
-      <input type="hidden" id="exame-id">
-      <input type="hidden" id="exame-perfil">
-      <div class="field"><label>Nome</label><input id="exame-nome" required placeholder="Ex: Hemograma completo, Consulta com Dr. Fulano"></div>
-      <div class="field-row">
-        <div class="field"><label id="exame-data-label">Data</label><input type="date" id="exame-data" required></div>
-        <div class="field"><label>Status</label>
-          <select id="exame-status" onchange="updateExameFormForStatus()">
-            <option value="a_agendar">A agendar</option>
-            <option value="agendado">Agendado</option>
-            <option value="realizado">Realizado</option>
-          </select>
-        </div>
-      </div>
-      <div class="field" id="exame-resultado-field"><label>Resultado</label>
-        <select id="exame-resultado">
-          <option value="aguardando">Aguardando resultado</option>
-          <option value="normal">Normal</option>
-          <option value="alterado">Alterado</option>
-          <option value="na">Não se aplica</option>
-        </select>
-      </div>
-      <div class="field"><label>Observações</label><textarea id="exame-obs" placeholder="Médico solicitante, local, anotações..."></textarea></div>
-      <div class="field">
-        <label>Anexos</label>
-        <div id="exame-anexos-list" class="anexo-list"></div>
-        <label class="anexo-upload-btn">
-          <svg class="icon"><use href="#i-paperclip"/></svg>
-          <span id="exame-anexo-btn-label">Anexar arquivo</span>
-          <input type="file" id="exame-anexo-input" accept="application/pdf,image/*,.doc,.docx,.txt" multiple onchange="handleAnexoSelect('exame', this.files)">
-        </label>
-        <div class="anexo-hint">PDF, foto ou documento — até 6MB por arquivo.</div>
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn primary">Salvar</button>
-        <button type="button" class="btn ghost" onclick="toggleForm('exame')">Cancelar</button>
-      </div>
-    </form>
-
     <div class="filter-row" id="exame-filters"></div>
     <div id="exames-list"></div>
   </div>
@@ -478,53 +460,12 @@ form.entry-form{
   <div id="tab-vacinas" class="tab-content">
     <div class="profile-row" id="vacina-profile-row"></div>
     <div id="vacina-suggestions"></div>
-    <button class="add-btn" onclick="toggleForm('vacina')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar vacina</button>
-    <form class="entry-form" id="form-vacina" style="display:none" onsubmit="return saveVacina(event)">
-      <input type="hidden" id="vacina-id">
-      <input type="hidden" id="vacina-perfil">
-      <div class="field"><label>Nome da vacina</label><input id="vacina-nome" required placeholder="Ex: Pentavalente"></div>
-      <div class="field-row">
-        <div class="field"><label>Dose</label><input id="vacina-dose" placeholder="Ex: 1ª dose, reforço"></div>
-        <div class="field"><label>Data aplicada</label><input type="date" id="vacina-data" required></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Próxima dose (opcional)</label><input type="date" id="vacina-proxima"></div>
-        <div class="field"><label>Local/clínica</label><input id="vacina-local" placeholder="Ex: UBS, pediatra"></div>
-      </div>
-      <div class="field"><label>Observações</label><textarea id="vacina-obs" placeholder="Reação, lote, observações..."></textarea></div>
-      <div class="form-actions">
-        <button type="submit" class="btn primary">Salvar</button>
-        <button type="button" class="btn ghost" onclick="toggleForm('vacina')">Cancelar</button>
-      </div>
-    </form>
     <div id="vacinas-list"></div>
   </div>
 
   <!-- ===== REMÉDIOS ===== -->
   <div id="tab-remedios" class="tab-content">
     <div class="profile-row" id="remedio-profile-row"></div>
-    <button class="add-btn" onclick="toggleForm('remedio')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar remédio</button>
-    <form class="entry-form" id="form-remedio" style="display:none" onsubmit="return saveRemedio(event)">
-      <input type="hidden" id="remedio-id">
-      <input type="hidden" id="remedio-perfil">
-      <div class="field"><label>Nome do remédio</label><input id="remedio-nome" required placeholder="Ex: Amoxicilina"></div>
-      <div class="field-row">
-        <div class="field"><label>Dosagem</label><input id="remedio-dosagem" placeholder="Ex: 5ml, 1 comprimido"></div>
-        <div class="field"><label>Horários</label><input id="remedio-horarios" placeholder="Ex: 08:00, 14:00, 20:00"></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Início</label><input type="date" id="remedio-inicio"></div>
-        <div class="field"><label>Fim (opcional)</label><input type="date" id="remedio-fim"></div>
-      </div>
-      <div class="field">
-        <label><input type="checkbox" id="remedio-continuo" style="width:auto;margin-right:6px;"> Uso contínuo (sem data de término)</label>
-      </div>
-      <div class="field"><label>Observações</label><textarea id="remedio-obs" placeholder="Motivo, orientação médica..."></textarea></div>
-      <div class="form-actions">
-        <button type="submit" class="btn primary">Salvar</button>
-        <button type="button" class="btn ghost" onclick="toggleForm('remedio')">Cancelar</button>
-      </div>
-    </form>
     <div class="filter-row" id="remedio-filters"></div>
     <div id="remedios-list"></div>
   </div>
@@ -532,22 +473,6 @@ form.entry-form{
   <!-- ===== BANHOS E TOSAS ===== -->
   <div id="tab-banhos" class="tab-content">
     <div class="profile-row" id="banho-profile-row"></div>
-    <button class="add-btn" onclick="toggleForm('banho')"><svg class="icon"><use href="#i-plus"/></svg> Adicionar banho ou tosa</button>
-    <form class="entry-form" id="form-banho" style="display:none" onsubmit="return saveBanho(event)">
-      <input type="hidden" id="banho-id">
-      <input type="hidden" id="banho-perfil">
-      <div class="field"><label>Nome</label><input id="banho-nome" required placeholder="Ex: Banho e tosa higiênica"></div>
-      <div class="field-row">
-        <div class="field"><label>Data</label><input type="date" id="banho-data" required></div>
-        <div class="field"><label>Local</label><input id="banho-local" placeholder="Ex: Pet shop, banho em casa"></div>
-      </div>
-      <div class="field"><label>Próximo (opcional)</label><input type="date" id="banho-proxima"></div>
-      <div class="field"><label>Observações</label><textarea id="banho-obs" placeholder="Produto usado, reação, preferências..."></textarea></div>
-      <div class="form-actions">
-        <button type="submit" class="btn primary">Salvar</button>
-        <button type="button" class="btn ghost" onclick="toggleForm('banho')">Cancelar</button>
-      </div>
-    </form>
     <div id="banhos-list"></div>
   </div>
 
@@ -596,6 +521,8 @@ form.entry-form{
     <div class="card">
       <div class="section-title">Notificações</div>
       <p style="font-size:13px;color:var(--muted);margin-top:0;">Avisos de vacina/exame próximos direto no iPhone. Precisa adicionar este site à Tela de Início primeiro (Safari → Compartilhar → Adicionar à Tela de Início) e abrir o app pelo ícone.</p>
+      <div class="field full" style="margin-bottom:10px;"><label>Seu nome</label><input id="owner-name" placeholder="Ex: Letícia" onchange="setOwnerNameField(this.value)"></div>
+      <p style="font-size:12px;color:var(--muted);margin-top:-6px;">Usado pra avisar quem deu remédio pro Caique — e pra não te notificar da sua própria marcação.</p>
       <div id="notif-status" style="margin:8px 0 12px;"></div>
       <div class="form-actions">
         <button class="btn primary" id="notif-btn" onclick="enableNotifications()"><svg class="icon"><use href="#i-bell"/></svg> Ativar notificações</button>
@@ -617,6 +544,146 @@ form.entry-form{
       <div class="section-title">Sobre</div>
       <div class="settings-row"><span>App</span><span>Saúde do Caique</span></div>
       <div class="settings-row"><span>Registros salvos</span><span id="storage-count">—</span></div>
+    </div>
+  </div>
+
+  <button class="fab" onclick="openUnifiedAdd()" aria-label="Adicionar"><svg class="icon"><use href="#i-plus"/></svg></button>
+
+  <div class="modal-overlay" id="unified-overlay" style="display:none" onclick="if(event.target===this) closeUnifiedModal()">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 id="unified-title">Adicionar</h2>
+        <button type="button" class="icon-btn" onclick="closeUnifiedModal()"><svg class="icon"><use href="#i-x"/></svg></button>
+      </div>
+      <form id="form-unified" onsubmit="return saveUnified(event)">
+        <div class="field"><label>Tipo</label>
+          <select id="u-tipo" onchange="updateUnifiedGroups()">
+            <option value="exame">Exame</option>
+            <option value="consulta">Consulta</option>
+            <option value="vacina">Vacina</option>
+            <option value="remedio">Remédio</option>
+            <option value="banho">Banho/Tosa</option>
+          </select>
+        </div>
+        <div class="field"><label>Quem</label>
+          <div class="profile-row" id="u-profile-row" style="margin-bottom:0;"></div>
+        </div>
+
+        <!-- grupo: exame/consulta -->
+        <div class="u-group" id="u-group-exame">
+          <input type="hidden" id="exame-id">
+          <div class="field"><label id="exame-nome-label">Nome</label><input id="exame-nome" placeholder="Ex: Hemograma completo"></div>
+          <div class="field-row">
+            <div class="field"><label id="exame-data-label">Data</label><input type="date" id="exame-data"></div>
+            <div class="field"><label>Status</label>
+              <select id="exame-status" onchange="updateExameFormForStatus()">
+                <option value="a_agendar">A agendar</option>
+                <option value="agendado">Agendado</option>
+                <option value="realizado">Realizado</option>
+              </select>
+            </div>
+          </div>
+          <div class="field" id="exame-resultado-field"><label>Resultado</label>
+            <select id="exame-resultado">
+              <option value="aguardando">Aguardando resultado</option>
+              <option value="normal">Normal</option>
+              <option value="alterado">Alterado</option>
+              <option value="na">Não se aplica</option>
+            </select>
+          </div>
+          <div class="field"><label>Observações</label><textarea id="exame-obs" placeholder="Médico solicitante, local, anotações..."></textarea></div>
+          <div class="field">
+            <label>Anexos</label>
+            <div id="exame-anexos-list" class="anexo-list"></div>
+            <label class="anexo-upload-btn">
+              <svg class="icon"><use href="#i-paperclip"/></svg>
+              <span id="exame-anexo-btn-label">Anexar arquivo</span>
+              <input type="file" id="exame-anexo-input" accept="application/pdf,image/*,.doc,.docx,.txt" multiple onchange="handleAnexoSelect('exame', this.files)">
+            </label>
+            <div class="anexo-hint">PDF, foto ou documento — até 6MB por arquivo.</div>
+          </div>
+        </div>
+
+        <!-- grupo: vacina -->
+        <div class="u-group" id="u-group-vacina">
+          <input type="hidden" id="vacina-id">
+          <div class="field"><label>Nome da vacina</label><input id="vacina-nome" placeholder="Ex: Pentavalente"></div>
+          <div class="field-row">
+            <div class="field"><label>Dose</label><input id="vacina-dose" placeholder="Ex: 1ª dose, reforço"></div>
+            <div class="field"><label>Data aplicada</label><input type="date" id="vacina-data"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Próxima dose (opcional)</label><input type="date" id="vacina-proxima"></div>
+            <div class="field"><label>Local/clínica</label><input id="vacina-local" placeholder="Ex: UBS, pediatra"></div>
+          </div>
+          <div class="field"><label>Observações</label><textarea id="vacina-obs" placeholder="Reação, lote, observações..."></textarea></div>
+          <div class="field">
+            <label>Anexos</label>
+            <div id="vacina-anexos-list" class="anexo-list"></div>
+            <label class="anexo-upload-btn">
+              <svg class="icon"><use href="#i-paperclip"/></svg>
+              <span id="vacina-anexo-btn-label">Anexar arquivo</span>
+              <input type="file" id="vacina-anexo-input" accept="application/pdf,image/*,.doc,.docx,.txt" multiple onchange="handleAnexoSelect('vacina', this.files)">
+            </label>
+            <div class="anexo-hint">PDF, foto ou documento — até 6MB por arquivo.</div>
+          </div>
+        </div>
+
+        <!-- grupo: remédio -->
+        <div class="u-group" id="u-group-remedio">
+          <input type="hidden" id="remedio-id">
+          <div class="field"><label>Nome do remédio</label><input id="remedio-nome" placeholder="Ex: Amoxicilina"></div>
+          <div class="field-row">
+            <div class="field"><label>Dosagem</label><input id="remedio-dosagem" placeholder="Ex: 5ml, 1 comprimido"></div>
+            <div class="field"><label>Horários</label><input id="remedio-horarios" placeholder="Ex: 08:00, 14:00, 20:00"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Início</label><input type="date" id="remedio-inicio"></div>
+            <div class="field"><label>Fim (opcional)</label><input type="date" id="remedio-fim"></div>
+          </div>
+          <div class="field">
+            <label><input type="checkbox" id="remedio-continuo" style="width:auto;margin-right:6px;"> Uso contínuo (sem data de término)</label>
+          </div>
+          <div class="field"><label>Observações</label><textarea id="remedio-obs" placeholder="Motivo, orientação médica..."></textarea></div>
+          <div class="field">
+            <label>Anexos</label>
+            <div id="remedio-anexos-list" class="anexo-list"></div>
+            <label class="anexo-upload-btn">
+              <svg class="icon"><use href="#i-paperclip"/></svg>
+              <span id="remedio-anexo-btn-label">Anexar arquivo</span>
+              <input type="file" id="remedio-anexo-input" accept="application/pdf,image/*,.doc,.docx,.txt" multiple onchange="handleAnexoSelect('remedio', this.files)">
+            </label>
+            <div class="anexo-hint">PDF, foto ou documento — até 6MB por arquivo.</div>
+          </div>
+        </div>
+
+        <!-- grupo: banho/tosa -->
+        <div class="u-group" id="u-group-banho">
+          <input type="hidden" id="banho-id">
+          <div class="field"><label>Nome</label><input id="banho-nome" placeholder="Ex: Banho e tosa higiênica"></div>
+          <div class="field-row">
+            <div class="field"><label>Data</label><input type="date" id="banho-data"></div>
+            <div class="field"><label>Local</label><input id="banho-local" placeholder="Ex: Pet shop, banho em casa"></div>
+          </div>
+          <div class="field"><label>Próximo (opcional)</label><input type="date" id="banho-proxima"></div>
+          <div class="field"><label>Observações</label><textarea id="banho-obs" placeholder="Produto usado, reação, preferências..."></textarea></div>
+          <div class="field">
+            <label>Anexos</label>
+            <div id="banho-anexos-list" class="anexo-list"></div>
+            <label class="anexo-upload-btn">
+              <svg class="icon"><use href="#i-paperclip"/></svg>
+              <span id="banho-anexo-btn-label">Anexar arquivo</span>
+              <input type="file" id="banho-anexo-input" accept="application/pdf,image/*,.doc,.docx,.txt" multiple onchange="handleAnexoSelect('banho', this.files)">
+            </label>
+            <div class="anexo-hint">PDF, foto ou documento — até 6MB por arquivo.</div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn primary">Salvar</button>
+          <button type="button" class="btn ghost" onclick="closeUnifiedModal()">Cancelar</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -701,6 +768,8 @@ function pullFromFirebase(){
         if(Array.isArray(data.remedios)) lsSet('remedios', data.remedios);
         if(Array.isArray(data.banhos)) lsSet('banhos', data.banhos);
         if(data.pet) lsSet('pet', data.pet);
+        const takenHoje = data.remedioTomados && data.remedioTomados[todayISO()];
+        if(Array.isArray(takenHoje)) lsSet('taken-'+todayISO(), takenHoje);
       }
       renderAll();
     })
@@ -786,7 +855,47 @@ function addSuggestedVacina(nome){
 /* ===== NOTIFICAÇÕES (Web Push) =====
    Chave pública VAPID — não é segredo, roda no navegador. A privada só
    existe no GitHub Actions (secret), nunca neste arquivo. */
-const VAPID_PUBLIC_KEY = 'BER0vae7p2lF8R0KFbNhfdf3QGpCxgj59I_ENu9zma1J9kJJACBMv-ed2kdZAIRe4qyD3rpo0NItDzxuDEhavQ0';
+const VAPID_PUBLIC_KEY = 'BPKWtjKRdZgx2eBzyUc4viVT9pZGdfxY3JTK4nG5hEQYTb4Bo2dcCd790-Nq-b2Nto1IJ9td7QagjUEt9ch7AX4';
+
+/* "Seu nome" — usado só pra rotular quem deu um remédio nas notificações
+   instantâneas (ver notifyRemedioDado) e pra não notificar quem acabou
+   de marcar. Não é login, é só um rótulo salvo neste aparelho. */
+function getOwnerName(){ return lsGet('owner-name', ''); }
+function setOwnerNameField(value){ lsSet('owner-name', (value||'').trim()); }
+function buildOwnerNameField(){
+  const el = document.getElementById('owner-name');
+  if(el) el.value = getOwnerName();
+}
+
+/* ===== NOTIFICAÇÃO INSTANTÂNEA DE "REMÉDIO DADO" =====
+   Não dá pra mandar Web Push direto do navegador (precisa da chave VAPID
+   privada, que fica só no GitHub Actions). Em vez de esperar o robô
+   diário, disparamos um "repository_dispatch" — a mesma API que aciona
+   workflows do GitHub — que roda na hora e manda o push em segundos.
+   Isso exige um token do GitHub no código do app (ver PROJECT_MAP.md
+   seção 6.3): igual à decisão de deixar o banco aberto, é uma troca
+   consciente — o token só tem permissão de Actions neste repositório,
+   nada de código-fonte. */
+const GITHUB_DISPATCH_REPO = 'leticiapprz/viagem-noronha';
+const GITHUB_DISPATCH_TOKEN = ''; // preencher com o fine-grained PAT (ver PROJECT_MAP.md)
+
+function notifyRemedioDado(remedioId){
+  if(!GITHUB_DISPATCH_TOKEN) return; // notificação instantânea ainda não configurada
+  const remedio = getRemedios().find(x=>x.id===remedioId);
+  if(!remedio) return;
+  fetch(`https://api.github.com/repos/${GITHUB_DISPATCH_REPO}/dispatches`, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + GITHUB_DISPATCH_TOKEN,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      event_type: 'remedio-dado',
+      client_payload: { nome: remedio.nome, quem: profileLabel(remedio.perfil||'caique'), by: getOwnerName() }
+    })
+  }).catch(()=>{}); // falha silenciosa — o check já foi salvo de qualquer jeito, a notificação é só um bônus
+}
 
 function urlBase64ToUint8Array(base64String){
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -833,6 +942,12 @@ async function enableNotifications(){
     alert('Antes de ativar: adicione este app à Tela de Início (Compartilhar → Adicionar à Tela de Início) e abra por lá — o iPhone só permite notificação de apps instalados assim.');
     return;
   }
+  if(!getOwnerName()){
+    const name = (prompt('Seu nome? (aparece nas notificações de "remédio dado")') || '').trim();
+    if(!name){ alert('Precisa de um nome pra continuar — dá pra preencher no campo "Seu nome" em Configurações e tentar de novo.'); return; }
+    setOwnerNameField(name);
+    buildOwnerNameField();
+  }
   const reg = await registerSW();
   if(!reg){ alert('Não consegui registrar o service worker.'); return; }
   const permission = await Notification.requestPermission();
@@ -848,7 +963,7 @@ async function enableNotifications(){
     }
     const subId = lsGet('push-sub-id', null) || uid();
     lsSet('push-sub-id', subId);
-    await fbWrite('pushSubscriptions/'+subId, JSON.parse(JSON.stringify(sub)));
+    await fbWrite('pushSubscriptions/'+subId, { subscription: JSON.parse(JSON.stringify(sub)), owner: getOwnerName() });
   }catch(e){
     alert('Não consegui concluir a inscrição de notificações. Tenta de novo em alguns instantes.');
   }
@@ -872,28 +987,87 @@ if(['inicio','exames','vacinas','remedios','banhos','calendario','ajustes'].incl
   document.querySelector(`.nav-btn[data-tab="${initTab}"]`).classList.add('active');
 }
 
-/* ===== FORM TOGGLE ===== */
-function openForm(kind){
-  const form = document.getElementById('form-'+kind);
-  form.style.display = 'block';
-  form.reset();
-  document.getElementById(kind+'-id').value = '';
-  const perfilInput = document.getElementById(kind+'-perfil');
-  if(perfilInput) perfilInput.value = activeProfile[kind] || 'caique';
-  formAnexos[kind] = [];
-  renderAnexosList(kind);
+/* ===== MODAL UNIFICADO DE ADICIONAR/EDITAR =====
+   Um formulário só pros 5 tipos (exame/consulta/vacina/remédio/banho),
+   com um dropdown "Tipo" que mostra só o grupo de campos relevante
+   (`.u-group`, um por tipo — exame e consulta compartilham o mesmo
+   grupo/array, só muda o campo `categoria` salvo no registro). Existe
+   porque, na prática, adicionar qualquer coisa de saúde é o mesmo gesto
+   — só os campos que importam mudam (Leticia, 09/2026). Reaproveita as
+   funções save/editXFields() de cada tipo (mais abaixo, nas seções
+   EXAMES/VACINAS/REMÉDIOS/BANHOS) — este bloco só cuida de abrir/fechar
+   o modal, trocar o grupo visível, e despachar pro tipo certo. */
+let unifiedPerfil = 'caique';
+function buildUnifiedProfileRow(){
+  document.getElementById('u-profile-row').innerHTML = ['caique','pet'].map(p=>`
+    <button type="button" class="profile-pill ${unifiedPerfil===p?'active':''}" onclick="setUnifiedPerfil('${p}')">
+      <svg class="icon"><use href="#${p==='pet'?'i-paw':'i-user'}"/></svg>${escapeHtml(profileLabel(p))}
+    </button>
+  `).join('');
+}
+function setUnifiedPerfil(p){
+  unifiedPerfil = p;
+  buildUnifiedProfileRow();
+}
+function updateUnifiedGroups(){
+  const tipo = document.getElementById('u-tipo').value;
+  const groupKey = (tipo==='exame'||tipo==='consulta') ? 'exame' : tipo;
+  ['exame','vacina','remedio','banho'].forEach(g=>{
+    document.getElementById('u-group-'+g).style.display = (g===groupKey) ? 'block' : 'none';
+  });
+  document.getElementById('exame-nome-label').textContent = tipo==='consulta' ? 'Nome/motivo' : 'Nome';
+  document.getElementById('exame-nome').placeholder = tipo==='consulta' ? 'Ex: Consulta com Dr. Fulano' : 'Ex: Hemograma completo';
+  if(groupKey==='exame') updateExameFormForStatus();
+}
+function resetAllAnexos(){
+  ['exame','vacina','remedio','banho'].forEach(k=>{ formAnexos[k]=[]; renderAnexosList(k); });
+}
+function openUnifiedAdd(){
+  document.getElementById('form-unified').reset();
+  resetAllAnexos();
+  unifiedPerfil = 'caique';
+  buildUnifiedProfileRow();
+  const activeTabId = document.querySelector('.tab-content.active').id;
+  const guess = {'tab-exames':'exame', 'tab-vacinas':'vacina', 'tab-remedios':'remedio', 'tab-banhos':'banho'}[activeTabId] || 'exame';
+  document.getElementById('u-tipo').value = guess;
+  document.getElementById('exame-status').value = 'agendado'; // default de exame/consulta novo, não o "A agendar" que é o 1º <option>
+  updateUnifiedGroups();
+  document.getElementById('unified-title').textContent = 'Adicionar';
+  document.getElementById('unified-overlay').style.display = 'flex';
+}
+function closeUnifiedModal(){
+  document.getElementById('unified-overlay').style.display = 'none';
+}
+function editUnified(kind, id){
+  document.getElementById('form-unified').reset();
+  resetAllAnexos();
+  document.getElementById('unified-title').textContent = 'Editar';
+  document.getElementById('unified-overlay').style.display = 'flex';
+  let tipo = kind;
   if(kind==='exame'){
-    document.getElementById('exame-status').value = 'agendado'; // default de exame novo: "Agendado", não o "A agendar" que é o 1º <option>
-    updateExameFormForStatus();
+    const item = getExames().find(x=>x.id===id);
+    tipo = (item && item.categoria==='consulta') ? 'consulta' : 'exame';
   }
+  document.getElementById('u-tipo').value = tipo;
+  updateUnifiedGroups();
+  if(kind==='exame') editExameFields(id);
+  else if(kind==='vacina') editVacinaFields(id);
+  else if(kind==='remedio') editRemedioFields(id);
+  else if(kind==='banho') editBanhoFields(id);
 }
-function closeForm(kind){
-  document.getElementById('form-'+kind).style.display = 'none';
-}
-function toggleForm(kind){
-  const form = document.getElementById('form-'+kind);
-  const isOpen = form.style.display !== 'none';
-  if(isOpen) closeForm(kind); else openForm(kind);
+function saveUnified(ev){
+  ev.preventDefault();
+  const tipo = document.getElementById('u-tipo').value;
+  let ok = false;
+  if(tipo==='exame' || tipo==='consulta') ok = saveExameFields(tipo);
+  else if(tipo==='vacina') ok = saveVacinaFields();
+  else if(tipo==='remedio') ok = saveRemedioFields();
+  else if(tipo==='banho') ok = saveBanhoFields();
+  if(ok){
+    closeUnifiedModal();
+    renderAll();
+  }
+  return false;
 }
 
 /* ===== ANEXOS =====
@@ -1024,31 +1198,38 @@ function getExames(){ return lsGet('exames', []); }
 function saveExames(list){ lsSet('exames', list); }
 let exameFilter = 'todos';
 
-/* Resultado não faz sentido pra um exame que ainda não aconteceu — some do
-   formulário enquanto o status não for "Realizado" (menos campo pra
-   preencher à toa, e evita alguém escolher "Normal"/"Alterado" antes da
-   hora). "A agendar" também libera a Data (ainda não existe uma data —
-   é literalmente o motivo desse status existir: um lembrete de "preciso
-   marcar isso", sem compromisso de quando ainda). */
+/* Resultado não faz sentido pra um exame que ainda não aconteceu (some
+   enquanto o status não for "Realizado") nem pra uma consulta (some
+   sempre, qualquer status — não tem "normal/alterado" numa consulta).
+   "A agendar" também libera a Data (ainda não existe uma data — é
+   literalmente o motivo desse status existir: "preciso marcar isso",
+   sem compromisso de quando ainda). Validação de obrigatório é feita
+   na hora de salvar (saveExameFields), não via atributo `required` do
+   HTML — os 4 grupos de campo ficam todos no mesmo <form>, só um visível
+   por vez, e `required` num campo escondido tem comportamento
+   inconsistente entre navegadores. */
 function updateExameFormForStatus(){
   const status = document.getElementById('exame-status').value;
-  document.getElementById('exame-resultado-field').style.display = status==='realizado' ? 'block' : 'none';
-  const dataInput = document.getElementById('exame-data');
-  const dataLabel = document.getElementById('exame-data-label');
-  dataInput.required = status !== 'a_agendar';
-  dataLabel.textContent = status === 'a_agendar' ? 'Data (se já souber)' : 'Data';
+  const tipo = document.getElementById('u-tipo').value;
+  document.getElementById('exame-resultado-field').style.display = (status==='realizado' && tipo!=='consulta') ? 'block' : 'none';
+  document.getElementById('exame-data-label').textContent = status === 'a_agendar' ? 'Data (se já souber)' : 'Data';
 }
 
-function saveExame(ev){
-  ev.preventDefault();
+function saveExameFields(tipo){
+  const nome = document.getElementById('exame-nome').value.trim();
+  if(!nome){ alert('Preencha o nome.'); return false; }
+  const status = document.getElementById('exame-status').value;
+  const data = document.getElementById('exame-data').value;
+  if(status!=='a_agendar' && !data){ alert('Preencha a data (ou troque o status pra "A agendar" se ainda não tiver uma).'); return false; }
   const id = document.getElementById('exame-id').value || uid();
   const item = {
     id,
-    perfil: document.getElementById('exame-perfil').value || 'caique',
-    nome: document.getElementById('exame-nome').value.trim(),
-    data: document.getElementById('exame-data').value,
-    status: document.getElementById('exame-status').value,
-    resultado: document.getElementById('exame-resultado').value,
+    perfil: unifiedPerfil,
+    categoria: tipo, // 'exame' | 'consulta'
+    nome,
+    data,
+    status,
+    resultado: tipo==='consulta' ? 'na' : document.getElementById('exame-resultado').value,
     obs: document.getElementById('exame-obs').value.trim(),
     anexos: (formAnexos.exame||[]).slice()
   };
@@ -1057,16 +1238,14 @@ function saveExame(ev){
   if(idx>=0) list[idx]=item; else list.push(item);
   saveExames(list);
   fbWrite('exames', list);
-  toggleForm('exame');
-  renderAll();
-  return false;
+  return true;
 }
-function editExame(id){
+function editExameFields(id){
   const item = getExames().find(x=>x.id===id);
   if(!item) return;
-  document.getElementById('form-exame').style.display='block';
   document.getElementById('exame-id').value = item.id;
-  document.getElementById('exame-perfil').value = item.perfil || 'caique';
+  unifiedPerfil = item.perfil || 'caique';
+  buildUnifiedProfileRow();
   document.getElementById('exame-nome').value = item.nome;
   document.getElementById('exame-data').value = item.data;
   document.getElementById('exame-status').value = item.status;
@@ -1075,7 +1254,6 @@ function editExame(id){
   document.getElementById('exame-obs').value = item.obs;
   formAnexos.exame = (item.anexos||[]).slice();
   renderAnexosList('exame');
-  document.getElementById('form-exame').scrollIntoView({behavior:'smooth', block:'center'});
 }
 function removeExame(id){
   if(!confirm('Remover este exame?')) return;
@@ -1126,17 +1304,18 @@ function buildExames(){
     if(aAgendar) badge = {cls:'pending', label:'Falta agendar'};
     else if(agendado) badge = agendadoBadge(x);
     else badge = {cls:RESULTADO_CLASS[x.resultado], label:RESULTADO_LABEL[x.resultado]};
+    const consulta = x.categoria==='consulta';
     return `
     <div class="item-card ${agendado?'agendado':''} ${aAgendar?'a-agendar':''}">
       <div class="item-head">
         <div>
-          <h3>${escapeHtml(x.nome)}</h3>
-          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${x.data ? fmtDate(x.data)+' · ' : ''}${STATUS_LABEL[x.status]}</div>
+          <h3><svg class="icon" style="width:15px;height:15px;color:var(--muted);"><use href="#${consulta?'i-user':'i-flask'}"/></svg> ${escapeHtml(x.nome)}</h3>
+          <div class="item-meta"><svg class="icon"><use href="#i-calendar"/></svg> ${x.data ? fmtDate(x.data)+' · ' : ''}${STATUS_LABEL[x.status]}${consulta ? ' · Consulta' : ''}</div>
           <span class="badge ${badge.cls}">${badge.label}</span>
         </div>
         <div class="item-actions">
           ${agendado ? `<button class="icon-btn" onclick="markExameRealizado('${x.id}')" title="Marcar como realizado"><svg class="icon"><use href="#i-check"/></svg></button>` : ''}
-          <button class="icon-btn" onclick="editExame('${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
+          <button class="icon-btn" onclick="editUnified('exame','${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
           <button class="icon-btn danger" onclick="removeExame('${x.id}')"><svg class="icon"><use href="#i-trash"/></svg></button>
         </div>
       </div>
@@ -1156,41 +1335,44 @@ function buildExames(){
 function getVacinas(){ return lsGet('vacinas', []); }
 function saveVacinas(list){ lsSet('vacinas', list); }
 
-function saveVacina(ev){
-  ev.preventDefault();
+function saveVacinaFields(){
+  const nome = document.getElementById('vacina-nome').value.trim();
+  if(!nome){ alert('Preencha o nome da vacina.'); return false; }
+  const data = document.getElementById('vacina-data').value;
+  if(!data){ alert('Preencha a data aplicada.'); return false; }
   const id = document.getElementById('vacina-id').value || uid();
   const item = {
     id,
-    perfil: document.getElementById('vacina-perfil').value || 'caique',
-    nome: document.getElementById('vacina-nome').value.trim(),
+    perfil: unifiedPerfil,
+    nome,
     dose: document.getElementById('vacina-dose').value.trim(),
-    data: document.getElementById('vacina-data').value,
+    data,
     proxima: document.getElementById('vacina-proxima').value,
     local: document.getElementById('vacina-local').value.trim(),
-    obs: document.getElementById('vacina-obs').value.trim()
+    obs: document.getElementById('vacina-obs').value.trim(),
+    anexos: (formAnexos.vacina||[]).slice()
   };
   let list = getVacinas();
   const idx = list.findIndex(x=>x.id===id);
   if(idx>=0) list[idx]=item; else list.push(item);
   saveVacinas(list);
   fbWrite('vacinas', list);
-  toggleForm('vacina');
-  renderAll();
-  return false;
+  return true;
 }
-function editVacina(id){
+function editVacinaFields(id){
   const item = getVacinas().find(x=>x.id===id);
   if(!item) return;
-  document.getElementById('form-vacina').style.display='block';
   document.getElementById('vacina-id').value = item.id;
-  document.getElementById('vacina-perfil').value = item.perfil || 'caique';
+  unifiedPerfil = item.perfil || 'caique';
+  buildUnifiedProfileRow();
   document.getElementById('vacina-nome').value = item.nome;
   document.getElementById('vacina-dose').value = item.dose;
   document.getElementById('vacina-data').value = item.data;
   document.getElementById('vacina-proxima').value = item.proxima || '';
   document.getElementById('vacina-local').value = item.local;
   document.getElementById('vacina-obs').value = item.obs;
-  document.getElementById('form-vacina').scrollIntoView({behavior:'smooth', block:'center'});
+  formAnexos.vacina = (item.anexos||[]).slice();
+  renderAnexosList('vacina');
 }
 function removeVacina(id){
   if(!confirm('Remover esta vacina?')) return;
@@ -1215,11 +1397,18 @@ function buildVacinas(){
           ${x.proxima ? `<span class="badge ${atrasada?'warn':(proxima?'pending':'')}">${atrasada?'Próxima dose atrasada':'Próxima dose'}: ${fmtDate(x.proxima)}</span>` : ''}
         </div>
         <div class="item-actions">
-          <button class="icon-btn" onclick="editVacina('${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
+          <button class="icon-btn" onclick="editUnified('vacina','${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
           <button class="icon-btn danger" onclick="removeVacina('${x.id}')"><svg class="icon"><use href="#i-trash"/></svg></button>
         </div>
       </div>
       ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
+      ${x.anexos && x.anexos.length ? `<div class="anexo-list">${x.anexos.map(a=>`
+        <button type="button" class="anexo-chip" onclick="openAnexo('${a.id}')">
+          <svg class="icon"><use href="#${anexoIcon(a.tipo)}"/></svg>
+          <span class="name">${escapeHtml(a.nome)}</span>
+          <span class="size">${fmtBytes(a.tamanho)}</span>
+        </button>
+      `).join('')}</div>` : ''}
     </div>
   `;}).join('');
   document.getElementById('vacinas-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-shield"/></svg>Nenhuma vacina cadastrada ainda.</div>`;
@@ -1229,39 +1418,42 @@ function buildVacinas(){
 function getBanhos(){ return lsGet('banhos', []); }
 function saveBanhos(list){ lsSet('banhos', list); }
 
-function saveBanho(ev){
-  ev.preventDefault();
+function saveBanhoFields(){
+  const nome = document.getElementById('banho-nome').value.trim();
+  if(!nome){ alert('Preencha o nome.'); return false; }
+  const data = document.getElementById('banho-data').value;
+  if(!data){ alert('Preencha a data.'); return false; }
   const id = document.getElementById('banho-id').value || uid();
   const item = {
     id,
-    perfil: document.getElementById('banho-perfil').value || 'caique',
-    nome: document.getElementById('banho-nome').value.trim(),
-    data: document.getElementById('banho-data').value,
+    perfil: unifiedPerfil,
+    nome,
+    data,
     proxima: document.getElementById('banho-proxima').value,
     local: document.getElementById('banho-local').value.trim(),
-    obs: document.getElementById('banho-obs').value.trim()
+    obs: document.getElementById('banho-obs').value.trim(),
+    anexos: (formAnexos.banho||[]).slice()
   };
   let list = getBanhos();
   const idx = list.findIndex(x=>x.id===id);
   if(idx>=0) list[idx]=item; else list.push(item);
   saveBanhos(list);
   fbWrite('banhos', list);
-  toggleForm('banho');
-  renderAll();
-  return false;
+  return true;
 }
-function editBanho(id){
+function editBanhoFields(id){
   const item = getBanhos().find(x=>x.id===id);
   if(!item) return;
-  document.getElementById('form-banho').style.display='block';
   document.getElementById('banho-id').value = item.id;
-  document.getElementById('banho-perfil').value = item.perfil || 'caique';
+  unifiedPerfil = item.perfil || 'caique';
+  buildUnifiedProfileRow();
   document.getElementById('banho-nome').value = item.nome;
   document.getElementById('banho-data').value = item.data;
   document.getElementById('banho-proxima').value = item.proxima || '';
   document.getElementById('banho-local').value = item.local;
   document.getElementById('banho-obs').value = item.obs;
-  document.getElementById('form-banho').scrollIntoView({behavior:'smooth', block:'center'});
+  formAnexos.banho = (item.anexos||[]).slice();
+  renderAnexosList('banho');
 }
 function removeBanho(id){
   if(!confirm('Remover este registro?')) return;
@@ -1285,11 +1477,18 @@ function buildBanhos(){
           ${x.proxima ? `<span class="badge ${atrasado?'warn':(proximo?'pending':'')}">${atrasado?'Próximo atrasado':'Próximo'}: ${fmtDate(x.proxima)}</span>` : ''}
         </div>
         <div class="item-actions">
-          <button class="icon-btn" onclick="editBanho('${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
+          <button class="icon-btn" onclick="editUnified('banho','${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
           <button class="icon-btn danger" onclick="removeBanho('${x.id}')"><svg class="icon"><use href="#i-trash"/></svg></button>
         </div>
       </div>
       ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
+      ${x.anexos && x.anexos.length ? `<div class="anexo-list">${x.anexos.map(a=>`
+        <button type="button" class="anexo-chip" onclick="openAnexo('${a.id}')">
+          <svg class="icon"><use href="#${anexoIcon(a.tipo)}"/></svg>
+          <span class="name">${escapeHtml(a.nome)}</span>
+          <span class="size">${fmtBytes(a.tamanho)}</span>
+        </button>
+      `).join('')}</div>` : ''}
     </div>
   `;}).join('');
   document.getElementById('banhos-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-droplet"/></svg>Nenhum banho ou tosa registrado ainda.</div>`;
@@ -1308,35 +1507,35 @@ function isRemedioAtivo(x){
   return true;
 }
 
-function saveRemedio(ev){
-  ev.preventDefault();
+function saveRemedioFields(){
+  const nome = document.getElementById('remedio-nome').value.trim();
+  if(!nome){ alert('Preencha o nome do remédio.'); return false; }
   const id = document.getElementById('remedio-id').value || uid();
   const item = {
     id,
-    perfil: document.getElementById('remedio-perfil').value || 'caique',
-    nome: document.getElementById('remedio-nome').value.trim(),
+    perfil: unifiedPerfil,
+    nome,
     dosagem: document.getElementById('remedio-dosagem').value.trim(),
     horarios: document.getElementById('remedio-horarios').value.trim(),
     inicio: document.getElementById('remedio-inicio').value,
     fim: document.getElementById('remedio-fim').value,
     continuo: document.getElementById('remedio-continuo').checked,
-    obs: document.getElementById('remedio-obs').value.trim()
+    obs: document.getElementById('remedio-obs').value.trim(),
+    anexos: (formAnexos.remedio||[]).slice()
   };
   let list = getRemedios();
   const idx = list.findIndex(x=>x.id===id);
   if(idx>=0) list[idx]=item; else list.push(item);
   saveRemedios(list);
   fbWrite('remedios', list);
-  toggleForm('remedio');
-  renderAll();
-  return false;
+  return true;
 }
-function editRemedio(id){
+function editRemedioFields(id){
   const item = getRemedios().find(x=>x.id===id);
   if(!item) return;
-  document.getElementById('form-remedio').style.display='block';
   document.getElementById('remedio-id').value = item.id;
-  document.getElementById('remedio-perfil').value = item.perfil || 'caique';
+  unifiedPerfil = item.perfil || 'caique';
+  buildUnifiedProfileRow();
   document.getElementById('remedio-nome').value = item.nome;
   document.getElementById('remedio-dosagem').value = item.dosagem;
   document.getElementById('remedio-horarios').value = item.horarios;
@@ -1344,7 +1543,8 @@ function editRemedio(id){
   document.getElementById('remedio-fim').value = item.fim || '';
   document.getElementById('remedio-continuo').checked = !!item.continuo;
   document.getElementById('remedio-obs').value = item.obs;
-  document.getElementById('form-remedio').scrollIntoView({behavior:'smooth', block:'center'});
+  formAnexos.remedio = (item.anexos||[]).slice();
+  renderAnexosList('remedio');
 }
 function removeRemedio(id){
   if(!confirm('Remover este remédio?')) return;
@@ -1376,11 +1576,18 @@ function buildRemedios(){
           <span class="badge ${ativo?'':'warn'}">${ativo?'Ativo':'Encerrado'}</span>
         </div>
         <div class="item-actions">
-          <button class="icon-btn" onclick="editRemedio('${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
+          <button class="icon-btn" onclick="editUnified('remedio','${x.id}')"><svg class="icon"><use href="#i-pencil"/></svg></button>
           <button class="icon-btn danger" onclick="removeRemedio('${x.id}')"><svg class="icon"><use href="#i-trash"/></svg></button>
         </div>
       </div>
       ${x.obs ? `<div class="item-notes">${escapeHtml(x.obs)}</div>` : ''}
+      ${x.anexos && x.anexos.length ? `<div class="anexo-list">${x.anexos.map(a=>`
+        <button type="button" class="anexo-chip" onclick="openAnexo('${a.id}')">
+          <svg class="icon"><use href="#${anexoIcon(a.tipo)}"/></svg>
+          <span class="name">${escapeHtml(a.nome)}</span>
+          <span class="size">${fmtBytes(a.tamanho)}</span>
+        </button>
+      `).join('')}</div>` : ''}
     </div>
   `;}).join('');
   document.getElementById('remedios-list').innerHTML = html || `<div class="empty-state"><svg class="icon"><use href="#i-capsule"/></svg>Nenhum remédio cadastrado ainda.</div>`;
@@ -1394,9 +1601,12 @@ function getTakenToday(){
 function toggleTaken(remedioId){
   const key = 'taken-'+todayISO();
   let taken = lsGet(key, []);
-  if(taken.includes(remedioId)) taken = taken.filter(id=>id!==remedioId);
+  const wasTaken = taken.includes(remedioId);
+  if(wasTaken) taken = taken.filter(id=>id!==remedioId);
   else taken.push(remedioId);
   lsSet(key, taken);
+  fbWrite('remedioTomados/'+todayISO(), taken);
+  if(!wasTaken) notifyRemedioDado(remedioId); // só avisa quando MARCA como dado, não ao desmarcar
   renderAll();
 }
 function buildMedsToday(){
@@ -1451,7 +1661,9 @@ function getCalendarEvents(){
   }
   getExames().forEach(x=>{
     const quem = profileLabel(x.perfil||'caique');
-    if(x.data) push(x.data, 'i-flask', x.nome, x.status==='agendado'?'Agendado':'Realizado', quem);
+    const icon = x.categoria==='consulta' ? 'i-user' : 'i-flask';
+    const subLabel = {a_agendar:'A agendar', agendado:'Agendado', realizado:'Realizado'}[x.status] || '';
+    if(x.data) push(x.data, icon, x.nome, subLabel, quem);
   });
   getVacinas().forEach(x=>{
     const quem = profileLabel(x.perfil||'caique');
@@ -1515,10 +1727,11 @@ function buildDashboard(){
   const alerts = [];
   exames.forEach(x=>{
     const quem = profileLabel(x.perfil||'caique');
-    if(x.status==='a_agendar') alerts.push({type:'info', icon:'i-flask', title:`${x.nome} · ${quem}`, sub:'Falta agendar'});
+    const icon = x.categoria==='consulta' ? 'i-user' : 'i-flask';
+    if(x.status==='a_agendar') alerts.push({type:'info', icon, title:`${x.nome} · ${quem}`, sub:'Falta agendar'});
     if(x.status==='agendado' && x.data){
       const d = daysDiff(x.data);
-      if(d>=0 && d<=7) alerts.push({type:'info', icon:'i-flask', title:`${x.nome} · ${quem}`, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.data)}`});
+      if(d>=0 && d<=7) alerts.push({type:'info', icon, title:`${x.nome} · ${quem}`, sub: d===0?'Hoje':`Em ${d} dia${d===1?'':'s'} · ${fmtDate(x.data)}`});
     }
     if(x.resultado==='aguardando' && x.status==='realizado') alerts.push({type:'warn', icon:'i-hourglass', title:`${x.nome} · ${quem}`, sub:'Aguardando resultado'});
   });
@@ -1612,6 +1825,7 @@ function buildAjustes(){
   const total = getExames().length + getVacinas().length + getRemedios().length + getBanhos().length;
   document.getElementById('storage-count').textContent = `${total} registro${total===1?'':'s'}`;
   buildPetForm();
+  buildOwnerNameField();
   buildNotifStatus();
 }
 

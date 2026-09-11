@@ -7,7 +7,7 @@
 import webpush from 'web-push';
 
 const FB = 'https://viagem-noronha-default-rtdb.firebaseio.com/caique-saude';
-const VAPID_PUBLIC_KEY = 'BER0vae7p2lF8R0KFbNhfdf3QGpCxgj59I_ENu9zma1J9kJJACBMv-ed2kdZAIRe4qyD3rpo0NItDzxuDEhavQ0';
+const VAPID_PUBLIC_KEY = 'BPKWtjKRdZgx2eBzyUc4viVT9pZGdfxY3JTK4nG5hEQYTb4Bo2dcCd790-Nq-b2Nto1IJ9td7QagjUEt9ch7AX4';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 const VAPID_SUBJECT = 'https://github.com/leticiapprz/viagem-noronha';
 
@@ -61,13 +61,14 @@ async function main() {
 
   exames.forEach((x) => {
     const quem = profileLabel(x.perfil, pet);
+    const tipoLabel = x.categoria === 'consulta' ? 'Consulta' : 'Exame';
     if (x.status === 'a_agendar') {
       pending.push({ key: `exame:${x.id}:precisa-agendar`, title: `Falta agendar: ${x.nome} · ${quem}`, body: 'Ainda sem data marcada.' });
     }
     if (x.status === 'agendado' && x.data) {
       const d = daysDiff(x.data);
       if (d >= 0 && d <= 7) {
-        pending.push({ key: `exame:${x.id}:soon`, title: `Exame: ${x.nome} · ${quem}`, body: d === 0 ? 'É hoje.' : `Em ${d} dia${d === 1 ? '' : 's'} (${fmtDate(x.data)}).` });
+        pending.push({ key: `exame:${x.id}:soon`, title: `${tipoLabel}: ${x.nome} · ${quem}`, body: d === 0 ? 'É hoje.' : `Em ${d} dia${d === 1 ? '' : 's'} (${fmtDate(x.data)}).` });
       }
     }
     if (x.resultado === 'aguardando' && x.status === 'realizado') {
@@ -130,8 +131,10 @@ async function main() {
     const payload = JSON.stringify({ title: item.title, body: item.body, url: './index.html', tag: item.key });
     let sentToAny = subIds.length === 0; // se não há inscritos, marca como "notificado" mesmo assim (evita reprocessar pra sempre)
     for (const subId of subIds) {
+      const raw = subscriptions[subId];
+      const sub = raw && raw.subscription ? raw.subscription : raw; // formato novo {subscription, owner} ou antigo (subscription crua)
       try {
-        await webpush.sendNotification(subscriptions[subId], payload);
+        await webpush.sendNotification(sub, payload);
         sentToAny = true;
       } catch (err) {
         const status = err && err.statusCode;

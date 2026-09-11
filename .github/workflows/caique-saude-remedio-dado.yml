@@ -1,0 +1,24 @@
+name: Saúde do Caique — remédio dado (instantâneo)
+
+on:
+  repository_dispatch:
+    types: [remedio-dado]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: caique-saude/scripts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: node notify-remedio-dado.mjs
+        env:
+          VAPID_PRIVATE_KEY: ${{ secrets.CAIQUE_SAUDE_VAPID_PRIVATE_KEY }}
+          REMEDIO_NOME: ${{ github.event.client_payload.nome }}
+          REMEDIO_QUEM: ${{ github.event.client_payload.quem }}
+          REMEDIO_BY: ${{ github.event.client_payload.by }}
